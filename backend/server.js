@@ -5,15 +5,33 @@ const hotelsRoute = require("./routes/hotels");
 const restaurantsRoute = require("./routes/restaurants");
 const toursRoute = require("./routes/tours");
 const adminRoute = require("./routes/admin");
-const { PORT, CLIENT_ORIGIN } = require("./config/env");
+const { PORT } = require("./config/env");
 
 const app = express();
 
-app.use(
-  cors({
-    origin: CLIENT_ORIGIN,
-  })
-);
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:3000",
+  "http://localhost:5173",
+].filter(Boolean);
+
+const corsOptions = {
+  origin(origin, callback) {
+    // allow non-browser/server-to-server requests with no origin
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.warn("[CORS] Blocked origin:", origin);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 app.use(express.json());
 

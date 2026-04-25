@@ -62,7 +62,14 @@ For Netlify production, set:
 REACT_APP_API_BASE_URL=https://your-backend-domain.com
 ```
 
+For Render production, set:
+
+```text
+FRONTEND_URL=https://atwgeo.netlify.app
+```
+
 After changing Netlify environment variables, trigger a new deploy/build.
+After changing Render environment variables, redeploy the backend service.
 
 ## Security
 
