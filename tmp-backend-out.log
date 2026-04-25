@@ -1,0 +1,92 @@
+◇ injected env (3) from backend\.env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+Server running on port 5053
+[SkyScrapper] searchAirport response {
+  endpoint: 'searchAirport',
+  query: 'IST',
+  locale: 'en-US',
+  attempt: 1,
+  status: true,
+  blocked: false,
+  transient: false,
+  resultCount: 5,
+  message: undefined,
+  error: undefined
+}
+[SkyScrapper] searchAirport response {
+  endpoint: 'searchAirport',
+  query: 'TBS',
+  locale: 'en-US',
+  attempt: 2,
+  status: true,
+  blocked: false,
+  transient: false,
+  resultCount: 1,
+  message: undefined,
+  error: undefined
+}
+[Tripadvisor] searchLocation response {
+  endpoint: 'hotels/searchLocation',
+  query: 'Rome',
+  status: true,
+  resultCount: 3,
+  message: 'Success',
+  error: undefined
+}
+[Tripadvisor] searchHotels response {
+  endpoint: 'hotels/searchHotels',
+  city: 'Rome',
+  checkIn: '2026-05-01',
+  checkOut: '2026-05-05',
+  geoId: 187791,
+  status: true,
+  providerCount: 37,
+  normalizedCount: 37,
+  imageCount: 37,
+  message: 'Success',
+  error: undefined
+}
+[Tripadvisor] searchLocation response {
+  endpoint: 'hotels/searchLocation',
+  query: 'Tbilisi',
+  status: true,
+  resultCount: 1,
+  message: 'Success',
+  error: undefined
+}
+[Tripadvisor] searchHotels response {
+  endpoint: 'hotels/searchHotels',
+  city: 'Tbilisi',
+  checkIn: '2026-05-01',
+  checkOut: '2026-05-05',
+  geoId: 294195,
+  status: true,
+  providerCount: 37,
+  normalizedCount: 37,
+  imageCount: 37,
+  message: 'Success',
+  error: undefined
+}
+[Tripadvisor] searchRestaurants response {
+  endpoint: 'restaurant/searchRestaurants',
+  city: 'Rome',
+  page: 1,
+  locationId: 187791,
+  status: true,
+  providerCount: 35,
+  normalizedCount: 35,
+  imageCount: 35,
+  message: 'Success',
+  error: undefined
+}
+[Tripadvisor] searchRestaurants response {
+  endpoint: 'restaurant/searchRestaurants',
+  city: 'Tbilisi',
+  page: 1,
+  locationId: 294195,
+  status: true,
+  providerCount: 34,
+  normalizedCount: 34,
+  imageCount: 34,
+  message: 'Success',
+  error: undefined
+}

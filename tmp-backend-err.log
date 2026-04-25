@@ -1,0 +1,156 @@
+[SkyScrapper] searchAirport response {
+  endpoint: 'searchAirport',
+  query: 'TBS',
+  locale: 'en-US',
+  attempt: 1,
+  status: false,
+  blocked: true,
+  transient: false,
+  resultCount: 0,
+  message: {
+    action: 'captcha',
+    uuid: '79355fb0-3bb0-11ef-bc55-4d22961ad7f2',
+    vid: '8c295e09-3337-11ef-8e77-5120846900d9',
+    appId: 'PXrf8vapwA',
+    collectorUrl: 'https://collector-PXrf8vapwA.perimeterx.net'
+  },
+  error: undefined
+}
+[SkyScrapper] searchFlights response {
+  endpoint: 'searchFlights',
+  params: {
+    originSkyId: 'TBS',
+    destinationSkyId: 'IST',
+    originEntityId: '95673524',
+    destinationEntityId: '95673323',
+    date: '2026-05-01',
+    adults: 1,
+    cabinClass: 'economy',
+    sortBy: 'best',
+    currency: 'USD',
+    countryCode: 'US'
+  },
+  attempt: 1,
+  status: false,
+  blocked: true,
+  transient: false,
+  resultCount: 0,
+  message: {
+    action: 'captcha',
+    uuid: '5cc755be-5e64-11ef-ab40-739128bbd869',
+    vid: '8c295e09-3337-11ef-8e77-5120846900d9',
+    appId: 'PXrf8vapwA',
+    collectorUrl: 'https://collector-PXrf8vapwA.perimeterx.net'
+  },
+  error: undefined
+}
+[SkyScrapper] searchFlights response {
+  endpoint: 'searchFlights',
+  params: {
+    originSkyId: 'TBS',
+    destinationSkyId: 'IST',
+    originEntityId: '95673524',
+    destinationEntityId: '95673323',
+    date: '2026-05-01',
+    adults: 1,
+    cabinClass: 'economy',
+    sortBy: 'best',
+    currency: 'USD',
+    countryCode: 'US'
+  },
+  attempt: 2,
+  status: false,
+  blocked: true,
+  transient: false,
+  resultCount: 0,
+  message: {
+    action: 'captcha',
+    uuid: '85a0917e-3337-11ef-af91-1b4ea835f985',
+    vid: '8c295e09-3337-11ef-8e77-5120846900d9',
+    appId: 'PXrf8vapwA',
+    collectorUrl: 'https://collector-PXrf8vapwA.perimeterx.net'
+  },
+  error: undefined
+}
+[SkyScrapper] searchFlights error {
+  endpoint: 'searchFlights',
+  params: {
+    originSkyId: 'TBS',
+    destinationSkyId: 'IST',
+    originEntityId: '95673524',
+    destinationEntityId: '95673323',
+    date: '2026-05-01',
+    adults: 1,
+    cabinClass: 'economy',
+    sortBy: 'best',
+    currency: 'USD',
+    countryCode: 'US'
+  },
+  attempt: 2,
+  status: undefined,
+  blocked: true,
+  transient: false,
+  message: 'Too many requests. Please wait and try again.',
+  error: undefined
+}
+[SkyScrapper] searchAirport response {
+  endpoint: 'searchAirport',
+  query: 'DXB',
+  locale: 'en-US',
+  attempt: 1,
+  status: false,
+  blocked: true,
+  transient: false,
+  resultCount: 0,
+  message: {
+    action: 'captcha',
+    uuid: '79355fb0-3bb0-11ef-bc55-4d22961ad7f2',
+    vid: '8c295e09-3337-11ef-8e77-5120846900d9',
+    appId: 'PXrf8vapwA',
+    collectorUrl: 'https://collector-PXrf8vapwA.perimeterx.net'
+  },
+  error: undefined
+}
+[SkyScrapper] searchAirport response {
+  endpoint: 'searchAirport',
+  query: 'DXB',
+  locale: 'en-US',
+  attempt: 2,
+  status: false,
+  blocked: true,
+  transient: false,
+  resultCount: 0,
+  message: {
+    action: 'captcha',
+    uuid: '5cc755be-5e64-11ef-ab40-739128bbd869',
+    vid: '8c295e09-3337-11ef-8e77-5120846900d9',
+    appId: 'PXrf8vapwA',
+    collectorUrl: 'https://collector-PXrf8vapwA.perimeterx.net'
+  },
+  error: undefined
+}
+[SkyScrapper] searchAirport error {
+  endpoint: 'searchAirport',
+  query: 'DXB',
+  locale: 'en-US',
+  attempt: 2,
+  status: undefined,
+  blocked: true,
+  transient: false,
+  message: 'Too many requests. Please wait and try again.',
+  error: undefined
+}
+[Tripadvisor] searchLocation resolved { query: 'Rome', geoId: 187791, title: '<b>Rome</b>', type: 'CITY' }
+[Tripadvisor] searchLocation resolved {
+  query: 'Tbilisi',
+  geoId: 294195,
+  title: '<b>Tbilisi</b>',
+  type: 'CITY'
+}
+[Tripadvisor] searchLocation resolved { query: 'Rome', geoId: 187791, title: '<b>Rome</b>', type: 'CITY' }
+[Tripadvisor] searchLocation resolved {
+  query: 'Tbilisi',
+  geoId: 294195,
+  title: '<b>Tbilisi</b>',
+  type: 'CITY'
+}
