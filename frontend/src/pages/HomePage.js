@@ -236,7 +236,7 @@ export default function HomePage() {
 
                 <div className="mt-4 flex flex-col gap-3 px-1 text-left md:flex-row md:items-center md:justify-between">
                   <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                    <label className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-200">
+                    <label className="flex items-center gap-3 text-sm font-medium text-white dark:text-slate-200">
                       <input
                         type="checkbox"
                         name="isHuman"
@@ -255,13 +255,13 @@ export default function HomePage() {
                       {t("home.search.humanCheck")}
                     </label>
 
-                    <p className="text-sm text-slate-700 dark:text-slate-300">
+                    <p className="text-sm text-slate-700 text-white dark:text-slate-200">
                       {t("home.search.helper")}
                     </p>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
+                    <span className="text-xs font-semibold uppercase tracking-[0.24em] text-white dark:text-slate-200">
                       {t("common.popularDestinations")}
                     </span>
                     {QUICK_DESTINATIONS.map((code) => {
