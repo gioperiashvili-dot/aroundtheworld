@@ -4,7 +4,7 @@ export const contactDetails = {
   facebook: "https://www.facebook.com/profile.php?id=61577765184535",
   instagram: "https://www.instagram.com/AroundTheWorld",
   whatsapp: "+995 595 47 55 33",
-  gmail: "atw.aroundtheworld2024@gmail.com",
+  gmail: "info@aroundworld.ge",
 };
 
 export function getPhoneHref(phone = contactDetails.phone) {
