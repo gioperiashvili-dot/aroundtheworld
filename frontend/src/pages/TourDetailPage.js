@@ -5,7 +5,7 @@ import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
 import TourDescription from "../components/TourDescription";
 import TravelImage from "../components/TravelImage";
-import backgroundThree from "../assets/background/background-3.webp";
+import backgroundOne from "../assets/background/background-1.webp";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 import { fetchTourById } from "../lib/api";
 import {
@@ -51,7 +51,7 @@ export default function TourDetailPage() {
 
   return (
     <PublicPageShell
-      backgroundImage={backgroundThree}
+      backgroundImage={backgroundOne}
       eyebrow={t("tours.detailLabel")}
       title={title || t("tours.heading")}
       description={destination || t("tours.heroDescription")}

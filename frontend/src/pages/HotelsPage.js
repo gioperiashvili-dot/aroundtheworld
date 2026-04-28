@@ -5,7 +5,7 @@ import EmptyState from "../components/EmptyState";
 import HotelCard from "../components/HotelCard";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
-import backgroundThree from "../assets/background/background-3.webp";
+import backgroundOne from "../assets/background/background-1.webp";
 import {
   findLocation,
   getCitySearchValue,
@@ -160,7 +160,7 @@ export default function HotelsPage() {
 
   return (
     <PublicPageShell
-      backgroundImage={backgroundThree}
+      backgroundImage={backgroundOne}
       eyebrow={heroContent.eyebrow}
       title={heroContent.title}
       description={t("hotels.heroDescription")}
