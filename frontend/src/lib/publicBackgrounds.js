@@ -1,11 +1,10 @@
 import backgroundOne from "../assets/background/background-1.jpg";
 import backgroundTwo from "../assets/background/background-2.jpg";
-import backgroundThree from "../assets/background/background-3.jpg";
+// import backgroundThree from "../assets/background/background-3.jpg";
 
 export const PUBLIC_BACKGROUND_IMAGES = [
   backgroundOne,
   backgroundTwo,
-  backgroundThree,
 ];
 
 export const PUBLIC_BACKGROUND_SLIDES = PUBLIC_BACKGROUND_IMAGES.map((image, index) => ({
