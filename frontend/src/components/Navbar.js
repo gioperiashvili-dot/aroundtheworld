@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import TourSearchModal from "./TourSearchModal";
-import logoMain from "../assets/AroundTheWorld_Logo_Main.png";
+import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE.png";
 import { useLanguage } from "../i18n/LanguageContext";
 import { useTheme } from "../theme/ThemeContext";
 
@@ -34,6 +34,8 @@ export default function Navbar({ variant = "page" }) {
       { to: "/flights", label: t("nav.flights") },
       { to: "/hotels", label: t("nav.hotels") },
       { to: "/restaurants", label: t("nav.restaurants") },
+      { to: "/visa-services", label: t("nav.visaServices") },
+      { to: "/#about", label: t("nav.about"), hashOnly: true },
       { to: "/contact", label: t("nav.contact") },
     ],
     [t]
@@ -41,7 +43,7 @@ export default function Navbar({ variant = "page" }) {
 
   useEffect(() => {
     setIsMenuOpen(false);
-  }, [location.pathname, location.search, variant]);
+  }, [location.hash, location.pathname, location.search, variant]);
 
   const navContainerClassName = isHomeVariant
     ? "rounded-[2rem] border border-white/12 bg-black/12 px-5 py-4 shadow-[0_25px_90px_-55px_rgba(15,23,42,0.95)] backdrop-blur-xl"
@@ -53,79 +55,89 @@ export default function Navbar({ variant = "page" }) {
 
   return (
     <nav className={`sticky top-4 z-30 w-full ${navContainerClassName}`}>
-      <div className="flex min-w-0 items-center justify-between gap-3 lg:gap-4">
-        <Link to="/" className="flex min-w-0 flex-shrink-0 items-center gap-3 text-left">
-          <span className="flex h-12 items-center rounded-2xl bg-white/14 px-2.5 shadow-lg shadow-cyan-950/30 backdrop-blur">
-            <img
-              src={logoMain}
-              alt="Around The World"
-              className="h-8 w-auto object-contain sm:h-9"
+      <div className="hidden flex-col gap-4 xl:flex">
+        <div className="flex min-w-0 items-center justify-between gap-5">
+          <BrandLink navSubtitle={navSubtitle} />
+
+          <div className="flex min-w-0 flex-shrink-0 items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(true)}
+              className="flex-shrink-0 rounded-full bg-[#ff5a5f] p-3 text-white transition hover:bg-[#ff4a50]"
+              aria-label={t("nav.searchTours")}
+              title={t("nav.searchTours")}
+            >
+              <SearchIcon className="h-4 w-4" />
+            </button>
+
+            <Controls
+              language={language}
+              setLanguage={setLanguage}
+              theme={theme}
+              toggleTheme={toggleTheme}
+              t={t}
             />
-          </span>
-          <span className="hidden min-w-0 lg:block">
-            <span className="[font-family:var(--font-display)] block truncate text-xl font-bold text-white 2xl:text-2xl">
-              Around The World
-            </span>
-            {navSubtitle ? (
-              <span className="hidden truncate text-sm text-white/70 2xl:block">
-                {navSubtitle}
-              </span>
-            ) : null}
-          </span>
-        </Link>
-
-        <div className="hidden min-w-0 flex-shrink items-center justify-end gap-2 xl:flex 2xl:gap-3">
-          <div className="flex min-w-0 flex-nowrap items-center gap-1.5 whitespace-nowrap 2xl:gap-2">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  `whitespace-nowrap rounded-full px-3 py-2 text-[13px] font-semibold transition 2xl:px-4 2xl:text-sm ${
-                    isActive
-                      ? "bg-white text-slate-950 shadow-lg"
-                      : isHomeVariant
-                        ? "text-white/84 hover:bg-white/10 hover:text-white"
-                        : "bg-white/10 text-white/80 hover:bg-white/18 hover:text-white"
-                  }`
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))}
           </div>
-
-          <button
-            type="button"
-            onClick={() => setIsSearchOpen(true)}
-            className="flex-shrink-0 rounded-full bg-[#ff5a5f] p-3 text-white transition hover:bg-[#ff4a50]"
-            aria-label={t("nav.searchTours")}
-            title={t("nav.searchTours")}
-          >
-            <SearchIcon className="h-4 w-4" />
-          </button>
-
-          <Controls
-            language={language}
-            setLanguage={setLanguage}
-            theme={theme}
-            toggleTheme={toggleTheme}
-            t={t}
-          />
         </div>
 
-        <div className="flex items-center gap-2 xl:hidden">
-          <button
-            type="button"
-            onClick={() => setIsSearchOpen(true)}
-            className="rounded-full border border-white/15 bg-white/8 p-3 text-white transition hover:bg-white/14"
-            aria-label={t("nav.searchTours")}
-            title={t("nav.searchTours")}
-          >
-            <SearchIcon className="h-5 w-5" />
-          </button>
+        <div className="border-t border-white/12 pt-4">
+          <div className="flex min-w-0 flex-wrap items-center justify-center gap-2 2xl:gap-3">
+            {navItems.map((item) => (
+              <HeaderNavLink
+                key={item.to}
+                item={item}
+                location={location}
+                isHomeVariant={isHomeVariant}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
 
+      <div className="xl:hidden">
+        <div className="flex min-w-0 items-center justify-between gap-3">
+          <BrandLink navSubtitle={navSubtitle} compact />
+
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(true)}
+              className="rounded-full border border-white/15 bg-white/8 p-3 text-white transition hover:bg-white/14"
+              aria-label={t("nav.searchTours")}
+              title={t("nav.searchTours")}
+            >
+              <SearchIcon className="h-5 w-5" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen((currentState) => !currentState)}
+              className="rounded-full border border-white/15 bg-white/8 p-3 text-white transition hover:bg-white/14"
+              aria-label={isMenuOpen ? t("nav.closeMenu") : t("nav.openMenu")}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                className="h-5 w-5"
+                aria-hidden="true"
+              >
+                {isMenuOpen ? (
+                  <path d="M6 6l12 12M18 6L6 18" />
+                ) : (
+                  <>
+                    <path d="M4 7h16" />
+                    <path d="M4 12h16" />
+                    <path d="M4 17h16" />
+                  </>
+                )}
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-3 flex justify-end">
           <Controls
             language={language}
             setLanguage={setLanguage}
@@ -134,32 +146,6 @@ export default function Navbar({ variant = "page" }) {
             t={t}
             compact
           />
-
-          <button
-            type="button"
-            onClick={() => setIsMenuOpen((currentState) => !currentState)}
-            className="rounded-full border border-white/15 bg-white/8 p-3 text-white transition hover:bg-white/14"
-            aria-label={isMenuOpen ? t("nav.closeMenu") : t("nav.openMenu")}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              className="h-5 w-5"
-              aria-hidden="true"
-            >
-              {isMenuOpen ? (
-                <path d="M6 6l12 12M18 6L6 18" />
-              ) : (
-                <>
-                  <path d="M4 7h16" />
-                  <path d="M4 12h16" />
-                  <path d="M4 17h16" />
-                </>
-              )}
-            </svg>
-          </button>
         </div>
       </div>
 
@@ -169,20 +155,13 @@ export default function Navbar({ variant = "page" }) {
         >
           <div className="grid gap-2">
             {navItems.map((item) => (
-              <NavLink
+              <HeaderNavLink
                 key={item.to}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  `rounded-2xl px-4 py-3 text-left text-sm font-semibold transition ${
-                    isActive
-                      ? "bg-white text-slate-950"
-                      : "bg-white/8 text-white/84 hover:bg-white/12 hover:text-white"
-                  }`
-                }
-              >
-                {item.label}
-              </NavLink>
+                item={item}
+                location={location}
+                isHomeVariant={isHomeVariant}
+                mobile
+              />
             ))}
           </div>
         </div>
@@ -191,6 +170,86 @@ export default function Navbar({ variant = "page" }) {
       <TourSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </nav>
   );
+}
+
+function BrandLink({ compact = false, navSubtitle }) {
+  return (
+    <Link to="/" className="flex min-w-0 flex-shrink-0 items-center gap-3 text-left">
+      <span
+        className={`flex items-center rounded-2xl bg-white/14 px-2.5 shadow-lg shadow-cyan-950/30 backdrop-blur ${
+          compact ? "h-11" : "h-12"
+        }`}
+      >
+        <img
+          src={logoMain}
+          alt="Around The World"
+          className={`w-auto object-contain ${compact ? "h-12 sm:h-14" : "h-14"}`}
+        />
+      </span>
+      <span className="hidden min-w-0 sm:block">
+        <span className="[font-family:var(--font-display)] block truncate text-lg font-bold text-white 2xl:text-2xl">
+          Around The World
+        </span>
+        {navSubtitle ? (
+          <span className="hidden truncate text-sm text-white/84 2xl:block">
+            {navSubtitle}
+          </span>
+        ) : null}
+      </span>
+    </Link>
+  );
+}
+
+function HeaderNavLink({ item, location, isHomeVariant, mobile = false }) {
+  const isHashActive =
+    item.hashOnly && location.pathname === "/" && location.hash === "#about";
+
+  if (item.hashOnly) {
+    return (
+      <Link
+        to={item.to}
+        className={
+          mobile
+            ? getMobileNavLinkClass(isHashActive)
+            : getDesktopNavLinkClass(isHashActive, isHomeVariant)
+        }
+      >
+        {item.label}
+      </Link>
+    );
+  }
+
+  return (
+    <NavLink
+      to={item.to}
+      end={item.end}
+      className={({ isActive }) =>
+        mobile
+          ? getMobileNavLinkClass(isActive)
+          : getDesktopNavLinkClass(isActive, isHomeVariant)
+      }
+    >
+      {item.label}
+    </NavLink>
+  );
+}
+
+function getDesktopNavLinkClass(isActive, isHomeVariant) {
+  return `whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-semibold transition ${
+    isActive
+      ? "bg-white text-slate-950 shadow-lg"
+      : isHomeVariant
+        ? "text-white/84 hover:bg-white/10 hover:text-white"
+        : "bg-white/10 text-white/80 hover:bg-white/18 hover:text-white"
+  }`;
+}
+
+function getMobileNavLinkClass(isActive) {
+  return `rounded-2xl px-4 py-3 text-left text-sm font-semibold transition ${
+    isActive
+      ? "bg-white text-slate-950"
+      : "bg-white/8 text-white/84 hover:bg-white/12 hover:text-white"
+  }`;
 }
 
 function Controls({ compact = false, language, setLanguage, theme, toggleTheme, t }) {

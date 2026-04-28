@@ -109,7 +109,7 @@ export default function TravelImage({
             <p className="[font-family:var(--font-display)] text-2xl font-semibold leading-tight">
               {title || t("image.fallbackTitle")}
             </p>
-            <p className="mt-2 max-w-xs text-sm text-white/82">
+            <p className="mt-2 max-w-xs text-sm text-white/90">
               {subtitle || t("image.fallbackSubtitle")}
             </p>
           </div>

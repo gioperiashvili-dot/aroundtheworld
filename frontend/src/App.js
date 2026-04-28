@@ -7,6 +7,7 @@ import HotelsPage from "./pages/HotelsPage";
 import RestaurantsPage from "./pages/RestaurantsPage";
 import TourDetailPage from "./pages/TourDetailPage";
 import ToursPage from "./pages/ToursPage";
+import VisaServicesPage from "./pages/VisaServicesPage";
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
       <Route path="/flights" element={<FlightsPage />} />
       <Route path="/hotels" element={<HotelsPage />} />
       <Route path="/restaurants" element={<RestaurantsPage />} />
+      <Route path="/visa-services" element={<VisaServicesPage />} />
       <Route path="/tours" element={<ToursPage />} />
       <Route path="/tours/:id" element={<TourDetailPage />} />
       <Route path="/contact" element={<ContactPage />} />

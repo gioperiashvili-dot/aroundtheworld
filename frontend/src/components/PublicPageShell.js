@@ -67,7 +67,7 @@ export default function PublicPageShell({
           >
             <div className="max-w-4xl space-y-5 pb-2">
               {eyebrow ? (
-                <p className="inline-flex rounded-full border border-white/18 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.34em] text-white/82 backdrop-blur">
+                <p className="inline-flex rounded-full border border-white/18 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.34em] text-white/90 backdrop-blur">
                   {eyebrow}
                 </p>
               ) : null}
@@ -77,7 +77,7 @@ export default function PublicPageShell({
                 </h1>
               ) : null}
               {description ? (
-                <p className="max-w-3xl text-base leading-8 text-white/78 md:text-lg">
+                <p className="max-w-3xl text-base leading-8 text-white/88 md:text-lg">
                   {description}
                 </p>
               ) : null}
@@ -90,15 +90,15 @@ export default function PublicPageShell({
                 {highlights.map((highlight) => (
                   <article
                     key={highlight.label}
-                    className="rounded-[1.8rem] border border-white/14 bg-white/10 p-5 text-white shadow-[0_22px_80px_-54px_rgba(15,23,42,0.9)] backdrop-blur dark:border-white/10 dark:bg-white/5"
+                    className="rounded-[1.8rem] border border-white/70 bg-white/88 p-5 text-slate-900 shadow-[0_22px_80px_-54px_rgba(15,23,42,0.55)] backdrop-blur dark:border-white/10 dark:bg-white/5 dark:text-white dark:shadow-[0_22px_80px_-54px_rgba(15,23,42,0.9)]"
                   >
-                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/58">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-600 dark:text-white/58">
                       {highlight.label}
                     </p>
-                    <h2 className="mt-3 [font-family:var(--font-display)] text-2xl font-semibold text-white">
+                    <h2 className="mt-3 [font-family:var(--font-display)] text-2xl font-semibold text-slate-950 dark:text-white">
                       {highlight.value}
                     </h2>
-                    <p className="mt-3 text-sm leading-7 text-white/72">{highlight.text}</p>
+                    <p className="mt-3 text-sm leading-7 text-slate-700 dark:text-white/72">{highlight.text}</p>
                   </article>
                 ))}
               </div>

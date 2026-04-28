@@ -3,18 +3,23 @@ const { rapidApiGet } = require("./rapidapi");
 const { logProviderDiagnostic } = require("../utils/providerDiagnostics");
 
 const AIRPORT_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-const FLIGHT_CACHE_TTL_MS = 5 * 60 * 1000;
+const FLIGHT_CACHE_TTL_MS = 15 * 60 * 1000;
+const FLIGHT_NEGATIVE_CACHE_TTL_MS = 2 * 60 * 1000;
 const RETRY_DELAY_MIN_MS = 2000;
 const RETRY_DELAY_MAX_MS = 3000;
+const PROVIDER_LIMITED_CODE = "PROVIDER_LIMITED";
 
 const airportCache = new Map();
 const flightCache = new Map();
+const flightNegativeCache = new Map();
 const inFlightFlightRequests = new Map();
 const KNOWN_SKY_SCRAPPER_CODES = new Set([
+  PROVIDER_LIMITED_CODE,
   "BLOCKED_OR_CAPTCHA",
   "PROVIDER_UNAVAILABLE",
   "UNKNOWN_PROVIDER_ERROR",
   "VALIDATION_ERROR",
+  "SERVER_CONFIGURATION_ERROR",
 ]);
 
 function createSkyScrapperError(statusCode, error, details, code) {
@@ -53,6 +58,26 @@ function setCachedValue(cache, key, value, ttlMs) {
   return value;
 }
 
+function snapshotSkyScrapperError(error) {
+  return {
+    statusCode: error?.statusCode || error?.response?.status || 502,
+    message: error?.message || "Flight provider is temporarily unavailable.",
+    details: error?.details,
+    code: error?.code || "PROVIDER_UNAVAILABLE",
+  };
+}
+
+function restoreSkyScrapperError(snapshot) {
+  const restoredError = createSkyScrapperError(
+    snapshot.statusCode,
+    snapshot.message,
+    snapshot.details,
+    snapshot.code
+  );
+  restoredError.cached = true;
+  return restoredError;
+}
+
 function normalizeText(value) {
   return value?.trim().toLowerCase() || "";
 }
@@ -77,6 +102,17 @@ function stringifyProviderValue(value) {
   }
 }
 
+function looksLikeHtmlPayload(value) {
+  const normalizedValue = stringifyProviderValue(value).trim().toLowerCase();
+
+  return (
+    normalizedValue.startsWith("<!doctype html") ||
+    normalizedValue.startsWith("<html") ||
+    normalizedValue.includes("<body") ||
+    normalizedValue.includes("</html>")
+  );
+}
+
 function isBlockedMessage(value) {
   if (!value) {
     return false;
@@ -90,21 +126,38 @@ function isBlockedMessage(value) {
 
   return (
     normalizedValue.includes("captcha") ||
+    normalizedValue.includes("challenge") ||
     normalizedValue.includes("too many requests") ||
+    normalizedValue.includes("too many") ||
     normalizedValue.includes("rate limit") ||
+    normalizedValue.includes("quota") ||
+    normalizedValue.includes("limit exceeded") ||
+    normalizedValue.includes("usage limit") ||
+    normalizedValue.includes("request limit") ||
     normalizedValue.includes("temporarily blocked") ||
     normalizedValue.includes("request blocked") ||
     normalizedValue.includes("access denied") ||
+    normalizedValue.includes("forbidden") ||
     normalizedValue.includes("perimeterx") ||
     /\bblocked\b/.test(normalizedValue) ||
     normalizedValue.includes("bot challenge") ||
-    normalizedValue.includes("captcha") ||
-    normalizedValue.includes("rate limit")
+    (looksLikeHtmlPayload(value) &&
+      (normalizedValue.includes("captcha") ||
+        normalizedValue.includes("blocked") ||
+        normalizedValue.includes("challenge")))
   );
 }
 
 function isBlockedPayload(payload) {
-  return isBlockedMessage(payload?.message) || isBlockedMessage(payload?.error);
+  return (
+    isBlockedMessage(payload) ||
+    isBlockedMessage(payload?.message) ||
+    isBlockedMessage(payload?.error)
+  );
+}
+
+function isHtmlPayload(payload) {
+  return looksLikeHtmlPayload(payload) || looksLikeHtmlPayload(payload?.data);
 }
 
 function isTransientProviderMessage(value) {
@@ -151,7 +204,10 @@ function isBlockedError(error) {
 function isTransientError(error) {
   const statusCode = error?.response?.status;
 
-  if (error?.code === "ECONNABORTED" || statusCode === 502 || statusCode === 503) {
+  if (
+    ["ECONNABORTED", "ECONNRESET", "ETIMEDOUT"].includes(error?.code) ||
+    [408, 500, 502, 503, 504].includes(statusCode)
+  ) {
     return true;
   }
 
@@ -176,8 +232,53 @@ function wait(ms) {
   });
 }
 
-function createFlightSearchCacheKey(from, to, date) {
-  return [normalizeText(from), normalizeText(to), date?.trim() || ""].join(":");
+async function waitBeforeRetry(endpoint, attempt, reason) {
+  const delayMs = getRetryDelayMs();
+
+  logSkyScrapperDiagnostic(
+    "retry attempt",
+    {
+      endpoint,
+      nextAttempt: attempt + 2,
+      delayMs,
+      reason,
+    },
+    "warn"
+  );
+
+  await wait(delayMs);
+}
+
+function normalizeCacheSegment(value) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function createFlightSearchCacheKey({
+  from,
+  to,
+  date,
+  returnDate,
+  adults,
+  cabinClass,
+  sortBy,
+  currency,
+  countryCode,
+  market,
+  locale,
+}) {
+  return [
+    normalizeCacheSegment(from),
+    normalizeCacheSegment(to),
+    normalizeCacheSegment(date),
+    normalizeCacheSegment(returnDate),
+    `adults=${normalizeCacheSegment(adults || 1)}`,
+    `cabin=${normalizeCacheSegment(cabinClass || "economy")}`,
+    `sort=${normalizeCacheSegment(sortBy || "best")}`,
+    `currency=${normalizeCacheSegment(currency || "USD")}`,
+    `country=${normalizeCacheSegment(countryCode || "US")}`,
+    `market=${normalizeCacheSegment(market || "en-US")}`,
+    `locale=${normalizeCacheSegment(locale || "en-US")}`,
+  ].join("|");
 }
 
 function formatSkyScrapperDetails(message) {
@@ -205,8 +306,12 @@ function createBlockedError(message) {
     429,
     "Too many requests. Please wait and try again.",
     message || "Sky Scrapper temporarily blocked this search.",
-    "BLOCKED_OR_CAPTCHA"
+    PROVIDER_LIMITED_CODE
   );
+}
+
+function isProviderLimitedCode(code) {
+  return code === PROVIDER_LIMITED_CODE || code === "BLOCKED_OR_CAPTCHA";
 }
 
 function createProviderUnavailableError(details = "Please try again in a moment.") {
@@ -428,6 +533,16 @@ function normalizeFlights(payload, fallbackCurrencyCode = "USD") {
     .filter((flight) => typeof flight.price === "number" && flight.price > 0);
 }
 
+function removeEmptyRequestParams(params) {
+  return Object.entries(params).reduce((accumulator, [key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      accumulator[key] = value;
+    }
+
+    return accumulator;
+  }, {});
+}
+
 async function searchAirport(query, locale = "en-US") {
   const cacheKey = `${locale}:${query.trim().toLowerCase()}`;
   const cachedPayload = getCachedValue(airportCache, cacheKey);
@@ -450,6 +565,9 @@ async function searchAirport(query, locale = "en-US") {
 
       const blocked = isBlockedPayload(payload);
       const transient = isTransientPayload(payload);
+      const html = isHtmlPayload(payload);
+      const malformed =
+        !payload || typeof payload !== "object" || Array.isArray(payload);
       logSkyScrapperDiagnostic(
         "searchAirport response",
         {
@@ -460,6 +578,8 @@ async function searchAirport(query, locale = "en-US") {
           status: payload?.status,
           blocked,
           transient,
+          html,
+          malformed,
           resultCount: getResultCount(payload),
           message: payload?.message,
           error: payload?.error,
@@ -467,19 +587,33 @@ async function searchAirport(query, locale = "en-US") {
         payload?.status === false ? "warn" : "info"
       );
 
+      if (blocked) {
+        logSkyScrapperDiagnostic(
+          "provider limited/blocked",
+          {
+            endpoint: "searchAirport",
+            query,
+            locale,
+            status: payload?.status,
+          },
+          "warn"
+        );
+
+        throw createBlockedError(formatSkyScrapperDetails(payload?.message || payload));
+      }
+
+      if (html || malformed) {
+        throw createProviderUnavailableError(
+          html
+            ? "Flight provider returned HTML instead of JSON."
+            : "Flight provider returned malformed airport data."
+        );
+      }
+
       if (payload?.status === false) {
-        if (blocked) {
-          if (attempt === 0) {
-            await wait(getRetryDelayMs());
-            continue;
-          }
-
-          throw createBlockedError(formatSkyScrapperDetails(payload?.message));
-        }
-
         if (transient) {
           if (attempt === 0) {
-            await wait(getRetryDelayMs());
+            await waitBeforeRetry("searchAirport", attempt, "transient payload");
             continue;
           }
 
@@ -493,12 +627,22 @@ async function searchAirport(query, locale = "en-US") {
         );
       }
 
+      if (!Array.isArray(payload?.data)) {
+        throw createProviderUnavailableError(
+          "Flight provider returned malformed airport data."
+        );
+      }
+
       if (payload?.status !== false) {
         setCachedValue(airportCache, cacheKey, payload, AIRPORT_CACHE_TTL_MS);
       }
 
       return payload;
     } catch (error) {
+      if (KNOWN_SKY_SCRAPPER_CODES.has(error?.code)) {
+        throw error;
+      }
+
       const blocked = isBlockedError(error);
       const transient = isTransientError(error);
       logSkyScrapperDiagnostic(
@@ -517,30 +661,32 @@ async function searchAirport(query, locale = "en-US") {
         "error"
       );
 
-      if (isBlockedError(error)) {
-        if (attempt === 0) {
-          await wait(getRetryDelayMs());
-          continue;
-        }
+      if (blocked) {
+        logSkyScrapperDiagnostic(
+          "provider limited/blocked",
+          {
+            endpoint: "searchAirport",
+            query,
+            locale,
+            status: error?.response?.status,
+          },
+          "warn"
+        );
 
         throw createBlockedError(
           formatSkyScrapperDetails(error?.response?.data?.message || error?.message)
         );
       }
 
-      if (isTransientError(error)) {
+      if (transient) {
         if (attempt === 0) {
-          await wait(getRetryDelayMs());
+          await waitBeforeRetry("searchAirport", attempt, "transient error");
           continue;
         }
 
         throw createProviderUnavailableError(
           formatSkyScrapperDetails(error?.response?.data?.message || error?.message)
         );
-      }
-
-      if (KNOWN_SKY_SCRAPPER_CODES.has(error?.code)) {
-        throw error;
       }
 
       throw createUnknownProviderError(
@@ -581,26 +727,33 @@ async function resolveFlightPlace(query, locale = "en-US") {
 }
 
 async function fetchFlightsWithRetry(params) {
+  const requestParams = removeEmptyRequestParams(params);
+
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
       const payload = await rapidApiGet({
         host: SKY_SCRAPPER_HOST,
         path: "/api/v1/flights/searchFlights",
-        params,
+        params: requestParams,
         timeout: 30000,
       });
 
       const blocked = isBlockedPayload(payload);
       const transient = isTransientPayload(payload);
+      const html = isHtmlPayload(payload);
+      const malformed =
+        !payload || typeof payload !== "object" || Array.isArray(payload);
       logSkyScrapperDiagnostic(
         "searchFlights response",
         {
           endpoint: "searchFlights",
-          params,
+          params: requestParams,
           attempt: attempt + 1,
           status: payload?.status,
           blocked,
           transient,
+          html,
+          malformed,
           resultCount: getResultCount(payload),
           message: payload?.message,
           error: payload?.error,
@@ -608,19 +761,31 @@ async function fetchFlightsWithRetry(params) {
         payload?.status === false ? "warn" : "info"
       );
 
+      if (blocked) {
+        logSkyScrapperDiagnostic(
+          "provider limited/blocked",
+          {
+            endpoint: "searchFlights",
+            status: payload?.status,
+          },
+          "warn"
+        );
+
+        throw createBlockedError(formatSkyScrapperDetails(payload?.message || payload));
+      }
+
+      if (html || malformed) {
+        throw createUnknownProviderError(
+          html
+            ? "Flight provider returned HTML instead of JSON."
+            : "Flight provider returned malformed data."
+        );
+      }
+
       if (payload?.status === false) {
-        if (blocked) {
-          if (attempt === 0) {
-            await wait(getRetryDelayMs());
-            continue;
-          }
-
-          throw createBlockedError(formatSkyScrapperDetails(payload?.message));
-        }
-
         if (transient) {
           if (attempt === 0) {
-            await wait(getRetryDelayMs());
+            await waitBeforeRetry("searchFlights", attempt, "transient payload");
             continue;
           }
 
@@ -634,19 +799,23 @@ async function fetchFlightsWithRetry(params) {
         );
       }
 
-      if (payload?.status !== undefined || payload?.data) {
+      if (Array.isArray(payload?.data?.itineraries)) {
         return payload;
       }
 
-      throw createUnknownProviderError("Flight provider returned an unreadable payload.");
+      throw createUnknownProviderError("Flight provider returned malformed flight data.");
     } catch (error) {
+      if (KNOWN_SKY_SCRAPPER_CODES.has(error?.code)) {
+        throw error;
+      }
+
       const blocked = isBlockedError(error);
       const transient = isTransientError(error);
       logSkyScrapperDiagnostic(
         "searchFlights error",
         {
           endpoint: "searchFlights",
-          params,
+          params: requestParams,
           attempt: attempt + 1,
           status: error?.response?.status,
           blocked,
@@ -657,45 +826,46 @@ async function fetchFlightsWithRetry(params) {
         "error"
       );
 
-      if (!blocked) {
-        if (transient) {
-          if (attempt === 0) {
-            await wait(getRetryDelayMs());
-            continue;
-          }
+      if (blocked) {
+        logSkyScrapperDiagnostic(
+          "provider limited/blocked",
+          {
+            endpoint: "searchFlights",
+            status: error?.response?.status,
+          },
+          "warn"
+        );
 
-          throw createProviderUnavailableError(
-            formatSkyScrapperDetails(error?.response?.data?.message || error?.message)
-          );
-        }
-
-        if (KNOWN_SKY_SCRAPPER_CODES.has(error?.code)) {
-          throw error;
-        }
-
-        throw createUnknownProviderError(
+        throw createBlockedError(
           formatSkyScrapperDetails(error?.response?.data?.message || error?.message)
         );
       }
 
-      if (attempt === 0) {
-        await wait(getRetryDelayMs());
-        continue;
+      if (transient) {
+        if (attempt === 0) {
+          await waitBeforeRetry("searchFlights", attempt, "transient error");
+          continue;
+        }
+
+        throw createProviderUnavailableError(
+          formatSkyScrapperDetails(error?.response?.data?.message || error?.message)
+        );
       }
 
-      throw createBlockedError(
+      throw createUnknownProviderError(
         formatSkyScrapperDetails(error?.response?.data?.message || error?.message)
       );
     }
   }
 
-  throw createBlockedError("Sky Scrapper temporarily blocked this search.");
+  throw createProviderUnavailableError();
 }
 
 async function searchFlights({
   from,
   to,
   date,
+  returnDate,
   adults = 1,
   cabinClass = "economy",
   sortBy = "best",
@@ -704,23 +874,76 @@ async function searchFlights({
   market = "en-US",
   locale = "en-US",
 }) {
-  const cacheKey = createFlightSearchCacheKey(from, to, date);
+  const cacheKey = createFlightSearchCacheKey({
+    from,
+    to,
+    date,
+    returnDate,
+    adults,
+    cabinClass,
+    sortBy,
+    currency,
+    countryCode,
+    market,
+    locale,
+  });
   const cachedResult = getCachedValue(flightCache, cacheKey);
 
   if (cachedResult) {
+    logSkyScrapperDiagnostic(
+      "flight cache hit",
+      {
+        searchKey: cacheKey,
+        cacheType: "success",
+      },
+      "info"
+    );
+
     return {
       ...cachedResult,
       meta: {
+        ...cachedResult.meta,
         cached: true,
       },
     };
   }
 
+  const cachedNegativeResult = getCachedValue(flightNegativeCache, cacheKey);
+
+  if (cachedNegativeResult) {
+    logSkyScrapperDiagnostic(
+      "flight cache hit",
+      {
+        searchKey: cacheKey,
+        cacheType: "provider-limited",
+      },
+      "warn"
+    );
+
+    throw restoreSkyScrapperError(cachedNegativeResult);
+  }
+
   const existingRequest = inFlightFlightRequests.get(cacheKey);
 
   if (existingRequest) {
+    logSkyScrapperDiagnostic(
+      "flight request deduped",
+      {
+        searchKey: cacheKey,
+      },
+      "info"
+    );
+
     return existingRequest;
   }
+
+  logSkyScrapperDiagnostic(
+    "flight cache miss",
+    {
+      searchKey: cacheKey,
+    },
+    "info"
+  );
 
   const searchPromise = (async () => {
     const [origin, destination] = await Promise.all([
@@ -728,12 +951,23 @@ async function searchFlights({
       resolveFlightPlace(to, locale),
     ]);
 
+    if (
+      origin.skyId === destination.skyId &&
+      origin.entityId === destination.entityId
+    ) {
+      throw createValidationError(
+        "Invalid flight route",
+        "Origin and destination must be different."
+      );
+    }
+
     const payload = await fetchFlightsWithRetry({
       originSkyId: origin.skyId,
       destinationSkyId: destination.skyId,
       originEntityId: origin.entityId,
       destinationEntityId: destination.entityId,
       date,
+      returnDate,
       adults,
       cabinClass,
       sortBy,
@@ -751,12 +985,41 @@ async function searchFlights({
       },
     };
 
-    if (payload?.status === true) {
+    if (Array.isArray(payload?.data?.itineraries)) {
       setCachedValue(flightCache, cacheKey, result, FLIGHT_CACHE_TTL_MS);
+      logSkyScrapperDiagnostic(
+        "flight cache stored",
+        {
+          searchKey: cacheKey,
+          ttlMs: FLIGHT_CACHE_TTL_MS,
+          resultCount: getResultCount(payload),
+        },
+        "info"
+      );
     }
 
     return result;
-  })();
+  })().catch((error) => {
+    if (isProviderLimitedCode(error?.code)) {
+      setCachedValue(
+        flightNegativeCache,
+        cacheKey,
+        snapshotSkyScrapperError(error),
+        FLIGHT_NEGATIVE_CACHE_TTL_MS
+      );
+      logSkyScrapperDiagnostic(
+        "flight negative cache stored",
+        {
+          searchKey: cacheKey,
+          ttlMs: FLIGHT_NEGATIVE_CACHE_TTL_MS,
+          code: PROVIDER_LIMITED_CODE,
+        },
+        "warn"
+      );
+    }
+
+    throw error;
+  });
 
   inFlightFlightRequests.set(cacheKey, searchPromise);
 

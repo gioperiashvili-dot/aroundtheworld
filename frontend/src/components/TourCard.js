@@ -34,7 +34,7 @@ export default function TourCard({ tour }) {
         </div>
       </div>
 
-      <div className="space-y-5 p-5">
+      <div className="space-y-5 bg-white p-5 dark:bg-transparent">
         <div>
           <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">{destination}</p>
           <h3 className="[font-family:var(--font-display)] mt-2 text-2xl font-semibold text-slate-950 dark:text-white">
@@ -44,14 +44,14 @@ export default function TourCard({ tour }) {
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-[1.4rem] bg-slate-50 p-4 dark:bg-slate-800/80">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
               {t("common.duration")}
             </p>
             <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">{duration}</p>
           </div>
 
           <div className="rounded-[1.4rem] bg-slate-50 p-4 dark:bg-slate-800/80">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
               {t("common.price")}
             </p>
             <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">

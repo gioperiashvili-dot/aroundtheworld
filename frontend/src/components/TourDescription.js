@@ -64,7 +64,7 @@ export default function TourDescription({ description, compact = false, classNam
 
   return (
     <div
-      className={`space-y-3 text-sm leading-7 text-slate-600 dark:text-slate-300 ${
+      className={`space-y-3 text-sm leading-7 text-slate-700 dark:text-slate-300 ${
         compact ? "max-h-44 overflow-hidden" : "text-base leading-8"
       } ${className}`}
     >

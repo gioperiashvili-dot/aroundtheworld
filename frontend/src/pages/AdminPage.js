@@ -340,7 +340,7 @@ export default function AdminPage() {
 
             <form
               onSubmit={handleLogin}
-              className="space-y-5 rounded-[2rem] border border-white/70 bg-white/92 p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]"
+              className="space-y-5 rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]"
             >
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
@@ -349,7 +349,7 @@ export default function AdminPage() {
                 <h2 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
                   {t("admin.loginHeading")}
                 </h2>
-                <p className="mt-3 text-sm leading-7 text-slate-500 dark:text-slate-300">
+                <p className="mt-3 text-sm leading-7 text-slate-700 dark:text-slate-300">
                   {t("admin.loginDescription")}
                 </p>
               </div>
@@ -368,7 +368,7 @@ export default function AdminPage() {
                     }
                   }}
                   placeholder={t("admin.passwordPlaceholder")}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
                 />
               </label>
 
@@ -387,7 +387,7 @@ export default function AdminPage() {
               <button
                 type="submit"
                 disabled={authLoading}
-                className="inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                className="inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
               >
                 {authLoading ? t("admin.loginLoading") : t("admin.loginButton")}
               </button>
@@ -411,7 +411,7 @@ export default function AdminPage() {
                 <h2 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
                   {t("admin.dashboardHeading")}
                 </h2>
-                <p className="mt-3 text-sm leading-7 text-slate-500 dark:text-slate-300">
+                <p className="mt-3 text-sm leading-7 text-slate-700 dark:text-slate-300">
                   {t("admin.sessionExpires")}:{" "}
                   {expiresAt
                     ? formatDateTimeLabel(Number(expiresAt), language)
@@ -465,14 +465,14 @@ export default function AdminPage() {
           <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 p-5 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
+                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
                   {t("admin.existingTours")}
                 </p>
                 <h3 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
                   {t("admin.catalogEntries")}
                 </h3>
               </div>
-              <p className="text-sm text-slate-500 dark:text-slate-300">
+              <p className="text-sm text-slate-700 dark:text-slate-300">
                 {tours.length} {t("admin.tourCountSuffix")}
               </p>
             </div>
@@ -522,7 +522,7 @@ export default function AdminPage() {
 
                           <div className="grid gap-3 sm:grid-cols-2">
                             <div className="rounded-[1.3rem] bg-white p-4 dark:bg-slate-900">
-                              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-400">
+                              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
                                 {t("common.duration")}
                               </p>
                               <p className="mt-2 font-semibold text-slate-950 dark:text-white">
@@ -530,7 +530,7 @@ export default function AdminPage() {
                               </p>
                             </div>
                             <div className="rounded-[1.3rem] bg-white p-4 dark:bg-slate-900">
-                              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-400">
+                              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
                                 {t("common.updated")}
                               </p>
                               <p className="mt-2 font-semibold text-slate-950 dark:text-white">

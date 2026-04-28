@@ -251,7 +251,7 @@ export default function FlightsPage() {
                   {flightsHeading}
                 </h2>
               ) : null}
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-500 dark:text-slate-300">
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-700 dark:text-slate-300">
                 {t("flights.helperText")}
               </p>
             </div>
@@ -320,7 +320,7 @@ export default function FlightsPage() {
 
                 <FieldCard>
                   <label className="block text-left">
-                    <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">
+                    <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
                       {t("common.date")}
                     </span>
                     <input
@@ -345,7 +345,7 @@ export default function FlightsPage() {
                   <button
                     type="submit"
                     disabled={isBusy}
-                    className="w-full rounded-[1.35rem] bg-slate-950 px-6 py-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                    className="w-full rounded-[1.35rem] bg-slate-950 px-6 py-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
                   >
                     {statusLabel}
                   </button>
@@ -373,7 +373,7 @@ export default function FlightsPage() {
                 </label>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">
+                  <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
                     {t("common.popularDestinations")}
                   </span>
                   {QUICK_DESTINATIONS.map((code) => {
@@ -415,7 +415,7 @@ export default function FlightsPage() {
         {(lastSearch || meta?.cached) && !loading ? (
           <div className="flex flex-col gap-3 rounded-[1.9rem] border border-white/70 bg-white/88 px-5 py-4 shadow-[0_24px_80px_-56px_rgba(15,23,42,0.45)] md:flex-row md:items-center md:justify-between dark:border-white/10 dark:bg-slate-900/82 dark:shadow-[0_24px_80px_-56px_rgba(2,6,23,0.8)]">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400 dark:text-slate-400">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
                 {t("flights.recentSearch")}
               </p>
               <p className="mt-1 text-lg font-semibold text-slate-950 dark:text-white">
@@ -425,7 +425,7 @@ export default function FlightsPage() {
 
             <div className="flex flex-wrap items-center gap-3">
               {lastSearch?.date ? (
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-200">
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-200">
                   {formatCalendarDate(lastSearch.date, language)}
                 </span>
               ) : null}
@@ -443,10 +443,10 @@ export default function FlightsPage() {
         {!loading && results.length > 0 ? (
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
+              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
                 {t("flights.resultsLabel")}
               </p>
-              <p className="text-sm text-slate-500 dark:text-slate-300">{results.length}</p>
+              <p className="text-sm text-slate-700 dark:text-slate-300">{results.length}</p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -490,7 +490,7 @@ export default function FlightsPage() {
                           <p className="text-3xl font-semibold text-slate-950 dark:text-white">
                             {departureTime}
                           </p>
-                          <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">
+                          <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
                             {departureDate}
                           </p>
                         </div>
@@ -506,7 +506,7 @@ export default function FlightsPage() {
                           <p className="text-3xl font-semibold text-slate-950 dark:text-white">
                             {arrivalTime}
                           </p>
-                          <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">
+                          <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
                             {arrivalDate}
                           </p>
                         </div>
@@ -516,7 +516,7 @@ export default function FlightsPage() {
                     <div className="space-y-4 p-5">
                       <div className="grid gap-3 sm:grid-cols-2">
                         <div className="rounded-[1.4rem] bg-slate-50 p-4 dark:bg-slate-800/80">
-                          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-400">
+                          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
                             {t("common.flight")}
                           </p>
                           <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
@@ -525,7 +525,7 @@ export default function FlightsPage() {
                         </div>
 
                         <div className="rounded-[1.4rem] bg-slate-50 p-4 dark:bg-slate-800/80">
-                          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-400">
+                          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
                             {t("common.route")}
                           </p>
                           <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">

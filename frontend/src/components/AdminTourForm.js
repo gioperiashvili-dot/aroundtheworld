@@ -2,7 +2,7 @@ import TravelImage from "./TravelImage";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 
 const inputClassName =
-  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20";
+  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20";
 
 export default function AdminTourForm({
   form,
@@ -70,7 +70,7 @@ export default function AdminTourForm({
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-4 rounded-[1.6rem] bg-slate-50 p-4 dark:bg-slate-800/70">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-400">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
                 {t("admin.georgianContent")}
               </p>
             </div>
@@ -122,7 +122,7 @@ export default function AdminTourForm({
                 rows={5}
                 className={`${inputClassName} resize-none`}
               />
-              <span className="block text-xs leading-6 text-slate-500 dark:text-slate-400">
+              <span className="block text-xs leading-6 text-slate-600 dark:text-slate-400">
                 {t("admin.descriptionHelper")}
               </span>
             </label>
@@ -130,7 +130,7 @@ export default function AdminTourForm({
 
           <div className="space-y-4 rounded-[1.6rem] bg-slate-50 p-4 dark:bg-slate-800/70">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-400">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
                 {t("admin.englishContent")}
               </p>
             </div>
@@ -182,7 +182,7 @@ export default function AdminTourForm({
                 rows={5}
                 className={`${inputClassName} resize-none`}
               />
-              <span className="block text-xs leading-6 text-slate-500 dark:text-slate-400">
+              <span className="block text-xs leading-6 text-slate-600 dark:text-slate-400">
                 {t("admin.descriptionHelper")}
               </span>
             </label>
@@ -248,7 +248,7 @@ export default function AdminTourForm({
         <button
           type="submit"
           disabled={saving}
-          className="inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+          className="inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
         >
           {saving
             ? t("admin.saving")

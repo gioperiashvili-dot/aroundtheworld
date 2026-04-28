@@ -116,13 +116,13 @@ export default function TourSearchModal({ isOpen, onClose }) {
         className="w-full max-w-2xl animate-[searchModalIn_180ms_ease-out] overflow-hidden rounded-[2rem] border border-white/20 bg-white/96 shadow-[0_34px_110px_-46px_rgba(2,6,23,0.8)] dark:border-white/10 dark:bg-slate-950/96"
       >
         <div className="flex items-center justify-between gap-4 border-b border-slate-200/80 px-5 py-4 dark:border-white/10">
-          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
+          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
             {t("tourSearch.title")}
           </p>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+            className="rounded-full border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
             aria-label={t("common.close")}
             title={t("common.close")}
           >
@@ -132,20 +132,20 @@ export default function TourSearchModal({ isOpen, onClose }) {
 
         <form onSubmit={submitSearch} className="p-5">
           <label className="relative block">
-            <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+            <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
             <input
               ref={inputRef}
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={t("tourSearch.placeholder")}
-              className="w-full rounded-[1.5rem] border border-slate-200 bg-slate-50 py-4 pl-12 pr-4 text-base font-semibold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white dark:border-white/10 dark:bg-slate-900 dark:text-white dark:focus:border-white/24"
+              className="w-full rounded-[1.5rem] border border-slate-200 bg-slate-50 py-4 pl-12 pr-4 text-base font-semibold text-slate-950 outline-none transition placeholder:text-slate-500 focus:border-slate-400 focus:bg-white dark:border-white/10 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-white/24"
             />
           </label>
         </form>
 
         <div className="max-h-[22rem] overflow-y-auto px-5 pb-5">
           {query.trim().length >= 2 && results.length === 0 ? (
-            <div className="rounded-[1.5rem] bg-slate-50 px-4 py-5 text-sm text-slate-500 dark:bg-slate-900 dark:text-slate-300">
+            <div className="rounded-[1.5rem] bg-slate-50 px-4 py-5 text-sm text-slate-700 dark:bg-slate-900 dark:text-slate-300">
               {t("tourSearch.noResults")}
             </div>
           ) : null}
@@ -163,7 +163,7 @@ export default function TourSearchModal({ isOpen, onClose }) {
                     <span className="block truncate text-base font-semibold">
                       {getLocalized(tour.title, language)}
                     </span>
-                    <span className="mt-1 block truncate text-sm text-slate-500 group-hover:text-white/72 dark:text-slate-300 dark:group-hover:text-slate-600">
+                    <span className="mt-1 block truncate text-sm text-slate-700 group-hover:text-white/72 dark:text-slate-300 dark:group-hover:text-slate-600">
                       {getLocalized(tour.destination, language)}
                     </span>
                   </span>

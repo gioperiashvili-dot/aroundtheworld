@@ -99,10 +99,10 @@ export default function HomePage() {
   };
 
   const pageCards = [
+    { key: "tours", path: "/tours" },
     { key: "flights", path: "/flights" },
     { key: "hotels", path: "/hotels" },
     { key: "restaurants", path: "/restaurants" },
-    { key: "tours", path: "/tours" },
   ];
 
   return (
@@ -121,7 +121,7 @@ export default function HomePage() {
           <div className="flex flex-1 flex-col items-center justify-center pb-14 pt-16 text-center md:pt-24">
             <div className="max-w-4xl space-y-5">
               {homeEyebrow ? (
-                <p className="inline-flex rounded-full border border-white/18 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.34em] text-white/82 backdrop-blur">
+                <p className="inline-flex rounded-full border border-white/18 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.34em] text-white/90 backdrop-blur">
                   {homeEyebrow}
                 </p>
               ) : null}
@@ -133,7 +133,7 @@ export default function HomePage() {
               ) : null}
 
               {homeDescription ? (
-                <p className="mx-auto max-w-2xl text-base leading-8 text-white/78 md:text-lg">
+                <p className="mx-auto max-w-2xl text-base leading-8 text-white/88 md:text-lg">
                   {homeDescription}
                 </p>
               ) : null}
@@ -206,7 +206,7 @@ export default function HomePage() {
                   </div>
 
                   <label className="rounded-[1.35rem] border border-slate-200 bg-white px-4 py-3 text-left dark:border-slate-800 dark:bg-slate-900/90">
-                    <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">
+                    <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
                       {t("home.search.dateLabel")}
                     </span>
                     <input
@@ -255,13 +255,13 @@ export default function HomePage() {
                       {t("home.search.humanCheck")}
                     </label>
 
-                    <p className="text-sm text-slate-400 dark:text-slate-400">
+                    <p className="text-sm text-slate-700 dark:text-slate-300">
                       {t("home.search.helper")}
                     </p>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">
+                    <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
                       {t("common.popularDestinations")}
                     </span>
                     {QUICK_DESTINATIONS.map((code) => {
@@ -328,7 +328,7 @@ export default function HomePage() {
               className="homepage-feature-card group rounded-[1.9rem] p-5 text-left backdrop-blur-md transition"
             >
               <p className="homepage-feature-card__label text-xs font-semibold uppercase tracking-[0.26em] transition-colors">
-                {t(`nav.${item.key}`)}
+                {t(`home.cards.${item.key}.category`)}
               </p>
               <h2 className="homepage-feature-card__title [font-family:var(--font-display)] mt-3 text-2xl font-semibold transition-colors">
                 {t(`home.cards.${item.key}.title`)}

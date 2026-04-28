@@ -172,7 +172,7 @@ export default function RestaurantsPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-[1.35rem] bg-slate-950 px-6 py-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                    className="w-full rounded-[1.35rem] bg-slate-950 px-6 py-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
                   >
                     {loading ? t("restaurants.searchingButton") : t("restaurants.searchButton")}
                   </button>
@@ -193,10 +193,10 @@ export default function RestaurantsPage() {
         {!loading && results.length > 0 ? (
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
+              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
                 {t("restaurants.resultsLabel")}
               </p>
-              <p className="text-sm text-slate-500 dark:text-slate-300">{results.length}</p>
+              <p className="text-sm text-slate-700 dark:text-slate-300">{results.length}</p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">

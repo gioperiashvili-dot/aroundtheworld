@@ -193,21 +193,25 @@ export const translations = {
         },
       },
       cards: {
+        tours: {
+          category: "ტურები",
+          title: "შეარჩიე ტური მარტივად",
+          text: "იპოვე შენთვის სასურველი ტური, შეადარე მიმართულებები და დაგეგმე მოგზაურობა კომფორტულად.",
+        },
         flights: {
-          title: "სწრაფი ფრენები",
-          text: "გადადით ფრენების გვერდზე წინასწარ შევსებული ძიებით და გააგრძელეთ დაჯავშნის პროცესი ზედმეტი ნაბიჯების გარეშე.",
+          category: "ფრენები",
+          title: "მოძებნე ავიაბილეთები",
+          text: "შეამოწმე ფრენები სასურველ მიმართულებაზე და აირჩიე შენთვის მოსახერხებელი რეისი.",
         },
         hotels: {
-          title: "ელეგანტური განთავსება",
-          text: "ნახეთ სასტუმროები სუფთა ბარათებით, რეიტინგებით და დაცული სურათის fallback-ით.",
+          category: "სასტუმროები",
+          title: "იპოვე კომფორტული სასტუმრო",
+          text: "მოძებნე განთავსების ვარიანტები ქალაქის, ბიუჯეტის და მოგზაურობის სტილის მიხედვით.",
         },
         restaurants: {
-          title: "ადგილობრივი გემოები",
-          text: "იპოვეთ რესტორნები იმავე მოგზაურობის პლატფორმაში რეიტინგებით, სამზარეულოთი და გამართული ვიზუალით.",
-        },
-        tours: {
-          title: "ავტორული ტურები",
-          text: "დაათვალიერეთ ჩვენი მრავალენოვანი ტურები და გააგრძელეთ დაგეგმვა ერთიანი სტილით.",
+          category: "რესტორნები",
+          title: "აღმოაჩინე ადგილობრივი გემოები",
+          text: "ნახე პოპულარული რესტორნები და შეარჩიე ადგილი სასიამოვნო გამოცდილებისთვის.",
         },
       },
     },
@@ -590,21 +594,25 @@ export const translations = {
         },
       },
       cards: {
+        tours: {
+          category: "Tours",
+          title: "Find Your Next Tour",
+          text: "Explore available tours, compare destinations, and plan your trip with confidence.",
+        },
         flights: {
-          title: "Fast flights",
-          text: "Jump into the flights page with a prefilled search and continue the booking flow without extra steps.",
+          category: "Flights",
+          title: "Search for Flights",
+          text: "Check flights for your preferred route and choose the option that fits your travel plans.",
         },
         hotels: {
-          title: "Elegant stays",
-          text: "Browse hotels with cleaner cards, pricing, ratings, and resilient image handling.",
+          category: "Hotels",
+          title: "Find a Comfortable Stay",
+          text: "Browse hotels by destination, budget, and travel style.",
         },
         restaurants: {
-          title: "Local flavors",
-          text: "Discover restaurants in the same travel platform with ratings, cuisine detail, and polished media fallbacks.",
-        },
-        tours: {
-          title: "Signature tours",
-          text: "Explore our multilingual tours and continue planning in the same visual rhythm.",
+          category: "Restaurants",
+          title: "Discover Local Dining",
+          text: "Explore popular restaurants and find the right place for a better travel experience.",
         },
       },
     },

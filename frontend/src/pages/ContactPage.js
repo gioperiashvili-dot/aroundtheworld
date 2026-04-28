@@ -1,5 +1,6 @@
 import PublicPageShell from "../components/PublicPageShell";
 import backgroundThree from "../assets/background/background-3.jpg";
+import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE.png";
 import { useLanguage } from "../i18n/LanguageContext";
 import { contactDetails, getEmailHref, getPhoneHref, getWhatsAppHref } from "../lib/contact";
 
@@ -56,16 +57,27 @@ export default function ContactPage() {
       description={t("contact.description")}
     >
       <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <article className="rounded-[2rem] border border-white/70 bg-white/92 p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)] md:p-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
-            Around The World
-          </p>
-          <h2 className="[font-family:var(--font-display)] mt-3 text-3xl font-semibold text-slate-950 dark:text-white">
-            {t("contact.heading")}
-          </h2>
-          <p className="mt-4 text-sm leading-8 text-slate-600 dark:text-slate-300">
-            {t("contact.helper")}
-          </p>
+        <article className="rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-transparent dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)] md:p-8">
+          <div className="grid gap-6 md:grid-cols-[minmax(10rem,0.42fr)_1fr] md:items-center">
+            <div className="flex justify-center md:justify-start">
+              <img
+                src={logoMain}
+                alt="Around The World"
+                className="h-auto w-44 max-w-full object-contain sm:w-52 md:w-60"
+              />
+            </div>
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
+                Around The World
+              </p>
+              <h2 className="[font-family:var(--font-display)] mt-3 text-3xl font-semibold text-slate-950 dark:text-white">
+                {t("contact.heading")}
+              </h2>
+              <p className="mt-4 text-sm leading-8 text-slate-600 dark:text-slate-300">
+                {t("contact.helper")}
+              </p>
+            </div>
+          </div>
         </article>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -85,7 +97,7 @@ function ContactCard({ item }) {
         {item.icon}
       </span>
       <span className="min-w-0">
-        <span className="block text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">
+        <span className="block text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
           {item.label}
         </span>
         <span className="mt-2 block break-words text-base font-semibold text-slate-950 dark:text-white">

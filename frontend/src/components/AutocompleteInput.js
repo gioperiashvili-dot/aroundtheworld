@@ -41,7 +41,7 @@ export default function AutocompleteInput({
   return (
     <label className={`relative block text-left ${className}`}>
       {label ? (
-        <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">
+        <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
           {label}
         </span>
       ) : null}
@@ -106,7 +106,7 @@ export default function AutocompleteInput({
             setIsOpen(false);
           }
         }}
-        className="mt-2 w-full bg-transparent text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-400"
+        className="mt-2 w-full bg-transparent text-sm font-medium text-slate-900 outline-none placeholder:text-slate-500 dark:text-white dark:placeholder:text-slate-400"
       />
 
       {shouldShowPanel ? (
@@ -135,7 +135,7 @@ export default function AutocompleteInput({
                           className={`mt-1 block text-xs ${
                             index === highlightedIndex
                               ? "text-white/72"
-                              : "text-slate-400 dark:text-slate-400"
+                              : "text-slate-600 dark:text-slate-400"
                           }`}
                         >
                           {suggestion.secondary}
@@ -148,7 +148,7 @@ export default function AutocompleteInput({
                         className={`rounded-full px-2 py-1 text-[11px] font-semibold ${
                           index === highlightedIndex
                             ? "bg-white/12 text-white"
-                            : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300"
+                            : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
                         }`}
                       >
                         {suggestion.tag}
@@ -159,7 +159,7 @@ export default function AutocompleteInput({
               ))}
             </ul>
           ) : (
-            <div className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">
+            <div className="px-4 py-4 text-sm text-slate-700 dark:text-slate-300">
               {noSuggestionsText}
             </div>
           )}

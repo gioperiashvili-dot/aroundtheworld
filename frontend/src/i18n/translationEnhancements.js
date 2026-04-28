@@ -142,6 +142,10 @@ translationEnhancements.en.restaurants.heroDescription = "";
 
 translationEnhancements.ka.nav.contact = "კონტაქტი";
 translationEnhancements.en.nav.contact = "Contact";
+translationEnhancements.ka.nav.visaServices = "სავიზო მომსახურება";
+translationEnhancements.en.nav.visaServices = "Visa Services";
+translationEnhancements.ka.nav.about = "ჩვენს შესახებ";
+translationEnhancements.en.nav.about = "About";
 translationEnhancements.ka.common.close = "დახურვა";
 translationEnhancements.en.common.close = "Close";
 
@@ -181,6 +185,118 @@ translationEnhancements.en.app.pages.restaurants = {
   ...(translationEnhancements.en.app.pages.restaurants || {}),
   title: "",
   highlights: [],
+};
+
+translationEnhancements.ka.app.pages.visaServices = {
+  eyebrow: "სავიზო კონსულტაცია",
+  title: "სავიზო მომსახურება",
+  description:
+    "დაგეგმეთ მოგზაურობა უფრო მარტივად — მიიღეთ კონსულტაცია სავიზო პროცესთან დაკავშირებით.",
+  highlights: [],
+};
+translationEnhancements.en.app.pages.visaServices = {
+  eyebrow: "Visa guidance",
+  title: "Visa Services",
+  description:
+    "Plan your trip with more confidence — get guidance for the visa process.",
+  highlights: [],
+};
+
+translationEnhancements.ka.visaServices = {
+  introLabel: "Around The World",
+  introTitle: "პროფესიონალური მხარდაჭერა მოგზაურობის დაგეგმვისას",
+  introText:
+    "ჩვენ დაგეხმარებით გაიგოთ კონკრეტული ქვეყნის მოთხოვნები, მოამზადოთ საჭირო დოკუმენტები და სავიზო განაცხადისთვის ორგანიზებულად მოემზადოთ.",
+  cta: "დაგვიკავშირდით კონსულტაციისთვის",
+  disclaimerLabel: "მნიშვნელოვანი ინფორმაცია",
+  disclaimer:
+    "Around The World მომხმარებელს ეხმარება სავიზო პროცესისთვის საჭირო ინფორმაციისა და დოკუმენტების მომზადებაში. ვიზის გაცემის საბოლოო გადაწყვეტილებას იღებს შესაბამისი საელჩო ან საკონსულო.",
+  sections: [
+    {
+      title: "რას მოიცავს მომსახურება",
+      items: [
+        "კონსულტაცია სავიზო მოთხოვნებისა და პროცედურების შესახებ.",
+        "საჭირო დოკუმენტების ინდივიდუალური სიის მომზადება.",
+        "განაცხადის ფორმებისა და თანდართული მასალების გადამოწმება.",
+        "საელჩოს ან საკონსულოს პროცესისთვის ორგანიზებული მომზადება.",
+      ],
+    },
+    {
+      title: "რა დოკუმენტები შეიძლება დაგჭირდეთ",
+      items: [
+        "მოქმედი პასპორტი და შესაბამისი ფორმატის ფოტო.",
+        "ფინანსური მდგომარეობის დამადასტურებელი დოკუმენტები.",
+        "დასაქმების, სწავლის ან ბიზნეს საქმიანობის დამადასტურებელი ცნობები.",
+        "მოგზაურობის მიზნის, სასტუმროს, ფრენის ან მოწვევის დამადასტურებელი მასალები.",
+      ],
+    },
+    {
+      title: "როგორ ხდება პროცესი",
+      items: [
+        "ვადგენთ მოგზაურობის ქვეყანას, მიზანსა და სავარაუდო თარიღებს.",
+        "ვამზადებთ დოკუმენტების სიას კონკრეტული სავიზო კატეგორიის მიხედვით.",
+        "გეხმარებით დოკუმენტების მოწესრიგებაში და განაცხადის მასალების შემოწმებაში.",
+        "გაწვდით შემდეგი ნაბიჯების შესახებ მკაფიო რეკომენდაციებს.",
+      ],
+    },
+    {
+      title: "მნიშვნელოვანი ინფორმაცია",
+      items: [
+        "სავიზო მოთხოვნები განსხვავდება ქვეყნისა და ვიზის ტიპის მიხედვით.",
+        "განხილვის ვადები და წესები შეიძლება შეიცვალოს საელჩოს ან საკონსულოს გადაწყვეტილებით.",
+        "მომხმარებელი პასუხისმგებელია მოწოდებული ინფორმაციის სიზუსტეზე.",
+        "ვიზის გაცემა არ არის გარანტირებული და დამოკიდებულია შესაბამის უწყებაზე.",
+      ],
+    },
+  ],
+};
+translationEnhancements.en.visaServices = {
+  introLabel: "Around The World",
+  introTitle: "Professional support while planning your trip",
+  introText:
+    "We help you understand destination-specific requirements, prepare the documents you may need, and approach the visa application process in an organized way.",
+  cta: "Contact Us for Consultation",
+  disclaimerLabel: "Important information",
+  disclaimer:
+    "Around The World helps customers prepare information and documents for the visa process. The final visa decision is made by the relevant embassy or consulate.",
+  sections: [
+    {
+      title: "What the service includes",
+      items: [
+        "Consultation on visa requirements and application steps.",
+        "A personalized checklist of documents for your destination.",
+        "Review of application forms and supporting materials.",
+        "Organized preparation for the embassy or consulate process.",
+      ],
+    },
+    {
+      title: "Documents you may need",
+      items: [
+        "A valid passport and visa-format photo.",
+        "Proof of finances or bank statements.",
+        "Employment, study, or business activity documents.",
+        "Travel purpose details, hotel bookings, flights, insurance, or an invitation when required.",
+      ],
+    },
+    {
+      title: "How the process works",
+      items: [
+        "We confirm your destination, travel purpose, and expected dates.",
+        "We prepare a document checklist for the relevant visa category.",
+        "We help organize documents and review application materials.",
+        "We provide clear guidance on the next steps before submission.",
+      ],
+    },
+    {
+      title: "Important information",
+      items: [
+        "Visa requirements vary by country and visa type.",
+        "Processing times and rules may change based on embassy or consulate policy.",
+        "Customers are responsible for providing accurate information.",
+        "Visa approval is not guaranteed and depends on the relevant authority.",
+      ],
+    },
+  ],
 };
 
 translationEnhancements.ka.contact = {

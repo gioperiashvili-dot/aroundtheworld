@@ -49,6 +49,7 @@ export function getFriendlyApiError(error, fallbackMessage, options = {}) {
   if (
     apiCode === "BLOCKED" ||
     apiCode === "BLOCKED_OR_CAPTCHA" ||
+    apiCode === "PROVIDER_LIMITED" ||
     statusCode === 429
   ) {
     return blockedMessage || "Too many requests. Please wait and try again.";

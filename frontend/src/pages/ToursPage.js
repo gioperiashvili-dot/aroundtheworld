@@ -158,7 +158,7 @@ export default function ToursPage() {
                 <h2 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
                   {t("tours.heading")}
                 </h2>
-                <p className="mt-3 text-sm leading-7 text-slate-500 dark:text-slate-300">
+                <p className="mt-3 text-sm leading-7 text-slate-700 dark:text-slate-300">
                   {t("tours.helper")}
                 </p>
               </div>
@@ -212,7 +212,7 @@ export default function ToursPage() {
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                   selectedCategory === category.key
                     ? "bg-slate-950 text-white"
-                    : "bg-white/85 text-slate-600 shadow-sm hover:bg-white dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-800"
+                    : "border border-white/70 bg-white/92 text-slate-700 shadow-sm hover:bg-white dark:border-white/10 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-800"
                 }`}
               >
                 {category.label}
@@ -236,10 +236,10 @@ export default function ToursPage() {
         {!loading && visibleTours.length > 0 ? (
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
+              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
                 {t("tours.resultsLabel")}
               </p>
-              <p className="text-sm text-slate-500 dark:text-slate-300">{visibleTours.length}</p>
+              <p className="text-sm text-slate-700 dark:text-slate-300">{visibleTours.length}</p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">

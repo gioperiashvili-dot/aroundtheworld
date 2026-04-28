@@ -1,7 +1,17 @@
 import axios from "axios";
 
+const LOCAL_API_BASE_URL = "http://localhost:5000";
+const PRODUCTION_API_BASE_URL = "https://api.aroundworld.ge";
+
+function normalizeApiBaseUrl(value) {
+  return String(value || "").replace(/\/+$/, "").replace(/\/api$/i, "");
+}
+
 const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
+  normalizeApiBaseUrl(process.env.REACT_APP_API_BASE_URL) ||
+  (process.env.NODE_ENV === "development"
+    ? LOCAL_API_BASE_URL
+    : PRODUCTION_API_BASE_URL);
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

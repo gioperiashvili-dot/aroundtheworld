@@ -56,19 +56,19 @@ export default function TourDetailPage() {
       title={title || t("tours.heading")}
       description={destination || t("tours.heroDescription")}
       heroAside={
-        <div className="rounded-[2rem] border border-white/14 bg-white/10 p-5 text-white shadow-[0_24px_80px_-54px_rgba(15,23,42,0.88)] backdrop-blur">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/58">
+        <div className="rounded-[2rem] border border-white/70 bg-white/90 p-5 text-slate-900 shadow-[0_24px_80px_-54px_rgba(15,23,42,0.55)] backdrop-blur dark:border-white/14 dark:bg-white/10 dark:text-white dark:shadow-[0_24px_80px_-54px_rgba(15,23,42,0.88)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-white/58">
             {t("common.price")}
           </p>
           <p className="mt-3 [font-family:var(--font-display)] text-4xl font-semibold">
             {tour ? formatCurrencyValue(tour.price, tour.currency, language) : "--"}
           </p>
-          <p className="mt-4 text-sm leading-7 text-white/76">
+          <p className="mt-4 text-sm leading-7 text-slate-700 dark:text-white/76">
             {duration || t("common.duration")}
           </p>
           <Link
             to="/tours"
-            className="mt-6 inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+            className="mt-6 inline-flex rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
           >
             {t("tours.backToTours")}
           </Link>
@@ -92,7 +92,7 @@ export default function TourDetailPage() {
               className="h-[22rem] md:h-[28rem]"
             />
 
-            <div className="space-y-6 p-6 md:p-8">
+            <div className="space-y-6 bg-white p-6 dark:bg-transparent md:p-8">
               <div className="grid gap-4 md:grid-cols-3">
                 <StatCard label={t("common.duration")} value={duration} />
                 <StatCard
@@ -123,8 +123,8 @@ export default function TourDetailPage() {
 
           <aside className="space-y-6">
             {dates.length > 0 ? (
-              <div className="rounded-[2rem] border border-white/70 bg-white/92 p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
-                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
+              <div className="rounded-[2rem] bg-white border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-transparent dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
+                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
                   {t("tours.relatedDates")}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -141,8 +141,8 @@ export default function TourDetailPage() {
             ) : null}
 
             {tour.category ? (
-              <div className="rounded-[2rem] border border-white/70 bg-white/92 p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
-                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
+              <div className="rounded-[2rem] bg-white border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-transparent dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
+                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
                   {t("common.category")}
                 </p>
                 <p className="mt-3 text-xl font-semibold text-slate-950 dark:text-white">
@@ -160,7 +160,7 @@ export default function TourDetailPage() {
 function StatCard({ label, value }) {
   return (
     <div className="rounded-[1.4rem] bg-slate-50 p-4 dark:bg-slate-800/80">
-      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-400">
+      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
         {label}
       </p>
       <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">{value}</p>

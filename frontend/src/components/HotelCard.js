@@ -30,14 +30,14 @@ export default function HotelCard({ hotel }) {
           <h3 className="[font-family:var(--font-display)] text-2xl font-semibold text-slate-950 dark:text-white">
             {hotel.name}
           </h3>
-          <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-300">
+          <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">
             {hotel.area || t("hotels.card.areaUnavailable")}
           </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-[1.4rem] bg-slate-50 p-4 dark:bg-slate-800/80">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
               {t("common.rating")}
             </p>
             <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
@@ -46,7 +46,7 @@ export default function HotelCard({ hotel }) {
           </div>
 
           <div className="rounded-[1.4rem] bg-slate-50 p-4 dark:bg-slate-800/80">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
               {t("common.reviews")}
             </p>
             <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
@@ -55,7 +55,7 @@ export default function HotelCard({ hotel }) {
           </div>
 
           <div className="rounded-[1.4rem] bg-slate-50 p-4 dark:bg-slate-800/80">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
               {t("common.provider")}
             </p>
             <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
@@ -71,7 +71,7 @@ export default function HotelCard({ hotel }) {
         ) : null}
 
         {hotel.summary ? (
-          <p className="text-sm leading-6 text-slate-500 dark:text-slate-300">{hotel.summary}</p>
+          <p className="text-sm leading-6 text-slate-700 dark:text-slate-300">{hotel.summary}</p>
         ) : null}
 
         {hotel.bookingUrl ? (

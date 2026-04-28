@@ -28,14 +28,14 @@ export default function RestaurantCard({ restaurant }) {
           <h3 className="[font-family:var(--font-display)] text-2xl font-semibold text-slate-950 dark:text-white">
             {restaurant.name}
           </h3>
-          <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-300">
+          <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">
             {restaurant.city || t("restaurants.card.cityUnavailable")}
           </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-[1.4rem] bg-slate-50 p-4 dark:bg-slate-800/80">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
               {t("common.rating")}
             </p>
             <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
@@ -44,7 +44,7 @@ export default function RestaurantCard({ restaurant }) {
           </div>
 
           <div className="rounded-[1.4rem] bg-slate-50 p-4 dark:bg-slate-800/80">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
               {t("common.reviews")}
             </p>
             <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
@@ -53,7 +53,7 @@ export default function RestaurantCard({ restaurant }) {
           </div>
 
           <div className="rounded-[1.4rem] bg-slate-50 p-4 dark:bg-slate-800/80">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
               {t("common.status")}
             </p>
             <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
@@ -63,10 +63,10 @@ export default function RestaurantCard({ restaurant }) {
         </div>
 
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
             {t("common.cuisine")}
           </p>
-          <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+          <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">
             {restaurant.cuisine || t("restaurants.card.variousCuisine")}
           </p>
         </div>
