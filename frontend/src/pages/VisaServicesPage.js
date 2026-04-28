@@ -20,7 +20,7 @@ export default function VisaServicesPage() {
       compactHero
     >
       <section className="space-y-6">
-        <article className="grid gap-6 rounded-[2rem] border border-white/70 bg-white/92 p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)] md:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
+        <article className="grid gap-6 rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-transparent dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)] md:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className="max-w-4xl">
             <p className="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
               {t("visaServices.introLabel")}
@@ -46,7 +46,7 @@ export default function VisaServicesPage() {
           {sections.map((section, index) => (
             <article
               key={section.title}
-              className="rounded-[2rem] border border-white/70 bg-white/92 p-6 shadow-[0_24px_80px_-56px_rgba(15,23,42,0.45)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_24px_80px_-56px_rgba(2,6,23,0.8)]"
+              className="rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_24px_80px_-56px_rgba(15,23,42,0.45)] dark:border-white/10 dark:bg-transparent dark:shadow-[0_24px_80px_-56px_rgba(2,6,23,0.8)]"
             >
               <div className="flex items-start gap-4">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-sm font-bold text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-200 dark:ring-emerald-400/20">
