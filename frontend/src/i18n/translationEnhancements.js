@@ -345,3 +345,41 @@ translationEnhancements.ka.admin.descriptionHelper =
   "შეგიძლიათ ჩასვათ ბმულები. ისინი საიტზე ავტომატურად clickable გახდება.";
 translationEnhancements.en.admin.descriptionHelper =
   "You can paste links. They will become clickable on the site.";
+
+Object.assign(translationEnhancements.ka.admin, {
+  imageUrlHelper: "შეგიძლიათ დატოვოთ გარე სურათის ბმული, თუ ფაილს არ ტვირთავთ.",
+  imageUpload: "სურათის ატვირთვა",
+  chooseImage: "აირჩიეთ სურათი",
+  imageUploadHelper:
+    "დაშვებულია JPG, PNG ან WebP ფაილი 5MB-მდე. შენახვისას სურათი WebP ფორმატში ოპტიმიზდება.",
+  selectedImage: "არჩეული ფაილი",
+  clearSelectedImage: "ფაილის მოცილება",
+});
+
+translationEnhancements.ka.admin.errors = {
+  ...(translationEnhancements.ka.admin.errors || {}),
+  invalidFileType: "სურათის ტიპი არასწორია. ატვირთეთ JPG, PNG ან WebP ფაილი.",
+  fileTooLarge: "სურათი ძალიან დიდია. მაქსიმალური ზომაა 5MB.",
+  uploadFailed: "სურათის ატვირთვა ვერ მოხერხდა. სცადეთ თავიდან.",
+  imageOptimizationFailed:
+    "სურათის ოპტიმიზაცია ვერ მოხერხდა. სცადეთ სხვა JPG, PNG ან WebP ფაილი.",
+};
+
+Object.assign(translationEnhancements.en.admin, {
+  imageUrlHelper: "Keep using an external image URL if you are not uploading a file.",
+  imageUpload: "Image upload",
+  chooseImage: "Choose image",
+  imageUploadHelper:
+    "JPG, PNG, or WebP up to 5MB. The image is optimized to WebP when you save.",
+  selectedImage: "Selected file",
+  clearSelectedImage: "Remove file",
+});
+
+translationEnhancements.en.admin.errors = {
+  ...(translationEnhancements.en.admin.errors || {}),
+  invalidFileType: "Invalid file type. Upload a JPG, PNG, or WebP image.",
+  fileTooLarge: "The image is too large. Maximum size is 5MB.",
+  uploadFailed: "Image upload failed. Please try again.",
+  imageOptimizationFailed:
+    "Image optimization failed. Try another JPG, PNG, or WebP file.",
+};

@@ -9,6 +9,7 @@ import {
   createAdminTour,
   deleteAdminTour,
   fetchAdminTours,
+  uploadAdminTourImage,
   updateAdminTour,
 } from "../lib/api";
 import {
@@ -20,6 +21,8 @@ import {
 
 const TOKEN_STORAGE_KEY = "around-the-world-admin-token";
 const EXPIRY_STORAGE_KEY = "around-the-world-admin-expiry";
+const IMAGE_UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_UPLOAD_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const EMPTY_FORM = {
   titleKa: "",
   titleEn: "",
@@ -70,8 +73,25 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
+  const [imageInputKey, setImageInputKey] = useState(0);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreviewUrl("");
+      return undefined;
+    }
+
+    const objectUrl = URL.createObjectURL(imageFile);
+    setImagePreviewUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [imageFile]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -104,6 +124,8 @@ export default function AdminPage() {
     setPassword("");
     setEditingId("");
     setForm(EMPTY_FORM);
+    setImageFile(null);
+    setImageInputKey((currentKey) => currentKey + 1);
 
     if (typeof window !== "undefined") {
       window.localStorage.removeItem(TOKEN_STORAGE_KEY);
@@ -147,6 +169,8 @@ export default function AdminPage() {
   const resetForm = () => {
     setEditingId("");
     setForm(EMPTY_FORM);
+    setImageFile(null);
+    setImageInputKey((currentKey) => currentKey + 1);
   };
 
   const validateForm = () => {
@@ -199,7 +223,7 @@ export default function AdminPage() {
     return null;
   };
 
-  const buildPayload = () => ({
+  const buildPayload = (imageValue = form.image.trim()) => ({
     title: {
       ka: form.titleKa.trim(),
       en: form.titleEn.trim(),
@@ -219,8 +243,63 @@ export default function AdminPage() {
     },
     dates: parseDatesInput(form.dates),
     category: form.category.trim(),
-    image: form.image.trim(),
+    image: imageValue.trim(),
   });
+
+  const getUploadErrorMessage = (requestError) => {
+    const statusCode = requestError.response?.status;
+    const apiCode = requestError.response?.data?.code;
+
+    if (statusCode === 401) {
+      return t("admin.errors.loginFailed");
+    }
+
+    if (apiCode === "INVALID_FILE_TYPE") {
+      return t("admin.errors.invalidFileType");
+    }
+
+    if (apiCode === "FILE_TOO_LARGE" || statusCode === 413) {
+      return t("admin.errors.fileTooLarge");
+    }
+
+    if (apiCode === "IMAGE_OPTIMIZATION_FAILED") {
+      return t("admin.errors.imageOptimizationFailed");
+    }
+
+    return t("admin.errors.uploadFailed");
+  };
+
+  const clearSelectedImageFile = () => {
+    setImageFile(null);
+    setImageInputKey((currentKey) => currentKey + 1);
+  };
+
+  const handleImageFileChange = (event) => {
+    const nextFile = event.target.files?.[0] || null;
+
+    if (!nextFile) {
+      clearSelectedImageFile();
+      return;
+    }
+
+    if (!ALLOWED_IMAGE_UPLOAD_TYPES.has(nextFile.type)) {
+      setError(t("admin.errors.invalidFileType"));
+      setSuccess("");
+      clearSelectedImageFile();
+      return;
+    }
+
+    if (nextFile.size > IMAGE_UPLOAD_MAX_BYTES) {
+      setError(t("admin.errors.fileTooLarge"));
+      setSuccess("");
+      clearSelectedImageFile();
+      return;
+    }
+
+    setImageFile(nextFile);
+    setError("");
+    setSuccess("");
+  };
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -265,12 +344,23 @@ export default function AdminPage() {
     setError("");
     setSuccess("");
 
+    let requestPhase = "save";
+
     try {
+      let imageUrl = form.image.trim();
+
+      if (imageFile) {
+        requestPhase = "upload";
+        const uploadResponse = await uploadAdminTourImage(token, imageFile);
+        imageUrl = uploadResponse?.imageUrl || "";
+        requestPhase = "save";
+      }
+
       if (editingId) {
-        await updateAdminTour(token, editingId, buildPayload());
+        await updateAdminTour(token, editingId, buildPayload(imageUrl));
         setSuccess(t("admin.success.updated"));
       } else {
-        await createAdminTour(token, buildPayload());
+        await createAdminTour(token, buildPayload(imageUrl));
         setSuccess(t("admin.success.created"));
       }
 
@@ -282,9 +372,11 @@ export default function AdminPage() {
       }
 
       setError(
-        getFriendlyApiError(requestError, t("admin.errors.saveFailed"), {
-          unauthorizedMessage: t("admin.errors.loginFailed"),
-        })
+        requestPhase === "upload"
+          ? getUploadErrorMessage(requestError)
+          : getFriendlyApiError(requestError, t("admin.errors.saveFailed"), {
+              unauthorizedMessage: t("admin.errors.loginFailed"),
+            })
       );
     } finally {
       setSaving(false);
@@ -451,6 +543,9 @@ export default function AdminPage() {
             form={form}
             editing={Boolean(editingId)}
             saving={saving}
+            imageFileName={imageFile?.name || ""}
+            imagePreviewUrl={imagePreviewUrl}
+            imageInputKey={imageInputKey}
             onChange={(event) => {
               const { name, value } = event.target;
               setForm((previousForm) => ({
@@ -458,6 +553,8 @@ export default function AdminPage() {
                 [name]: value,
               }));
             }}
+            onImageFileChange={handleImageFileChange}
+            onClearImageFile={clearSelectedImageFile}
             onSubmit={handleSubmit}
             onReset={resetForm}
           />
@@ -547,6 +644,7 @@ export default function AdminPage() {
                               onClick={() => {
                                 setEditingId(tour.id);
                                 setForm(toFormValues(tour));
+                                clearSelectedImageFile();
                                 setError("");
                                 setSuccess("");
                               }}

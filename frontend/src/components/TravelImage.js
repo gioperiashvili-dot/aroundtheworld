@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLanguage } from "../i18n/LanguageContext";
+import { resolvePublicAssetUrl } from "../lib/api";
 
 const VARIANT_STYLES = {
   hotel: {
@@ -80,12 +81,13 @@ export default function TravelImage({
   }, [image]);
 
   const showImage = Boolean(image) && !imageFailed;
+  const imageSource = resolvePublicAssetUrl(image);
 
   return (
     <div className={`relative overflow-hidden ${className}`}>
       {showImage ? (
         <img
-          src={image}
+          src={imageSource}
           alt={title || variantLabel}
           width={width}
           height={height}

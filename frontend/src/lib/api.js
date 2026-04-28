@@ -17,6 +17,16 @@ const apiClient = axios.create({
   baseURL: API_BASE_URL,
 });
 
+export function resolvePublicAssetUrl(value) {
+  const source = String(value || "").trim();
+
+  if (!source.startsWith("/uploads/")) {
+    return source;
+  }
+
+  return process.env.NODE_ENV === "development" ? `${API_BASE_URL}${source}` : source;
+}
+
 function getAdminConfig(token) {
   return {
     headers: {
@@ -88,5 +98,18 @@ export async function updateAdminTour(token, id, payload) {
 
 export async function deleteAdminTour(token, id) {
   const response = await apiClient.delete(`/api/admin/tours/${id}`, getAdminConfig(token));
+  return response.data;
+}
+
+export async function uploadAdminTourImage(token, imageFile) {
+  const formData = new FormData();
+  formData.append("image", imageFile);
+
+  const response = await apiClient.post(
+    "/api/admin/uploads/tours",
+    formData,
+    getAdminConfig(token)
+  );
+
   return response.data;
 }

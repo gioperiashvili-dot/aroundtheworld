@@ -1,6 +1,12 @@
 const express = require("express");
+const multer = require("multer");
 const router = express.Router();
 const { createAdminSession, requireAdmin } = require("../services/adminAuth");
+const {
+  ALLOWED_IMAGE_MIME_TYPES,
+  MAX_UPLOAD_BYTES,
+  optimizeTourImage,
+} = require("../services/uploads");
 const {
   createTour,
   deleteTour,
@@ -8,6 +14,27 @@ const {
   getTours,
   updateTour,
 } = require("../services/tours");
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: MAX_UPLOAD_BYTES,
+    files: 1,
+  },
+  fileFilter(_req, file, callback) {
+    if (!ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype)) {
+      return callback(
+        Object.assign(new Error("Invalid file type"), {
+          statusCode: 400,
+          code: "INVALID_FILE_TYPE",
+          details: "Only JPEG, PNG, and WebP image uploads are allowed.",
+        })
+      );
+    }
+
+    return callback(null, true);
+  },
+});
 
 router.post("/session", async (req, res) => {
   const password = req.body?.password?.trim();
@@ -39,6 +66,42 @@ router.delete("/session", (_req, res) => {
 });
 
 router.use(requireAdmin);
+
+router.post("/uploads/tours", (req, res) => {
+  upload.single("image")(req, res, async (uploadError) => {
+    if (uploadError) {
+      const isTooLarge =
+        uploadError instanceof multer.MulterError &&
+        uploadError.code === "LIMIT_FILE_SIZE";
+      const statusCode = isTooLarge ? 413 : uploadError.statusCode || 400;
+
+      return res.status(statusCode).json({
+        ok: false,
+        code: isTooLarge ? "FILE_TOO_LARGE" : uploadError.code || "UPLOAD_FAILED",
+        error: isTooLarge ? "File too large" : uploadError.message || "Upload failed",
+        details: isTooLarge
+          ? "The selected image must be 5MB or smaller."
+          : uploadError.details || "Choose a valid JPEG, PNG, or WebP image.",
+      });
+    }
+
+    try {
+      const optimizedImage = await optimizeTourImage(req.file);
+
+      return res.status(201).json({
+        ok: true,
+        imageUrl: optimizedImage.imageUrl,
+      });
+    } catch (error) {
+      return res.status(error.statusCode || 500).json({
+        ok: false,
+        code: error.code || "UPLOAD_FAILED",
+        error: error.message || "Upload failed",
+        details: error.details || "Please try another image.",
+      });
+    }
+  });
+});
 
 router.get("/tours", async (_req, res) => {
   try {

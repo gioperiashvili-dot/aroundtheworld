@@ -8,7 +8,12 @@ export default function AdminTourForm({
   form,
   editing,
   saving,
+  imageFileName,
+  imagePreviewUrl,
+  imageInputKey,
   onChange,
+  onImageFileChange,
+  onClearImageFile,
   onSubmit,
   onReset,
 }) {
@@ -34,7 +39,7 @@ export default function AdminTourForm({
     <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
       <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
         <TravelImage
-          image={form.image}
+          image={imagePreviewUrl || form.image}
           title={previewTitle}
           subtitle={previewSubtitle}
           variant="tour"
@@ -228,7 +233,46 @@ export default function AdminTourForm({
               placeholder="https://..."
               className={inputClassName}
             />
+            <span className="block text-xs leading-6 text-slate-600 dark:text-slate-400">
+              {t("admin.imageUrlHelper")}
+            </span>
           </label>
+
+          <div className="space-y-2">
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              {t("admin.imageUpload")}
+            </span>
+            <label className="flex cursor-pointer flex-col gap-2 rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-4 text-sm text-slate-700 transition hover:border-emerald-400 hover:bg-emerald-50/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-emerald-400 dark:hover:bg-emerald-500/10">
+              <span className="font-semibold">{t("admin.chooseImage")}</span>
+              <span className="text-xs leading-6 text-slate-600 dark:text-slate-400">
+                {t("admin.imageUploadHelper")}
+              </span>
+              <input
+                key={imageInputKey}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={onImageFileChange}
+                disabled={saving}
+                className="sr-only"
+              />
+            </label>
+            {imageFileName ? (
+              <div className="flex flex-col gap-2 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700 dark:bg-slate-800/70 dark:text-slate-200 sm:flex-row sm:items-center sm:justify-between">
+                <span>
+                  <span className="font-semibold">{t("admin.selectedImage")}:</span>{" "}
+                  {imageFileName}
+                </span>
+                <button
+                  type="button"
+                  onClick={onClearImageFile}
+                  disabled={saving}
+                  className="self-start rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-950 sm:self-auto"
+                >
+                  {t("admin.clearSelectedImage")}
+                </button>
+              </div>
+            ) : null}
+          </div>
 
           <label className="block space-y-2">
             <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">

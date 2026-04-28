@@ -6,6 +6,7 @@ const restaurantsRoute = require("./routes/restaurants");
 const toursRoute = require("./routes/tours");
 const adminRoute = require("./routes/admin");
 const { PORT } = require("./config/env");
+const { getUploadsRoot } = require("./services/uploads");
 
 const app = express();
 
@@ -34,6 +35,13 @@ app.use(cors(corsOptions));
 app.options(/.*/, cors(corsOptions));
 
 app.use(express.json());
+app.use(
+  "/uploads",
+  express.static(getUploadsRoot(), {
+    maxAge: "30d",
+    immutable: true,
+  })
+);
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
