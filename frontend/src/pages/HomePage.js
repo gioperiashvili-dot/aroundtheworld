@@ -234,9 +234,9 @@ export default function HomePage() {
                   </button>
                 </div>
 
-                <div className="mt-4 flex flex-col gap-3 px-1 text-left md:flex-row md:items-center md:justify-between">
-                  <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                    <label className="flex items-center gap-3 text-sm font-medium text-white dark:text-slate-200">
+                <div className="mt-4 flex min-h-[10rem] flex-col gap-3 px-1 text-left sm:min-h-[8.5rem] md:min-h-[3rem] md:flex-row md:items-center md:justify-between">
+                  <div className="flex min-h-[4rem] flex-col gap-3 md:min-h-[1.5rem] md:flex-row md:items-center">
+                    <label className="flex min-h-5 items-center gap-3 text-sm font-medium leading-5 text-white dark:text-slate-200">
                       <input
                         type="checkbox"
                         name="isHuman"
@@ -250,18 +250,18 @@ export default function HomePage() {
                             setError("");
                           }
                         }}
-                        className="h-4 w-4 rounded border-slate-300 text-[#ff5a5f] focus:ring-[#ff5a5f]"
+                        className="h-4 w-4 shrink-0 rounded border-slate-300 text-[#ff5a5f] focus:ring-[#ff5a5f]"
                       />
                       {t("home.search.humanCheck")}
                     </label>
 
-                    <p className="text-sm text-slate-700 text-white dark:text-slate-200">
+                    <p className="min-h-5 text-sm leading-5 text-slate-700 text-white dark:text-slate-200">
                       {t("home.search.helper")}
                     </p>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-[0.24em] text-white dark:text-slate-200">
+                  <div className="flex min-h-9 flex-wrap items-center gap-2">
+                    <span className="min-h-4 text-xs font-semibold uppercase leading-4 tracking-[0.24em] text-white dark:text-slate-200">
                       {t("common.popularDestinations")}
                     </span>
                     {QUICK_DESTINATIONS.map((code) => {

@@ -3,16 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --font-body: "Manrope", sans-serif;
-  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "Manrope", "Segoe UI", Arial, sans-serif;
+  --font-display: "Space Grotesk", "Segoe UI", Arial, sans-serif;
   --text-primary: #0f172a;
   --text-muted: #475569;
   --surface-page: #f8f3eb;
 }
 
 html[data-language="ka"] {
-  --font-body: "Noto Sans Georgian", sans-serif;
-  --font-display: "Noto Sans Georgian", sans-serif;
+  --font-body: "Noto Sans Georgian", "Segoe UI", Arial, sans-serif;
+  --font-display: "Noto Sans Georgian", "Segoe UI", Arial, sans-serif;
 }
 
 * {

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import TourSearchModal from "./TourSearchModal";
-import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE_512.png";
+import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE_NAV_128.png";
 import { useLanguage } from "../i18n/LanguageContext";
 import { useTheme } from "../theme/ThemeContext";
 
@@ -183,8 +183,8 @@ function BrandLink({ compact = false, navSubtitle }) {
         <img
           src={logoMain}
           alt="Around The World"
-          width="512"
-          height="512"
+          width="128"
+          height="128"
           decoding="async"
           className={`w-auto object-contain ${compact ? "h-12 sm:h-14" : "h-14"}`}
         />
