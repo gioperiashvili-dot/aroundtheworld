@@ -1,20 +1,19 @@
-import backgroundOne from "../assets/background/background-1.jpg";
-import backgroundTwo from "../assets/background/background-2.jpg";
-// import backgroundThree from "../assets/background/background-3.jpg";
+import backgroundOne from "../assets/background/background-1.webp";
+import backgroundTwo from "../assets/background/background-2.webp";
 
 export const PUBLIC_BACKGROUND_IMAGES = [
-  backgroundOne,
-  backgroundTwo,
+  { image: backgroundOne, width: 1920, height: 1280 },
+  { image: backgroundTwo, width: 1920, height: 1275 },
 ];
 
-export const PUBLIC_BACKGROUND_SLIDES = PUBLIC_BACKGROUND_IMAGES.map((image, index) => ({
-  image,
+export const PUBLIC_BACKGROUND_SLIDES = PUBLIC_BACKGROUND_IMAGES.map((background, index) => ({
+  ...background,
   label: `Background slide ${index + 1}`,
 }));
 
 export function getPublicBackgroundSlides(preferredImage) {
   const preferredIndex = PUBLIC_BACKGROUND_IMAGES.findIndex(
-    (image) => image === preferredImage
+    ({ image }) => image === preferredImage
   );
 
   if (preferredIndex < 0) {

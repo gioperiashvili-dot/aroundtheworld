@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import PublicPageShell from "../components/PublicPageShell";
-import backgroundOne from "../assets/background/background-1.jpg";
+import backgroundOne from "../assets/background/background-1.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 
 export default function VisaServicesPage() {

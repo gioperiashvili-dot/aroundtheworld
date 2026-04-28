@@ -5,7 +5,7 @@ import EmptyState from "../components/EmptyState";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
 import TourCard from "../components/TourCard";
-import backgroundTwo from "../assets/background/background-2.jpg";
+import backgroundTwo from "../assets/background/background-2.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 import { fetchTours } from "../lib/api";
 import { getFriendlyApiError } from "../lib/formatters";

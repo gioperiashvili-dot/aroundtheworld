@@ -4,7 +4,7 @@ import AutocompleteInput from "../components/AutocompleteInput";
 import EmptyState from "../components/EmptyState";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
-import backgroundTwo from "../assets/background/background-2.jpg";
+import backgroundTwo from "../assets/background/background-2.webp";
 import {
   findLocation,
   getFlightSearchValue,

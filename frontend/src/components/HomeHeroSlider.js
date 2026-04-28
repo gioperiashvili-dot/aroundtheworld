@@ -1,22 +1,61 @@
+import { useEffect, useMemo, useState } from "react";
+
+const DEFER_SLIDER_IMAGES_MS = 3200;
+
 export default function HomeHeroSlider({
   slides,
   activeIndex,
   onSelect,
   showControls = true,
 }) {
+  const [shouldRenderDeferredSlides, setShouldRenderDeferredSlides] = useState(false);
+  const visibleIndex = Math.min(Math.max(activeIndex, 0), Math.max(slides.length - 1, 0));
+
+  useEffect(() => {
+    setShouldRenderDeferredSlides(false);
+
+    const timeoutId = window.setTimeout(() => {
+      setShouldRenderDeferredSlides(true);
+    }, DEFER_SLIDER_IMAGES_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [slides]);
+
+  const renderedSlides = useMemo(() => {
+    if (shouldRenderDeferredSlides) {
+      return slides.map((slide, index) => ({ slide, index }));
+    }
+
+    const visibleSlide = slides[visibleIndex];
+
+    return visibleSlide ? [{ slide: visibleSlide, index: visibleIndex }] : [];
+  }, [shouldRenderDeferredSlides, slides, visibleIndex]);
+
   return (
     <>
       <div className="absolute inset-0">
-        {slides.map((slide, index) => (
-          <div
-            key={slide.image}
-            className={`home-hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-[1400ms] ease-out ${
-              index === activeIndex ? "opacity-100" : "opacity-0"
-            }`}
-            style={{ backgroundImage: `url(${slide.image})` }}
-            aria-hidden={index !== activeIndex}
-          />
-        ))}
+        {renderedSlides.map(({ slide, index }) => {
+          const isVisible = index === visibleIndex;
+
+          return (
+            <img
+              key={slide.image}
+              src={slide.image}
+              alt=""
+              width={slide.width || 1920}
+              height={slide.height || 1280}
+              loading={isVisible ? "eager" : "lazy"}
+              decoding="async"
+              fetchPriority={isVisible ? "high" : "auto"}
+              className={`home-hero-slide absolute inset-0 h-full w-full object-cover transition-opacity duration-[1400ms] ease-out ${
+                isVisible ? "opacity-100" : "opacity-0"
+              }`}
+              aria-hidden="true"
+            />
+          );
+        })}
       </div>
 
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.68)_0%,rgba(2,6,23,0.38)_34%,rgba(15,23,42,0.55)_100%)]" />

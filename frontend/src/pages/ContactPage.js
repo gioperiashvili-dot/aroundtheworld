@@ -1,6 +1,6 @@
 import PublicPageShell from "../components/PublicPageShell";
-import backgroundThree from "../assets/background/background-3.jpg";
-import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE.png";
+import backgroundThree from "../assets/background/background-3.webp";
+import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE_512.png";
 import { useLanguage } from "../i18n/LanguageContext";
 import { contactDetails, getEmailHref, getPhoneHref, getWhatsAppHref } from "../lib/contact";
 
@@ -63,6 +63,10 @@ export default function ContactPage() {
               <img
                 src={logoMain}
                 alt="Around The World"
+                width="512"
+                height="512"
+                loading="lazy"
+                decoding="async"
                 className="h-auto w-44 max-w-full object-contain sm:w-52 md:w-60"
               />
             </div>

@@ -60,6 +60,10 @@ export default function TravelImage({
   subtitle,
   variant = "hotel",
   className = "h-64",
+  width = 640,
+  height = 384,
+  loading = "lazy",
+  fetchPriority,
 }) {
   const { t } = useLanguage();
   const [imageFailed, setImageFailed] = useState(false);
@@ -83,8 +87,11 @@ export default function TravelImage({
         <img
           src={image}
           alt={title || variantLabel}
-          loading="lazy"
+          width={width}
+          height={height}
+          loading={loading}
           decoding="async"
+          fetchPriority={fetchPriority}
           referrerPolicy="no-referrer"
           onError={() => setImageFailed(true)}
           className="h-full w-full object-cover"

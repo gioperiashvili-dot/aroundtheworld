@@ -5,7 +5,7 @@ import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
 import TourDescription from "../components/TourDescription";
 import TravelImage from "../components/TravelImage";
-import backgroundThree from "../assets/background/background-3.jpg";
+import backgroundThree from "../assets/background/background-3.webp";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 import { fetchTourById } from "../lib/api";
 import {

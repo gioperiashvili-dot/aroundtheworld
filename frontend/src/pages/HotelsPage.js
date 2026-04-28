@@ -5,7 +5,7 @@ import EmptyState from "../components/EmptyState";
 import HotelCard from "../components/HotelCard";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
-import backgroundThree from "../assets/background/background-3.jpg";
+import backgroundThree from "../assets/background/background-3.webp";
 import {
   findLocation,
   getCitySearchValue,

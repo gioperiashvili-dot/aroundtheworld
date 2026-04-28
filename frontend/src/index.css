@@ -115,18 +115,9 @@ html.dark .homepage-feature-card:hover .homepage-feature-card__description {
 }
 
 .home-hero-slide {
-  background-attachment: fixed;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: cover;
+  object-position: center center;
   transform: translateZ(0);
   will-change: opacity;
-}
-
-@media (max-width: 1023px), (hover: none), (pointer: coarse) {
-  .home-hero-slide {
-    background-attachment: scroll;
-  }
 }
 
 button,
