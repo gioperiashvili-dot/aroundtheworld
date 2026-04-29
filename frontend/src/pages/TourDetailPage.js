@@ -3,6 +3,12 @@ import { Link, useParams } from "react-router-dom";
 import EmptyState from "../components/EmptyState";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
+import SEO, {
+  PAGE_SEO,
+  buildCanonicalUrl,
+  buildTourSeoDescription,
+  toAbsoluteUrl,
+} from "../components/SEO";
 import TourDescription from "../components/TourDescription";
 import TravelImage from "../components/TravelImage";
 import backgroundOne from "../assets/background/background-1.webp";
@@ -48,6 +54,14 @@ export default function TourDetailPage() {
   const description = getLocalized(tour?.description, language);
   const duration = getLocalized(tour?.duration, language);
   const dates = formatTourDates(tour?.dates, 12, language);
+  const canonical = buildCanonicalUrl(`/tours/${encodeURIComponent(id || "")}`);
+  const seoTitle = title ? `${title} | Around The World` : PAGE_SEO.tours.title;
+  const seoDescription = buildTourSeoDescription({
+    description,
+    destination,
+    duration,
+  });
+  const seoImage = tour?.image ? toAbsoluteUrl(tour.image) : undefined;
 
   return (
     <PublicPageShell
@@ -75,6 +89,14 @@ export default function TourDetailPage() {
         </div>
       }
     >
+      <SEO
+        title={seoTitle}
+        description={seoDescription}
+        canonical={canonical}
+        ogUrl={canonical}
+        ogType="article"
+        ogImage={seoImage}
+      />
       {loading ? <LoadingSkeleton count={1} className="xl:grid-cols-1" /> : null}
 
       {!loading && error ? (

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import PublicPageShell from "../components/PublicPageShell";
+import SEO, { PAGE_SEO } from "../components/SEO";
 import backgroundOne from "../assets/background/background-1.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 
@@ -19,6 +20,7 @@ export default function VisaServicesPage() {
       highlights={Array.isArray(heroContent.highlights) ? heroContent.highlights : []}
       compactHero
     >
+      <SEO {...PAGE_SEO.visaServices} />
       <section className="space-y-6">
         <article className="grid gap-6 rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-transparent dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)] md:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className="max-w-4xl">

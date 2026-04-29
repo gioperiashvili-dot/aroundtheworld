@@ -4,6 +4,7 @@ import HomeHeroSlider from "../components/HomeHeroSlider";
 import Navbar from "../components/Navbar";
 import PublicFooter from "../components/PublicFooter";
 import AutocompleteInput from "../components/AutocompleteInput";
+import SEO, { PAGE_SEO, TRAVEL_AGENCY_JSON_LD } from "../components/SEO";
 import {
   findLocation,
   getFlightSearchValue,
@@ -30,7 +31,7 @@ function toLocationSuggestion(location, language) {
   };
 }
 
-export default function HomePage() {
+export default function HomePage({ seoPage = "home" }) {
   const navigate = useNavigate();
   const { language, t } = useLanguage();
   const [activeSlide, setActiveSlide] = useState(0);
@@ -46,6 +47,7 @@ export default function HomePage() {
   const homeEyebrow = t("home.eyebrow");
   const homeTitle = t("home.title");
   const homeDescription = t("home.description");
+  const seoMetadata = PAGE_SEO[seoPage] || PAGE_SEO.home;
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -107,6 +109,10 @@ export default function HomePage() {
 
   return (
     <div className="relative isolate min-h-screen overflow-hidden bg-slate-950 text-slate-900 transition-colors dark:text-slate-100">
+      <SEO
+        {...seoMetadata}
+        jsonLd={seoPage === "home" ? TRAVEL_AGENCY_JSON_LD : undefined}
+      />
         <HomeHeroSlider
           slides={HERO_SLIDES}
           activeIndex={activeSlide}

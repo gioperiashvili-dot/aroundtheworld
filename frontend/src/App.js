@@ -30,6 +30,7 @@ export default function App() {
     <Suspense fallback={<RouteLoadingFallback />}>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/about" element={<HomePage seoPage="about" />} />
         <Route path="/flights" element={<FlightsPage />} />
         <Route path="/hotels" element={<HotelsPage />} />
         <Route path="/restaurants" element={<RestaurantsPage />} />

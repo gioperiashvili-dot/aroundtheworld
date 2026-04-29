@@ -1,4 +1,5 @@
 import PublicPageShell from "../components/PublicPageShell";
+import SEO, { PAGE_SEO } from "../components/SEO";
 import backgroundOne from "../assets/background/background-1.webp";
 import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE_512.png";
 import { useLanguage } from "../i18n/LanguageContext";
@@ -56,6 +57,7 @@ export default function ContactPage() {
       title={t("contact.title")}
       description={t("contact.description")}
     >
+      <SEO {...PAGE_SEO.contact} />
       <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <article className="rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-transparent dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)] md:p-8">
           <div className="grid gap-6 md:grid-cols-[minmax(10rem,0.42fr)_1fr] md:items-center">

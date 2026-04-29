@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import AdminTourForm from "../components/AdminTourForm";
 import EmptyState from "../components/EmptyState";
 import LoadingSkeleton from "../components/LoadingSkeleton";
+import SEO from "../components/SEO";
 import TravelImage from "../components/TravelImage";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 import {
@@ -78,6 +79,9 @@ export default function AdminPage() {
   const [imageInputKey, setImageInputKey] = useState(0);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const adminSeo = (
+    <SEO title="Admin Panel | Around The World" robots="noindex,nofollow" />
+  );
 
   useEffect(() => {
     if (!imageFile) {
@@ -418,73 +422,74 @@ export default function AdminPage() {
   if (!token) {
     return (
       <div className="min-h-screen bg-[#f5efe7] px-4 py-8 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+        {adminSeo}
         <div className="mx-auto max-w-7xl">
-          <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
-              <TravelImage
-                image={null}
-                title={t("admin.loginHeading")}
-                subtitle={t("admin.loginDescription")}
-                variant="tour"
-                className="h-full min-h-[24rem]"
-              />
-            </div>
-
-            <form
-              onSubmit={handleLogin}
-              className="space-y-5 rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]"
-            >
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
-                  {t("admin.loginLabel")}
-                </p>
-                <h2 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
-                  {t("admin.loginHeading")}
-                </h2>
-                <p className="mt-3 text-sm leading-7 text-slate-700 dark:text-slate-300">
-                  {t("admin.loginDescription")}
-                </p>
+            <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+              <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
+                <TravelImage
+                  image={null}
+                  title={t("admin.loginHeading")}
+                  subtitle={t("admin.loginDescription")}
+                  variant="tour"
+                  className="h-full min-h-[24rem]"
+                />
               </div>
 
-              <label className="block space-y-2">
-                <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                  {t("common.password")}
-                </span>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(event) => {
-                    setPassword(event.target.value);
-                    if (error) {
-                      setError("");
-                    }
-                  }}
-                  placeholder={t("admin.passwordPlaceholder")}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
-                />
-              </label>
-
-              {error ? (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
-                  {error}
-                </div>
-              ) : null}
-
-              {success ? (
-                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
-                  {success}
-                </div>
-              ) : null}
-
-              <button
-                type="submit"
-                disabled={authLoading}
-                className="inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
+              <form
+                onSubmit={handleLogin}
+                className="space-y-5 rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]"
               >
-                {authLoading ? t("admin.loginLoading") : t("admin.loginButton")}
-              </button>
-            </form>
-          </section>
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
+                    {t("admin.loginLabel")}
+                  </p>
+                  <h2 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
+                    {t("admin.loginHeading")}
+                  </h2>
+                  <p className="mt-3 text-sm leading-7 text-slate-700 dark:text-slate-300">
+                    {t("admin.loginDescription")}
+                  </p>
+                </div>
+
+                <label className="block space-y-2">
+                  <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    {t("common.password")}
+                  </span>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) => {
+                      setPassword(event.target.value);
+                      if (error) {
+                        setError("");
+                      }
+                    }}
+                    placeholder={t("admin.passwordPlaceholder")}
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
+                  />
+                </label>
+
+                {error ? (
+                  <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
+                    {error}
+                  </div>
+                ) : null}
+
+                {success ? (
+                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
+                    {success}
+                  </div>
+                ) : null}
+
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
+                >
+                  {authLoading ? t("admin.loginLoading") : t("admin.loginButton")}
+                </button>
+              </form>
+            </section>
         </div>
       </div>
     );
@@ -492,6 +497,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[#f5efe7] px-4 py-8 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      {adminSeo}
       <div className="mx-auto max-w-7xl">
         <section className="space-y-6">
           <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">

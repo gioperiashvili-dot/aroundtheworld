@@ -4,6 +4,7 @@ import AutocompleteInput from "../components/AutocompleteInput";
 import EmptyState from "../components/EmptyState";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
+import SEO, { PAGE_SEO } from "../components/SEO";
 import TourCard from "../components/TourCard";
 import backgroundTwo from "../assets/background/background-2.webp";
 import { useLanguage } from "../i18n/LanguageContext";
@@ -147,6 +148,7 @@ export default function ToursPage() {
       highlights={[]}
       compactHero
     >
+      <SEO {...PAGE_SEO.tours} />
       <section className="space-y-6">
         <div className="overflow-visible rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
           <div className="p-6 lg:p-8">
