@@ -518,6 +518,8 @@ Object.assign(translationEnhancements.ka.flights, {
     message: "შეტყობინება",
     send: "მოთხოვნის გაგზავნა",
     sending: "იგზავნება...",
+    successTitle: "მოთხოვნა გაგზავნილია",
+    successAction: "გასაგებია",
     priceWarning:
       "ბილეთის ფასი ცვალებადია და საბოლოო ღირებულება დადასტურდება ოპერატორთან კომუნიკაციის შემდეგ.",
     success:
@@ -554,6 +556,8 @@ Object.assign(translationEnhancements.en.flights, {
     message: "Message",
     send: "Send request",
     sending: "Sending...",
+    successTitle: "Request sent",
+    successAction: "Got it",
     priceWarning:
       "Ticket prices may change. The final price will be confirmed after communication with an operator.",
     success:

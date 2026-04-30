@@ -1,18 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import AutocompleteInput from "../components/AutocompleteInput";
 import EmptyState from "../components/EmptyState";
+import FlightSearchPanel from "../components/FlightSearchPanel";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
 import backgroundTwo from "../assets/background/background-2.webp";
-import {
-  findLocation,
-  getFlightSearchValue,
-  getLocationLabel,
-  getLocationMeta,
-  getLocationSuggestions,
-} from "../data/locations";
 import { useLanguage } from "../i18n/LanguageContext";
 import { fetchFlights, submitFlightBookingRequest } from "../lib/api";
 import {
@@ -26,43 +19,8 @@ import {
   getFriendlyApiError,
 } from "../lib/formatters";
 
-const SEARCH_DEBOUNCE_MS = 850;
-const QUICK_DESTINATIONS = ["CDG", "IST", "LHR", "DXB", "ATH"];
-const TRIP_TYPES = ["oneWay", "roundTrip", "multiCity"];
-const CABIN_OPTIONS = ["economy", "premium_economy", "business", "first"];
 const RESULT_TAB_KEYS = ["recommended", "nonstop", "fastest", "earliest", "cheapest"];
 const FALLBACK_TEXT = "\u2014";
-
-function toLocationSuggestion(location, language) {
-  return {
-    id: location.id,
-    primary: getLocationLabel(location, language),
-    secondary: getLocationMeta(location, language),
-    tag: location.code,
-    value: getLocationLabel(location, language),
-    location,
-  };
-}
-
-function buildSearchParams(snapshot) {
-  const params = new URLSearchParams();
-  params.set("from", snapshot.from);
-  params.set("fromLabel", snapshot.fromLabel);
-  params.set("to", snapshot.to);
-  params.set("toLabel", snapshot.toLabel);
-  params.set("date", snapshot.date);
-  params.set("tripType", snapshot.tripType);
-  params.set("cabin", snapshot.cabin);
-  params.set("adults", String(snapshot.travelers.adults));
-  params.set("children", String(snapshot.travelers.children));
-  params.set("infants", String(snapshot.travelers.infants));
-  if (snapshot.returnDate) {
-    params.set("returnDate", snapshot.returnDate);
-  }
-  params.set("human", snapshot.isHuman ? "1" : "0");
-  params.set("auto", "1");
-  return params;
-}
 
 function getSafeText(value, fallback = FALLBACK_TEXT) {
   const text = String(value ?? "").trim();
@@ -108,28 +66,6 @@ function getFlightDurationLabel(flight = {}, language) {
   }
 
   return FALLBACK_TEXT;
-}
-
-function normalizeTripType(value, returnDate = "") {
-  return TRIP_TYPES.includes(value) ? value : returnDate ? "roundTrip" : "oneWay";
-}
-
-function normalizeCabin(value) {
-  return CABIN_OPTIONS.includes(value) ? value : "economy";
-}
-
-function parseTravelerCount(value, fallbackValue, minimumValue) {
-  const parsed = Number.parseInt(value, 10);
-
-  if (Number.isNaN(parsed) || parsed < minimumValue) {
-    return fallbackValue;
-  }
-
-  return parsed;
-}
-
-function getTravelersTotal(travelers) {
-  return travelers.adults + travelers.children + travelers.infants;
 }
 
 function parseDurationToMinutes(value) {
@@ -416,30 +352,12 @@ function buildSelectedFlightPayload(flight, lastSearch, language, t) {
 export default function FlightsPage() {
   const { language, t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [form, setForm] = useState({
-    from: "",
-    fromCode: "",
-    to: "",
-    toCode: "",
-    date: "",
-    isHuman: false,
-  });
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isDebouncing, setIsDebouncing] = useState(false);
   const [error, setError] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
   const [lastSearch, setLastSearch] = useState(null);
   const [meta, setMeta] = useState(null);
-  const [tripType, setTripType] = useState("oneWay");
-  const [cabin, setCabin] = useState("economy");
-  const [travelers, setTravelers] = useState({
-    adults: 1,
-    children: 0,
-    infants: 0,
-  });
-  const [returnDate, setReturnDate] = useState("");
-  const [isTravelersOpen, setIsTravelersOpen] = useState(false);
   const [activeResultTab, setActiveResultTab] = useState("recommended");
   const [bookingFlight, setBookingFlight] = useState(null);
   const [bookingForm, setBookingForm] = useState({
@@ -450,26 +368,7 @@ export default function FlightsPage() {
   });
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
   const [bookingError, setBookingError] = useState("");
-  const [bookingSuccess, setBookingSuccess] = useState("");
-  const debounceRef = useRef(null);
-  const lastAutoSearchRef = useRef("");
-
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) {
-        window.clearTimeout(debounceRef.current);
-      }
-    };
-  }, []);
-
-  const fromSuggestions = useMemo(
-    () => getLocationSuggestions(form.from).map((location) => toLocationSuggestion(location, language)),
-    [form.from, language]
-  );
-  const toSuggestions = useMemo(
-    () => getLocationSuggestions(form.to).map((location) => toLocationSuggestion(location, language)),
-    [form.to, language]
-  );
+  const [isBookingSuccessOpen, setIsBookingSuccessOpen] = useState(false);
 
   const runSearch = useCallback(
     async (snapshot) => {
@@ -528,211 +427,32 @@ export default function FlightsPage() {
     [t]
   );
 
-  useEffect(() => {
-    const fromParam = searchParams.get("from") || "";
-    const toParam = searchParams.get("to") || "";
-    const dateParam = searchParams.get("date") || "";
-    const returnDateParam = searchParams.get("returnDate") || "";
-    const nextTripType = normalizeTripType(
-      searchParams.get("tripType"),
-      returnDateParam
-    );
-    const nextCabin = normalizeCabin(searchParams.get("cabin"));
-    const nextTravelers = {
-      adults: parseTravelerCount(searchParams.get("adults"), 1, 1),
-      children: parseTravelerCount(searchParams.get("children"), 0, 0),
-      infants: parseTravelerCount(searchParams.get("infants"), 0, 0),
-    };
-    const fromLocation = findLocation(fromParam);
-    const toLocation = findLocation(toParam);
-    const fromLabel =
-      searchParams.get("fromLabel") ||
-      getLocationLabel(fromLocation, language) ||
-      fromParam;
-    const toLabel =
-      searchParams.get("toLabel") || getLocationLabel(toLocation, language) || toParam;
-    const isHuman = searchParams.get("human") === "1";
+  const handleFlightSearch = useCallback(
+    (snapshot, nextParams, options = {}) => {
+      setError("");
 
-    setForm((previousForm) => ({
-      ...previousForm,
-      from: fromLabel,
-      fromCode: fromLocation?.code || "",
-      to: toLabel,
-      toCode: toLocation?.code || "",
-      date: dateParam,
-      isHuman: isHuman || previousForm.isHuman,
-    }));
-    setTripType(nextTripType);
-    setCabin(nextCabin);
-    setTravelers(nextTravelers);
-    setReturnDate(nextTripType === "roundTrip" ? returnDateParam : "");
-
-    if (!fromParam || !toParam || !dateParam || searchParams.get("auto") !== "1") {
-      return;
-    }
-
-    const searchKey = [
-      fromParam,
-      toParam,
-      dateParam,
-      returnDateParam,
-      fromLabel,
-      toLabel,
-      nextTripType,
-      nextCabin,
-      nextTravelers.adults,
-      nextTravelers.children,
-      nextTravelers.infants,
-    ].join("|");
-
-    if (lastAutoSearchRef.current === searchKey) {
-      return;
-    }
-
-    lastAutoSearchRef.current = searchKey;
-    void runSearch({
-      from: fromParam,
-      fromLabel,
-      to: toParam,
-      toLabel,
-      date: dateParam,
-      returnDate: nextTripType === "roundTrip" ? returnDateParam : "",
-      tripType: nextTripType,
-      cabin: nextCabin,
-      travelers: nextTravelers,
-    });
-  }, [language, runSearch, searchParams]);
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-    const fromLocation = findLocation(form.fromCode || form.from);
-    const toLocation = findLocation(form.toCode || form.to);
-    const snapshot = {
-      from: getFlightSearchValue(fromLocation, form.from),
-      fromLabel: form.from.trim(),
-      to: getFlightSearchValue(toLocation, form.to),
-      toLabel: form.to.trim(),
-      date: form.date.trim(),
-      returnDate: tripType === "roundTrip" ? returnDate.trim() : "",
-      tripType,
-      cabin,
-      travelers,
-      isHuman: form.isHuman,
-    };
-
-    if (!snapshot.fromLabel || !snapshot.toLabel || !snapshot.date) {
-      setError(t("flights.errors.required"));
-      return;
-    }
-
-    if (snapshot.tripType === "multiCity") {
-      setError(t("flights.errors.multiCity"));
-      return;
-    }
-
-    if (
-      snapshot.from.trim().toLowerCase() ===
-      snapshot.to.trim().toLowerCase()
-    ) {
-      setError(t("flights.errors.sameRoute"));
-      return;
-    }
-
-    if (snapshot.tripType === "roundTrip" && !snapshot.returnDate) {
-      setError(t("flights.errors.returnRequired"));
-      return;
-    }
-
-    if (
-      snapshot.travelers.adults < 1 ||
-      snapshot.travelers.children < 0 ||
-      snapshot.travelers.infants < 0
-    ) {
-      setError(t("flights.errors.travelers"));
-      return;
-    }
-
-    if (!snapshot.isHuman) {
-      setError(t("flights.errors.human"));
-      return;
-    }
-
-    const nextParams = buildSearchParams(snapshot);
-
-    if (debounceRef.current) {
-      window.clearTimeout(debounceRef.current);
-    }
-
-    setIsDebouncing(true);
-    setError("");
-    debounceRef.current = window.setTimeout(() => {
-      setIsDebouncing(false);
-
-      if (searchParams.toString() === nextParams.toString()) {
-        const searchKey = [
-          snapshot.from,
-          snapshot.to,
-          snapshot.date,
-          snapshot.returnDate,
-          snapshot.fromLabel,
-          snapshot.toLabel,
-          snapshot.tripType,
-          snapshot.cabin,
-          snapshot.travelers.adults,
-          snapshot.travelers.children,
-          snapshot.travelers.infants,
-        ].join("|");
-        lastAutoSearchRef.current = searchKey;
+      if (options.auto || searchParams.toString() === nextParams.toString()) {
         void runSearch(snapshot);
-      } else {
-        setSearchParams(nextParams);
+        return;
       }
 
-      debounceRef.current = null;
-    }, SEARCH_DEBOUNCE_MS);
-  };
-
-  const handleSwapLocations = () => {
-    setForm((previousForm) => ({
-      ...previousForm,
-      from: previousForm.to,
-      fromCode: previousForm.toCode,
-      to: previousForm.from,
-      toCode: previousForm.fromCode,
-    }));
-
-    if (error) {
-      setError("");
-    }
-  };
-
-  const updateTravelerCount = (type, delta) => {
-    setTravelers((previousTravelers) => {
-      const minimumValue = type === "adults" ? 1 : 0;
-      const nextValue = Math.max(previousTravelers[type] + delta, minimumValue);
-
-      return {
-        ...previousTravelers,
-        [type]: nextValue,
-      };
-    });
-
-    if (error) {
-      setError("");
-    }
-  };
+      setSearchParams(nextParams);
+    },
+    [runSearch, searchParams, setSearchParams]
+  );
 
   const openBookingModal = (flight) => {
     setBookingFlight(flight);
     setBookingError("");
-    setBookingSuccess("");
   };
 
   const closeBookingModal = useCallback(() => {
     setBookingFlight(null);
     setBookingError("");
-    setBookingSuccess("");
+  }, []);
+
+  const closeBookingSuccessModal = useCallback(() => {
+    setIsBookingSuccessOpen(false);
   }, []);
 
   const handleBookingFieldChange = (event) => {
@@ -778,7 +498,6 @@ export default function FlightsPage() {
 
     setBookingSubmitting(true);
     setBookingError("");
-    setBookingSuccess("");
 
     try {
       await submitFlightBookingRequest({
@@ -787,7 +506,8 @@ export default function FlightsPage() {
         language,
       });
 
-      setBookingSuccess(t("flights.bookingRequest.success"));
+      setBookingFlight(null);
+      setIsBookingSuccessOpen(true);
       setBookingForm({
         customerName: "",
         customerEmail: "",
@@ -809,20 +529,11 @@ export default function FlightsPage() {
     }
   };
 
-  const isBusy = loading || isDebouncing;
-  const statusLabel = loading
-    ? t("flights.searchingButton")
-    : isDebouncing
-      ? t("flights.preparingButton")
-      : t("flights.searchButton");
   const heroContent = t("app.pages.flights");
-  const flightsHeading = t("flights.heading");
-  const showReturnDate = tripType === "roundTrip";
   const displayedResults = useMemo(
     () => getDisplayFlights(results, activeResultTab),
     [results, activeResultTab]
   );
-  const isMultiCity = tripType === "multiCity";
 
   return (
     <PublicPageShell
@@ -835,227 +546,13 @@ export default function FlightsPage() {
     >
       <SEO {...PAGE_SEO.flights} />
       <section className="space-y-6">
-        <div className="overflow-visible rounded-[2.25rem] border border-white/75 bg-white/95 shadow-[0_34px_100px_-58px_rgba(15,23,42,0.6)] backdrop-blur dark:border-white/10 dark:bg-transparent dark:shadow-[0_34px_100px_-58px_rgba(2,6,23,0.95)]">
-          <div className="space-y-6 p-4 sm:p-5 lg:p-7">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d83f45] dark:text-[#ff8c90]">
-                {t("flights.sectionLabel")}
-              </p>
-              {flightsHeading ? (
-                <h2 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
-                  {flightsHeading}
-                </h2>
-              ) : null}
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 dark:text-white">
-                {t("flights.helperText")}
-              </p>
-            </div>
-
-            <form className="space-y-5" onSubmit={handleSubmit}>
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <TripTypeOptions
-                  tripType={tripType}
-                  onChange={(nextTripType) => {
-                    setTripType(nextTripType);
-                    if (error) {
-                      setError("");
-                    }
-                  }}
-                  t={t}
-                />
-
-                <CabinSelect
-                  value={cabin}
-                  onChange={(event) => setCabin(event.target.value)}
-                  t={t}
-                  className="lg:min-w-[12rem]"
-                />
-              </div>
-
-              {isMultiCity ? (
-                <div className="rounded-[1.4rem] bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 dark:bg-amber-500/10 dark:text-amber-100">
-                  {t("flights.multiCityComingSoon")}
-                </div>
-              ) : null}
-
-              <div className="flex flex-col gap-3 xl:flex-row xl:items-stretch">
-                <FieldCard className="xl:min-w-0 xl:flex-[1.16]">
-                  <AutocompleteInput
-                    label={t("common.from")}
-                    value={form.from}
-                    onChange={(value) => {
-                      setForm((previousForm) => ({
-                        ...previousForm,
-                        from: value,
-                        fromCode: "",
-                      }));
-                      if (error) {
-                        setError("");
-                      }
-                    }}
-                    onSelect={(suggestion) => {
-                      setForm((previousForm) => ({
-                        ...previousForm,
-                        from: suggestion.value,
-                        fromCode: suggestion.location.code,
-                      }));
-                      if (error) {
-                        setError("");
-                      }
-                    }}
-                    suggestions={fromSuggestions}
-                    placeholder={t("flights.placeholders.from")}
-                    noSuggestionsText={t("common.noSuggestions")}
-                  />
-                </FieldCard>
-
-                <button
-                  type="button"
-                  onClick={handleSwapLocations}
-                  aria-label={t("flights.swapRoute")}
-                  title={t("flights.swapRoute")}
-                  className="flex h-12 w-12 shrink-0 items-center justify-center self-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-[0_16px_34px_-26px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:border-[#e64d53]/45 hover:text-[#d83f45] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-[#ff8c90]/45 dark:hover:text-[#ffb4b7] xl:h-[4.6rem] xl:w-[4.6rem]"
-                >
-                  <SwapIcon />
-                </button>
-
-                <FieldCard className="xl:min-w-0 xl:flex-[1.16]">
-                  <AutocompleteInput
-                    label={t("common.to")}
-                    value={form.to}
-                    onChange={(value) => {
-                      setForm((previousForm) => ({
-                        ...previousForm,
-                        to: value,
-                        toCode: "",
-                      }));
-                      if (error) {
-                        setError("");
-                      }
-                    }}
-                    onSelect={(suggestion) => {
-                      setForm((previousForm) => ({
-                        ...previousForm,
-                        to: suggestion.value,
-                        toCode: suggestion.location.code,
-                      }));
-                      if (error) {
-                        setError("");
-                      }
-                    }}
-                    suggestions={toSuggestions}
-                    placeholder={t("flights.placeholders.to")}
-                    noSuggestionsText={t("common.noSuggestions")}
-                  />
-                </FieldCard>
-
-                <FieldCard className="xl:min-w-[10rem] xl:flex-[0.78]">
-                  <DateField
-                    label={t("flights.departureLabel")}
-                    name="date"
-                    value={form.date}
-                    onChange={(event) => {
-                      setForm((previousForm) => ({
-                        ...previousForm,
-                        date: event.target.value,
-                      }));
-                      if (error) {
-                        setError("");
-                      }
-                    }}
-                  />
-                </FieldCard>
-
-                {showReturnDate ? (
-                  <FieldCard className="xl:min-w-[10rem] xl:flex-[0.78]">
-                    <DateField
-                      label={t("flights.returnLabel")}
-                      name="returnDate"
-                      value={returnDate}
-                      onChange={(event) => setReturnDate(event.target.value)}
-                    />
-                  </FieldCard>
-                ) : null}
-
-                <TravelersField
-                  travelers={travelers}
-                  isOpen={isTravelersOpen}
-                  onToggle={() => setIsTravelersOpen((currentValue) => !currentValue)}
-                  onChange={updateTravelerCount}
-                  t={t}
-                  className="xl:min-w-[10rem] xl:flex-[0.78]"
-                />
-
-                <button
-                  type="submit"
-                  disabled={isBusy || isMultiCity}
-                  aria-label={statusLabel}
-                  className="group flex h-14 w-full shrink-0 items-center justify-center rounded-[1.25rem] bg-[#e64d53] px-5 text-sm font-semibold text-white shadow-[0_22px_44px_-26px_rgba(216,63,69,0.9)] transition hover:-translate-y-0.5 hover:bg-[#rounded-[2rem] border border-white/70 bg-[#e64d53] p-6 text-sm font-medium text-slate-600 shadow-[0_24px_80px_-58px_rgba(15,23,42,0.5)] dark:border-white/10 dark:bg-slate-900/80 dark:text-slate-300] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 disabled:shadow-none dark:disabled:bg-slate-700 dark:disabled:text-slate-300 xl:h-[4.6rem] xl:w-[4.6rem] xl:rounded-full xl:px-0"
-                >
-                  <SearchIcon />
-                  <span className="ml-2 xl:sr-only">{statusLabel}</span>
-                </button>
-              </div>
-
-              <div className="flex flex-col gap-4 rounded-[1.75rem] bg-slate-50 p-4 md:flex-row md:items-center md:justify-between dark:bg-slate-900/80">
-                <label className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-200">
-                  <input
-                    type="checkbox"
-                    name="isHuman"
-                    checked={form.isHuman}
-                    onChange={(event) => {
-                      setForm((previousForm) => ({
-                        ...previousForm,
-                        isHuman: event.target.checked,
-                      }));
-                      if (error) {
-                        setError("");
-                      }
-                    }}
-                    className="h-5 w-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  {t("flights.humanCheck")}
-                </label>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
-                    {t("common.popularDestinations")}
-                  </span>
-                  {QUICK_DESTINATIONS.map((code) => {
-                    const location = findLocation(code);
-
-                    if (!location) {
-                      return null;
-                    }
-
-                    return (
-                      <button
-                        key={code}
-                        type="button"
-                        onClick={() =>
-                          setForm((previousForm) => ({
-                            ...previousForm,
-                            to: getLocationLabel(location, language),
-                            toCode: location.code,
-                          }))
-                        }
-                        className="rounded-full bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-200 dark:hover:bg-emerald-500/20"
-                      >
-                        {getLocationLabel(location, language)}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </form>
-          </div>
-
-          {error ? (
-            <div className="border-t border-rose-100 bg-rose-50 px-6 py-4 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
-              {error}
-            </div>
-          ) : null}
-        </div>
+        <FlightSearchPanel
+          searchParams={searchParams}
+          loading={loading}
+          externalError={error}
+          onSearch={handleFlightSearch}
+          onFormInteraction={() => setError("")}
+        />
 
         {(lastSearch || meta?.cached) && !loading ? (
           <div className="flex flex-col gap-3 rounded-[1.9rem] border border-white/70 bg-white/88 px-5 py-4 shadow-[0_24px_80px_-56px_rgba(15,23,42,0.45)] md:flex-row md:items-center md:justify-between dark:border-white/10 dark:bg-slate-900/82 dark:shadow-[0_24px_80px_-56px_rgba(2,6,23,0.8)]">
@@ -1146,7 +643,6 @@ export default function FlightsPage() {
             flight={bookingFlight}
             form={bookingForm}
             error={bookingError}
-            success={bookingSuccess}
             isSubmitting={bookingSubmitting}
             lastSearch={lastSearch}
             language={language}
@@ -1157,186 +653,12 @@ export default function FlightsPage() {
           />
         ) : null}
 
+        {isBookingSuccessOpen ? (
+          <BookingSuccessModal t={t} onClose={closeBookingSuccessModal} />
+        ) : null}
+
       </section>
     </PublicPageShell>
-  );
-}
-
-function TripTypeOptions({ tripType, onChange, t }) {
-  return (
-    <div
-      role="radiogroup"
-      aria-label={t("flights.tripTypeLabel")}
-      className="inline-flex w-full flex-wrap gap-1 rounded-full bg-slate-100 p-1 dark:bg-slate-900 sm:w-auto"
-    >
-      {TRIP_TYPES.map((type) => {
-        const isSelected = tripType === type;
-
-        return (
-          <button
-            key={type}
-            type="button"
-            role="radio"
-            aria-checked={isSelected}
-            onClick={() => onChange(type)}
-            className={`min-h-10 flex-1 rounded-full px-4 py-2 text-sm font-semibold transition sm:flex-none ${
-              isSelected
-                ? "bg-white text-slate-950 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.72)] dark:bg-slate-800 dark:text-white"
-                : "text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"
-            }`}
-          >
-            {t(`flights.tripTypes.${type}`)}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function FieldCard({ children, className = "" }) {
-  return (
-    <div
-      className={`min-h-[4.6rem] rounded-[1.35rem] border border-slate-200 bg-white px-4 py-3 shadow-[0_18px_46px_-40px_rgba(15,23,42,0.9)] transition focus-within:border-[#e64d53]/55 dark:border-slate-800 dark:bg-slate-900/90 ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
-
-function DateField({ label, name, value, onChange }) {
-  return (
-    <label className="block text-left">
-      <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
-        {label}
-      </span>
-      <input
-        type="date"
-        name={name}
-        value={value}
-        onChange={onChange}
-        className="mt-2 w-full bg-transparent text-sm font-semibold text-slate-950 outline-none dark:text-white"
-      />
-    </label>
-  );
-}
-
-function CabinSelect({ value, onChange, t, className = "" }) {
-  return (
-    <div
-      className={`min-h-[4.6rem] rounded-[1.35rem] border border-slate-200 bg-white px-4 py-3 text-left shadow-[0_18px_46px_-40px_rgba(15,23,42,0.9)] dark:border-slate-800 dark:bg-slate-900/90 ${className}`}
-    >
-      <label className="block">
-        <span className="block text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
-          {t("flights.cabinLabel")}
-        </span>
-        <select
-          value={value}
-          onChange={onChange}
-          className="mt-2 w-full bg-transparent text-sm font-semibold text-slate-950 outline-none dark:text-white"
-        >
-          {CABIN_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {t(`flights.cabinClasses.${option}`)}
-            </option>
-          ))}
-        </select>
-      </label>
-    </div>
-  );
-}
-
-function TravelersField({
-  travelers,
-  isOpen,
-  onToggle,
-  onChange,
-  t,
-  className = "",
-}) {
-  const totalTravelers = getTravelersTotal(travelers);
-  const summary =
-    totalTravelers === 1
-      ? t("flights.travelersSummaryOne")
-      : t("flights.travelersSummaryMany").replace("{count}", totalTravelers);
-
-  return (
-    <div className={`relative ${className}`}>
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={isOpen}
-        className="min-h-[4.6rem] w-full rounded-[1.35rem] border border-slate-200 bg-white px-4 py-3 text-left shadow-[0_18px_46px_-40px_rgba(15,23,42,0.9)] transition hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-slate-700"
-      >
-        <span className="block text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
-          {t("flights.travelersLabel")}
-        </span>
-        <span className="mt-2 flex min-w-0 items-center justify-between gap-3 text-sm font-semibold text-slate-950 dark:text-white">
-          <span className="min-w-0 truncate">{summary}</span>
-          <span className="h-2 w-2 rotate-45 border-b border-r border-slate-400 dark:border-slate-500" />
-        </span>
-      </button>
-
-      {isOpen ? (
-        <div className="absolute left-0 right-0 top-[calc(100%+0.75rem)] z-30 rounded-[1.35rem] border border-slate-200 bg-white p-3 shadow-[0_24px_60px_-38px_rgba(15,23,42,0.55)] dark:border-slate-700 dark:bg-slate-900 sm:left-auto sm:w-80">
-          <TravelerCounter
-            label={t("flights.travelers.adults")}
-            value={travelers.adults}
-            minValue={1}
-            onDecrease={() => onChange("adults", -1)}
-            onIncrease={() => onChange("adults", 1)}
-            t={t}
-          />
-          <TravelerCounter
-            label={t("flights.travelers.children")}
-            value={travelers.children}
-            minValue={0}
-            onDecrease={() => onChange("children", -1)}
-            onIncrease={() => onChange("children", 1)}
-            t={t}
-          />
-          <TravelerCounter
-            label={t("flights.travelers.infants")}
-            value={travelers.infants}
-            minValue={0}
-            onDecrease={() => onChange("infants", -1)}
-            onIncrease={() => onChange("infants", 1)}
-            t={t}
-          />
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function TravelerCounter({ label, value, minValue, onDecrease, onIncrease, t }) {
-  return (
-    <div className="flex items-center justify-between gap-4 rounded-[1rem] px-2 py-3">
-      <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-        {label}
-      </span>
-      <span className="flex items-center gap-3">
-        <button
-          type="button"
-          disabled={value <= minValue}
-          onClick={onDecrease}
-          aria-label={`${t("flights.decrease")} ${label}`}
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-lg font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-        >
-          -
-        </button>
-        <span className="min-w-6 text-center text-sm font-semibold text-slate-950 dark:text-white">
-          {value}
-        </span>
-        <button
-          type="button"
-          onClick={onIncrease}
-          aria-label={`${t("flights.increase")} ${label}`}
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-lg font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-        >
-          +
-        </button>
-      </span>
-    </div>
   );
 }
 
@@ -1727,7 +1049,6 @@ function BookingRequestModal({
   flight,
   form,
   error,
-  success,
   isSubmitting,
   lastSearch,
   language,
@@ -1899,12 +1220,6 @@ function BookingRequestModal({
                 {error}
               </p>
             ) : null}
-            {success ? (
-              <p className="rounded-[1.1rem] bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200">
-                {success}
-              </p>
-            ) : null}
-
             <button
               type="submit"
               disabled={isSubmitting}
@@ -1916,6 +1231,86 @@ function BookingRequestModal({
             </button>
           </form>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function BookingSuccessModal({ t, onClose }) {
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    const originalOverflow = document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="booking-success-title"
+      className="fixed inset-0 z-50 flex items-end justify-center px-4 py-4 sm:items-center"
+    >
+      <button
+        type="button"
+        aria-label={t("common.close")}
+        onClick={onClose}
+        className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+      />
+
+      <div className="relative w-full max-w-lg rounded-[2rem] border border-white/70 bg-white p-6 text-center shadow-[0_34px_120px_-48px_rgba(15,23,42,0.85)] dark:border-white/10 dark:bg-slate-950 sm:p-7">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={t("common.close")}
+          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-lg font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-950 dark:border-slate-800 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:text-white"
+        >
+          x
+        </button>
+
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200">
+          <svg
+            aria-hidden="true"
+            className="h-7 w-7"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m5 12 4 4L19 6" />
+          </svg>
+        </div>
+        <h2
+          id="booking-success-title"
+          className="[font-family:var(--font-display)] mt-5 text-2xl font-semibold text-slate-950 dark:text-white"
+        >
+          {t("flights.bookingRequest.successTitle")}
+        </h2>
+        <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+          {t("flights.bookingRequest.success")}
+        </p>
+        <p className="mt-4 rounded-[1.1rem] bg-amber-50 px-4 py-3 text-sm font-medium leading-6 text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
+          {t("flights.bookingRequest.priceWarning")}
+        </p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[#e64d53] px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_42px_-26px_rgba(216,63,69,0.9)] transition hover:bg-[#d83f45]"
+        >
+          {t("flights.bookingRequest.successAction")}
+        </button>
       </div>
     </div>
   );
@@ -1976,43 +1371,5 @@ function FlightMeta({ label, value, wrap = false }) {
         {value}
       </span>
     </div>
-  );
-}
-
-function SwapIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-5 w-5"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M7 7h11" />
-      <path d="m15 3 4 4-4 4" />
-      <path d="M17 17H6" />
-      <path d="m9 13-4 4 4 4" />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-5 w-5"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="11" cy="11" r="7" />
-      <path d="m20 20-3.5-3.5" />
-    </svg>
   );
 }

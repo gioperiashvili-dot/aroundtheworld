@@ -1,49 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import FlightSearchPanel from "../components/FlightSearchPanel";
 import HomeHeroSlider from "../components/HomeHeroSlider";
 import Navbar from "../components/Navbar";
 import PublicFooter from "../components/PublicFooter";
-import AutocompleteInput from "../components/AutocompleteInput";
 import SEO, { PAGE_SEO, TRAVEL_AGENCY_JSON_LD } from "../components/SEO";
-import {
-  findLocation,
-  getFlightSearchValue,
-  getLocationLabel,
-  getLocationMeta,
-  getLocationSuggestions,
-} from "../data/locations";
 import { useLanguage } from "../i18n/LanguageContext";
 import { PUBLIC_BACKGROUND_SLIDES } from "../lib/publicBackgrounds";
 
 const SLIDER_INTERVAL_MS = 5600;
-const QUICK_DESTINATIONS = ["IST", "CDG", "LHR", "DXB", "ATH"];
 
 const HERO_SLIDES = PUBLIC_BACKGROUND_SLIDES;
 
-function toLocationSuggestion(location, language) {
-  return {
-    id: location.code,
-    primary: getLocationLabel(location, language),
-    secondary: getLocationMeta(location, language),
-    tag: location.code,
-    value: getLocationLabel(location, language),
-    location,
-  };
-}
-
 export default function HomePage({ seoPage = "home" }) {
   const navigate = useNavigate();
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
   const [activeSlide, setActiveSlide] = useState(0);
-  const [form, setForm] = useState({
-    from: "",
-    fromCode: "",
-    to: "",
-    toCode: "",
-    date: "",
-    isHuman: false,
-  });
-  const [error, setError] = useState("");
   const homeEyebrow = t("home.eyebrow");
   const homeTitle = t("home.title");
   const homeDescription = t("home.description");
@@ -59,45 +31,8 @@ export default function HomePage({ seoPage = "home" }) {
     };
   }, []);
 
-  const fromSuggestions = useMemo(
-    () => getLocationSuggestions(form.from).map((location) => toLocationSuggestion(location, language)),
-    [form.from, language]
-  );
-  const toSuggestions = useMemo(
-    () => getLocationSuggestions(form.to).map((location) => toLocationSuggestion(location, language)),
-    [form.to, language]
-  );
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-    const fromLocation = findLocation(form.fromCode || form.from);
-    const toLocation = findLocation(form.toCode || form.to);
-    const fromLabel = form.from.trim();
-    const toLabel = form.to.trim();
-    const date = form.date.trim();
-
-    if (!fromLabel || !toLabel || !date) {
-      setError(t("home.search.errors.required"));
-      return;
-    }
-
-    if (!form.isHuman) {
-      setError(t("home.search.errors.human"));
-      return;
-    }
-
-    const params = new URLSearchParams({
-      from: getFlightSearchValue(fromLocation, fromLabel),
-      fromLabel,
-      to: getFlightSearchValue(toLocation, toLabel),
-      toLabel,
-      date,
-      human: "1",
-      auto: "1",
-    });
-
-    navigate(`/flights?${params.toString()}`);
+  const handleFlightSearch = (_snapshot, nextParams) => {
+    navigate(`/flights?${nextParams.toString()}`);
   };
 
   const pageCards = [
@@ -146,163 +81,7 @@ export default function HomePage({ seoPage = "home" }) {
             </div>
 
             <div className="mt-10 w-full max-w-[1360px]">
-              <form
-                onSubmit={handleSubmit}
-                className="rounded-[2rem] bg-white/96 p-3 shadow-[0_35px_120px_-50px_rgba(15,23,42,0.95)] backdrop-blur md:rounded-[2.4rem] md:p-4 dark:bg-slate-950/88"
-              >
-                <div className="grid gap-3 xl:grid-cols-[1.12fr_1.12fr_0.9fr_auto]">
-                  <div className="rounded-[1.35rem] border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900/90">
-                    <AutocompleteInput
-                      label={t("home.search.fromLabel")}
-                      value={form.from}
-                      onChange={(value) => {
-                        setForm((previousForm) => ({
-                          ...previousForm,
-                          from: value,
-                          fromCode: "",
-                        }));
-                        if (error) {
-                          setError("");
-                        }
-                      }}
-                      onSelect={(suggestion) => {
-                        setForm((previousForm) => ({
-                          ...previousForm,
-                          from: suggestion.value,
-                          fromCode: suggestion.location.code,
-                        }));
-                        if (error) {
-                          setError("");
-                        }
-                      }}
-                      suggestions={fromSuggestions}
-                      placeholder={t("home.search.fromPlaceholder")}
-                      noSuggestionsText={t("common.noSuggestions")}
-                    />
-                  </div>
-
-                  <div className="rounded-[1.35rem] border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900/90">
-                    <AutocompleteInput
-                      label={t("home.search.toLabel")}
-                      value={form.to}
-                      onChange={(value) => {
-                        setForm((previousForm) => ({
-                          ...previousForm,
-                          to: value,
-                          toCode: "",
-                        }));
-                        if (error) {
-                          setError("");
-                        }
-                      }}
-                      onSelect={(suggestion) => {
-                        setForm((previousForm) => ({
-                          ...previousForm,
-                          to: suggestion.value,
-                          toCode: suggestion.location.code,
-                        }));
-                        if (error) {
-                          setError("");
-                        }
-                      }}
-                      suggestions={toSuggestions}
-                      placeholder={t("home.search.toPlaceholder")}
-                      noSuggestionsText={t("common.noSuggestions")}
-                    />
-                  </div>
-
-                  <label className="rounded-[1.35rem] border border-slate-200 bg-white px-4 py-3 text-left dark:border-slate-800 dark:bg-slate-900/90">
-                    <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
-                      {t("home.search.dateLabel")}
-                    </span>
-                    <input
-                      type="date"
-                      name="date"
-                      value={form.date}
-                      onChange={(event) => {
-                        setForm((previousForm) => ({
-                          ...previousForm,
-                          date: event.target.value,
-                        }));
-                        if (error) {
-                          setError("");
-                        }
-                      }}
-                      className="mt-2 w-full bg-transparent text-sm font-medium text-slate-900 outline-none dark:text-white"
-                    />
-                  </label>
-
-                  <button
-                    type="submit"
-                    className="rounded-[1.35rem] bg-[#ff5a5f] px-7 py-4 text-sm font-semibold text-white transition hover:bg-[#ff4a50] focus:outline-none focus:ring-4 focus:ring-[#ff5a5f]/30"
-                  >
-                    {t("home.search.button")}
-                  </button>
-                </div>
-
-                <div className="mt-4 flex min-h-[10rem] flex-col gap-3 px-1 text-left sm:min-h-[8.5rem] md:min-h-[3rem] md:flex-row md:items-center md:justify-between">
-                  <div className="flex min-h-[4rem] flex-col gap-3 md:min-h-[1.5rem] md:flex-row md:items-center">
-                    <label className="flex min-h-5 items-center gap-3 text-sm font-medium leading-5 text-white dark:text-slate-200">
-                      <input
-                        type="checkbox"
-                        name="isHuman"
-                        checked={form.isHuman}
-                        onChange={(event) => {
-                          setForm((previousForm) => ({
-                            ...previousForm,
-                            isHuman: event.target.checked,
-                          }));
-                          if (error) {
-                            setError("");
-                          }
-                        }}
-                        className="h-4 w-4 shrink-0 rounded border-slate-300 text-[#ff5a5f] focus:ring-[#ff5a5f]"
-                      />
-                      {t("home.search.humanCheck")}
-                    </label>
-
-                    <p className="min-h-5 text-sm leading-5 text-slate-700 text-white dark:text-slate-200">
-                      {t("home.search.helper")}
-                    </p>
-                  </div>
-
-                  <div className="flex min-h-9 flex-wrap items-center gap-2">
-                    <span className="min-h-4 text-xs font-semibold uppercase leading-4 tracking-[0.24em] text-white dark:text-slate-200">
-                      {t("common.popularDestinations")}
-                    </span>
-                    {QUICK_DESTINATIONS.map((code) => {
-                      const location = findLocation(code);
-
-                      if (!location) {
-                        return null;
-                      }
-
-                      return (
-                        <button
-                          key={code}
-                          type="button"
-                          onClick={() =>
-                            setForm((previousForm) => ({
-                              ...previousForm,
-                              to: getLocationLabel(location, language),
-                              toCode: location.code,
-                            }))
-                          }
-                          className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-900"
-                        >
-                          {getLocationLabel(location, language)}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </form>
-
-              {error ? (
-                <div className="mx-auto mt-4 max-w-4xl rounded-2xl border border-rose-200/70 bg-rose-50/92 px-4 py-3 text-left text-sm text-rose-700 shadow-lg shadow-slate-950/10 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
-                  {error}
-                </div>
-              ) : null}
+              <FlightSearchPanel onSearch={handleFlightSearch} />
 
               <div className="mt-8 flex items-center justify-center gap-3">
                 {HERO_SLIDES.map((slide, index) => (

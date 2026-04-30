@@ -10,14 +10,14 @@ jest.mock("./lib/api", () => ({
   submitFlightBookingRequest: jest.fn(),
 }));
 
-function renderFlightsPage() {
+function renderAppAt(initialEntry = "/flights") {
   window.localStorage.setItem("around-the-world-language", "en");
 
   return render(
     <ThemeProvider>
       <LanguageProvider>
         <MemoryRouter
-          initialEntries={["/flights"]}
+          initialEntries={[initialEntry]}
           future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
         >
           <App />
@@ -25,6 +25,10 @@ function renderFlightsPage() {
       </LanguageProvider>
     </ThemeProvider>
   );
+}
+
+function renderFlightsPage() {
+  return renderAppAt("/flights");
 }
 
 afterEach(() => {
@@ -194,6 +198,43 @@ test("submits the redesigned flight form with the existing search payload", asyn
   expect(screen.getAllByRole("article")[0]).toHaveTextContent("Fast Air");
 });
 
+test("uses the shared flight search panel on the home page and opens flights results", async () => {
+  jest.useFakeTimers();
+  fetchFlights.mockResolvedValue({ results: [] });
+
+  renderAppAt("/");
+
+  fireEvent.change(await screen.findByLabelText(/^from$/i), {
+    target: { value: "TBS" },
+  });
+  fireEvent.change(screen.getByLabelText(/^to$/i), {
+    target: { value: "IST" },
+  });
+  fireEvent.change(screen.getByLabelText(/departure/i), {
+    target: { value: "2026-05-20" },
+  });
+  fireEvent.click(screen.getByLabelText(/i am not a bot/i));
+  fireEvent.click(screen.getByRole("button", { name: /search flights/i }));
+
+  await act(async () => {
+    jest.advanceTimersByTime(900);
+  });
+
+  await waitFor(() =>
+    expect(fetchFlights).toHaveBeenCalledWith({
+      from: "TBS",
+      to: "IST",
+      date: "2026-05-20",
+      tripType: "oneWay",
+      cabin: "economy",
+      adults: 1,
+      children: 0,
+      infants: 0,
+    })
+  );
+  expect(await screen.findByText("No flights returned")).toBeInTheDocument();
+});
+
 test("submits round trip, cabin, and traveler controls", async () => {
   jest.useFakeTimers();
   fetchFlights.mockResolvedValue({ results: [] });
@@ -355,8 +396,12 @@ test("opens and submits the flight booking request modal", async () => {
     )
   );
   expect(
-    await screen.findByText(/your request has been sent successfully/i)
+    await screen.findByRole("dialog", { name: /request sent/i })
   ).toBeInTheDocument();
+  expect(screen.getByText(/your request has been sent successfully/i)).toBeInTheDocument();
+  expect(screen.queryByRole("dialog", { name: /booking request/i })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: /got it/i }));
+  expect(screen.queryByRole("dialog", { name: /request sent/i })).not.toBeInTheDocument();
 });
 
 test("keeps validation and empty states on the redesigned flight page", async () => {
