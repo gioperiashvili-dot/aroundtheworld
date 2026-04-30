@@ -43,6 +43,11 @@ export async function fetchFlights(params) {
   return response.data;
 }
 
+export async function submitFlightBookingRequest(payload) {
+  const response = await apiClient.post("/api/flights/booking-request", payload);
+  return response.data;
+}
+
 export async function fetchHotels(params) {
   const response = await apiClient.get("/api/hotels/search", {
     params,

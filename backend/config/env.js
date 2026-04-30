@@ -23,5 +23,11 @@ module.exports = {
     process.env.TRIPADVISOR_HOST ||
     process.env.RAPIDAPI_HOST ||
     "tripadvisor16.p.rapidapi.com",
+  SMTP_HOST: process.env.SMTP_HOST,
+  SMTP_PORT: process.env.SMTP_PORT || "587",
+  SMTP_SECURE: process.env.SMTP_SECURE || "false",
+  SMTP_USER: process.env.SMTP_USER,
+  SMTP_PASS: process.env.SMTP_PASS,
+  BOOKING_REQUEST_TO: process.env.BOOKING_REQUEST_TO || "info@aroundworld.ge",
   assertRequiredEnvVars,
 };

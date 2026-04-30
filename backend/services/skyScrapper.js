@@ -258,7 +258,10 @@ function createFlightSearchCacheKey({
   to,
   date,
   returnDate,
+  tripType,
   adults,
+  children,
+  infants,
   cabinClass,
   sortBy,
   currency,
@@ -271,7 +274,10 @@ function createFlightSearchCacheKey({
     normalizeCacheSegment(to),
     normalizeCacheSegment(date),
     normalizeCacheSegment(returnDate),
+    `tripType=${normalizeCacheSegment(tripType || "oneWay")}`,
     `adults=${normalizeCacheSegment(adults || 1)}`,
+    `children=${normalizeCacheSegment(children || 0)}`,
+    `infants=${normalizeCacheSegment(infants || 0)}`,
     `cabin=${normalizeCacheSegment(cabinClass || "economy")}`,
     `sort=${normalizeCacheSegment(sortBy || "best")}`,
     `currency=${normalizeCacheSegment(currency || "USD")}`,
@@ -485,6 +491,232 @@ function buildFlightNumber(segment) {
   return composedNumber || "Unknown flight";
 }
 
+function compactList(values) {
+  return values.filter((value) => value !== undefined && value !== null && value !== "");
+}
+
+function asArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function getDisplayName(value) {
+  if (!value) {
+    return "";
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return (
+    value.name ||
+    value.displayName ||
+    value.displayCode ||
+    value.id ||
+    value.code ||
+    ""
+  );
+}
+
+function getCarrierCode(carrier) {
+  return (
+    carrier?.alternateId ||
+    carrier?.displayCode ||
+    carrier?.iata ||
+    carrier?.iataCode ||
+    carrier?.code ||
+    carrier?.id ||
+    ""
+  );
+}
+
+function getCarrierLogoUrl(carrier) {
+  const logo =
+    carrier?.logoUrl ||
+    carrier?.logo ||
+    carrier?.imageUrl ||
+    carrier?.iconUrl ||
+    carrier?.image ||
+    carrier?.logoImage;
+
+  if (!logo) {
+    return "";
+  }
+
+  if (typeof logo === "string") {
+    return logo;
+  }
+
+  return logo.url || logo.src || logo.href || "";
+}
+
+function normalizeCarrier(carrier) {
+  if (!carrier || typeof carrier !== "object") {
+    return null;
+  }
+
+  const code = getCarrierCode(carrier);
+  const name = getDisplayName(carrier) || code;
+  const logoUrl = getCarrierLogoUrl(carrier);
+
+  if (!code && !name && !logoUrl) {
+    return null;
+  }
+
+  return {
+    name,
+    code,
+    logoUrl,
+  };
+}
+
+function uniqueCarriers(carriers) {
+  const seen = new Set();
+
+  return carriers.filter((carrier) => {
+    if (!carrier) {
+      return false;
+    }
+
+    const key = `${carrier.code || ""}:${carrier.name || ""}:${carrier.logoUrl || ""}`;
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
+}
+
+function normalizeAirport(airport) {
+  if (!airport) {
+    return {
+      code: "",
+      name: "",
+    };
+  }
+
+  return {
+    code:
+      airport.displayCode ||
+      airport.code ||
+      airport.id ||
+      airport.skyId ||
+      airport.entityId ||
+      "",
+    name: getDisplayName(airport),
+  };
+}
+
+function getAirportLabel(airport) {
+  const normalizedAirport = normalizeAirport(airport);
+
+  if (normalizedAirport.name && normalizedAirport.code) {
+    return `${normalizedAirport.name} (${normalizedAirport.code})`;
+  }
+
+  return normalizedAirport.name || normalizedAirport.code;
+}
+
+function getAircraftName(segment) {
+  return getDisplayName(segment?.aircraft) || segment?.aircraftName || "";
+}
+
+function getSafeProviderNotes(itinerary) {
+  const tags = Array.isArray(itinerary?.tags) ? itinerary.tags : [];
+  const notes = compactList([
+    ...tags
+      .map((tag) => (typeof tag === "string" ? tag : tag?.label || tag?.name || ""))
+      .filter((tag) => !/score|provider|internal/i.test(tag))
+      .slice(0, 4),
+  ]);
+
+  return notes.join(", ");
+}
+
+function formatLayoverDuration(arrival, nextDeparture) {
+  const arrivalTime = Date.parse(arrival || "");
+  const nextDepartureTime = Date.parse(nextDeparture || "");
+
+  if (Number.isNaN(arrivalTime) || Number.isNaN(nextDepartureTime)) {
+    return "";
+  }
+
+  const minutes = Math.round((nextDepartureTime - arrivalTime) / 60000);
+
+  if (minutes <= 0) {
+    return "";
+  }
+
+  return formatDuration(minutes);
+}
+
+function normalizeSegment(segment, index, segments) {
+  const marketingCarrier = normalizeCarrier(segment?.marketingCarrier);
+  const operatingCarrier = normalizeCarrier(segment?.operatingCarrier);
+  const airline = marketingCarrier || operatingCarrier;
+  const origin = normalizeAirport(segment?.origin);
+  const destination = normalizeAirport(segment?.destination);
+  const nextSegment = segments[index + 1];
+  const layoverDuration = nextSegment
+    ? formatLayoverDuration(segment?.arrival, nextSegment?.departure)
+    : "";
+  const layoverAirport = nextSegment
+    ? getAirportLabel(segment?.destination || nextSegment?.origin)
+    : "";
+
+  return {
+    originCode: origin.code,
+    originAirport: origin.name,
+    destinationCode: destination.code,
+    destinationAirport: destination.name,
+    airline: airline?.name || "",
+    airlineCode: airline?.code || "",
+    airlineLogo: airline?.logoUrl || "",
+    operatingAirline: operatingCarrier?.name || "",
+    operatingAirlineCode: operatingCarrier?.code || "",
+    operatingAirlineLogo: operatingCarrier?.logoUrl || "",
+    flightNumber: buildFlightNumber(segment),
+    departure: segment?.departure || "",
+    arrival: segment?.arrival || "",
+    duration: formatDuration(segment?.durationInMinutes),
+    aircraft: getAircraftName(segment),
+    layoverAfter:
+      layoverAirport || layoverDuration
+        ? {
+            airport: layoverAirport,
+            duration: layoverDuration,
+          }
+        : null,
+  };
+}
+
+function getBaggageSummary(itinerary, firstLeg) {
+  const baggage =
+    itinerary?.baggage ||
+    itinerary?.baggageAllowance ||
+    firstLeg?.baggage ||
+    firstLeg?.baggageAllowance;
+
+  if (!baggage) {
+    return "";
+  }
+
+  if (typeof baggage === "string") {
+    return baggage;
+  }
+
+  if (Array.isArray(baggage)) {
+    return baggage
+      .map((entry) => entry?.text || entry?.description || entry?.name || "")
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  return baggage.text || baggage.description || baggage.name || "";
+}
+
 function normalizeFlights(payload, fallbackCurrencyCode = "USD") {
   const itineraries = payload?.data?.itineraries;
 
@@ -498,7 +730,17 @@ function normalizeFlights(payload, fallbackCurrencyCode = "USD") {
       const segments = Array.isArray(firstLeg?.segments) ? firstLeg.segments : [];
       const firstSegment = segments[0];
       const lastSegment = segments[segments.length - 1];
+      const normalizedSegments = segments.map((segment, index) =>
+        normalizeSegment(segment, index, segments)
+      );
+      const carriers = uniqueCarriers([
+        ...asArray(firstLeg?.carriers?.marketing).map(normalizeCarrier),
+        ...asArray(firstLeg?.carriers?.operating).map(normalizeCarrier),
+        ...segments.map((segment) => normalizeCarrier(segment?.marketingCarrier)),
+        ...segments.map((segment) => normalizeCarrier(segment?.operatingCarrier)),
+      ]);
       const airline =
+        carriers[0]?.name ||
         firstLeg?.carriers?.marketing?.[0]?.name ||
         firstSegment?.marketingCarrier?.name ||
         "Unknown airline";
@@ -511,6 +753,8 @@ function normalizeFlights(payload, fallbackCurrencyCode = "USD") {
 
       return {
         airline,
+        airlineLogo: carriers[0]?.logoUrl || "",
+        airlines: carriers,
         flightNumber: segments.map(buildFlightNumber).join(", "),
         departure: firstLeg?.departure || firstSegment?.departure || "",
         arrival: firstLeg?.arrival || lastSegment?.arrival || "",
@@ -527,6 +771,25 @@ function normalizeFlights(payload, fallbackCurrencyCode = "USD") {
           firstLeg?.origin?.displayCode || firstLeg?.origin?.id || "",
         destinationCode:
           firstLeg?.destination?.displayCode || firstLeg?.destination?.id || "",
+        originAirport: getDisplayName(firstLeg?.origin),
+        destinationAirport: getDisplayName(firstLeg?.destination),
+        aircraft: compactList(segments.map(getAircraftName)).join(", "),
+        baggage: getBaggageSummary(itinerary, firstLeg),
+        providerNotes: getSafeProviderNotes(itinerary),
+        segmentCount: segments.length,
+        segments: normalizedSegments,
+        layovers: compactList(normalizedSegments.map((segment) => segment.layoverAfter)),
+        airports: compactList([
+          getDisplayName(firstLeg?.origin),
+          ...segments
+            .slice(0, -1)
+            .map((segment) => getDisplayName(segment?.destination)),
+          getDisplayName(firstLeg?.destination),
+        ]),
+        routePath: compactList([
+          normalizeAirport(firstLeg?.origin).code,
+          ...normalizedSegments.map((segment) => segment.destinationCode),
+        ]),
       };
     })
     .filter(Boolean)
@@ -866,7 +1129,10 @@ async function searchFlights({
   to,
   date,
   returnDate,
+  tripType = returnDate ? "roundTrip" : "oneWay",
   adults = 1,
+  children = 0,
+  infants = 0,
   cabinClass = "economy",
   sortBy = "best",
   currency = "USD",
@@ -879,7 +1145,10 @@ async function searchFlights({
     to,
     date,
     returnDate,
+    tripType,
     adults,
+    children,
+    infants,
     cabinClass,
     sortBy,
     currency,
