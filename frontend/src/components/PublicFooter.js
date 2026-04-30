@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useLanguage } from "../i18n/LanguageContext";
 import { contactDetails, getEmailHref, getPhoneHref, getWhatsAppHref } from "../lib/contact";
 
-const PRIVACY_POLICY_HREF = "/AroundTheWorld_Privacy_Policy.pdf";
+const PRIVACY_POLICY_HREF = "/Around_The_World_Privacy_Policy.pdf";
 const FOOTER_YEAR = 2026;
 const FOOTER_ADDRESS = "თბილისი: სამამულო ომის გმირების ქუჩა #97";
 const SECONDARY_PHONE = "+995 568 94 22 81";
