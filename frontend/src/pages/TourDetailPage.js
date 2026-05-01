@@ -232,7 +232,7 @@ export default function TourDetailPage() {
       title={title || t("tours.heading")}
       description={destination || t("tours.heroDescription")}
       heroAside={
-        <div className="rounded-[2rem] border border-white/70 bg-white/90 p-5 text-slate-900 shadow-[0_24px_80px_-54px_rgba(15,23,42,0.55)] backdrop-blur dark:border-white/14 dark:bg-white/10 dark:text-white dark:shadow-[0_24px_80px_-54px_rgba(15,23,42,0.88)]">
+        <div className="rounded-[2rem] border border-white/70 bg-white/90 p-5 text-slate-900 shadow-[0_24px_80px_-54px_rgba(15,23,42,0.55)] backdrop-blur dark:border-white/14 dark:bg-[#071426] dark:text-white dark:shadow-[0_24px_80px_-54px_rgba(15,23,42,0.88)]">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-white/58">
             {t("common.price")}
           </p>
