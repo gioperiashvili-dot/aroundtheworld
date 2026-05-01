@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 
 const AdminPage = lazy(() => import("./pages/AdminPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const FlightsPage = lazy(() => import("./pages/FlightsPage"));
 const HotelsPage = lazy(() => import("./pages/HotelsPage"));
@@ -30,7 +31,7 @@ export default function App() {
     <Suspense fallback={<RouteLoadingFallback />}>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/about" element={<HomePage seoPage="about" />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/flights" element={<FlightsPage />} />
         <Route path="/hotels" element={<HotelsPage />} />
         <Route path="/restaurants" element={<RestaurantsPage />} />

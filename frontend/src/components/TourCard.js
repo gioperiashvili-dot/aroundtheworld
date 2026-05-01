@@ -34,7 +34,7 @@ export default function TourCard({ tour }) {
         </div>
       </div>
 
-      <div className="space-y-5 bg-white p-5 dark:bg-transparent">
+      <div className="space-y-5 bg-white p-5 dark:bg-[#071426]">
         <div>
           <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">{destination}</p>
           <h3 className="[font-family:var(--font-display)] mt-2 text-2xl font-semibold text-slate-950 dark:text-white">

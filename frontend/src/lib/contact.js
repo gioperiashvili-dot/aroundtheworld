@@ -1,10 +1,10 @@
 export const contactDetails = {
-  address: "თბილისი, რუსთაველის გამზირი #123",
   phone: "+995 595 47 55 33",
+  gmail: "info@aroundworld.ge",
+  whatsapp: "+995 595 47 55 33",
   facebook: "https://www.facebook.com/profile.php?id=61577765184535",
   instagram: "https://www.instagram.com/AroundTheWorld",
-  whatsapp: "+995 595 47 55 33",
-  gmail: "info@aroundworld.ge",
+  address: "თბილისი: სამამულო ომის გმირების ქუჩა #97"
 };
 
 export function getPhoneHref(phone = contactDetails.phone) {

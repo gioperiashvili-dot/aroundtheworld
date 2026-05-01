@@ -35,7 +35,7 @@ export default function Navbar({ variant = "page" }) {
       { to: "/hotels", label: t("nav.hotels") },
       { to: "/restaurants", label: t("nav.restaurants") },
       { to: "/visa-services", label: t("nav.visaServices") },
-      { to: "/#about", label: t("nav.about"), hashOnly: true },
+      { to: "/about", label: t("nav.about") },
       { to: "/contact", label: t("nav.contact") },
     ],
     [t]
@@ -54,7 +54,7 @@ export default function Navbar({ variant = "page" }) {
     : "border-white/12 bg-slate-950/55";
 
   return (
-    <nav className={`sticky top-4 z-30 w-full ${navContainerClassName}`}>
+    <nav className={`sticky top-4 z-30 w-full dark:bg-[#071426] ${navContainerClassName}`}>
       <div className="hidden flex-col gap-4 xl:flex">
         <div className="flex min-w-0 items-center justify-between gap-5">
           <BrandLink navSubtitle={navSubtitle} />

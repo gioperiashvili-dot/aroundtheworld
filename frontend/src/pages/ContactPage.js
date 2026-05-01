@@ -10,11 +10,6 @@ export default function ContactPage() {
 
   const contactItems = [
     {
-      label: t("contact.address"),
-      value: contactDetails.address,
-      icon: <AddressIcon />,
-    },
-    {
       label: t("contact.phone"),
       value: contactDetails.phone,
       href: getPhoneHref(),
@@ -47,6 +42,11 @@ export default function ContactPage() {
       href: getWhatsAppHref(),
       brand: "whatsapp",
       icon: <WhatsAppIcon />,
+    },
+      {
+      label: t("contact.address"),
+      value: contactDetails.address,
+      icon: <AddressIcon />,
     },
   ];
 

@@ -23,7 +23,7 @@ export default function RestaurantCard({ restaurant }) {
         ) : null}
       </div>
 
-      <div className="space-y-5 p-5">
+      <div className="space-y-5 p-5 dark:bg-[#071426]">
         <div>
           <h3 className="[font-family:var(--font-display)] text-2xl font-semibold text-slate-950 dark:text-white">
             {restaurant.name}

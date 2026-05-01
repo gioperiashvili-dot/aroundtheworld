@@ -114,7 +114,7 @@ export default function TourDetailPage() {
               className="h-[22rem] md:h-[28rem]"
             />
 
-            <div className="space-y-6 bg-white p-6 dark:bg-transparent md:p-8">
+            <div className="space-y-6 bg-white p-6 dark:bg-[#071426] md:p-8">
               <div className="grid gap-4 md:grid-cols-3">
                 <StatCard label={t("common.duration")} value={duration} />
                 <StatCard
@@ -145,7 +145,7 @@ export default function TourDetailPage() {
 
           <aside className="space-y-6">
             {dates.length > 0 ? (
-              <div className="rounded-[2rem] bg-white border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-transparent dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
+              <div className="rounded-[2rem] bg-white border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
                 <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
                   {t("tours.relatedDates")}
                 </p>
@@ -163,7 +163,7 @@ export default function TourDetailPage() {
             ) : null}
 
             {tour.category ? (
-              <div className="rounded-[2rem] bg-white border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-transparent dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
+              <div className="rounded-[2rem] bg-white border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
                 <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
                   {t("common.category")}
                 </p>
