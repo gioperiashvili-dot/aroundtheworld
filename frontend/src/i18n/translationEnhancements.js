@@ -451,6 +451,68 @@ translationEnhancements.en.tourSearch = {
   viewTour: "View tour",
 };
 
+Object.assign(translationEnhancements.ka.tours, {
+  bookTour: "ტურის დაჯავშნა",
+  includedTitle: "ტურის ღირებულებაში შედის",
+  notIncludedTitle: "ღირებულებაში არ შედის",
+  availableDates: "ხელმისაწვდომი თარიღები",
+  bookingRequest: {
+    eyebrow: "ტურის მოთხოვნა",
+    title: "ტურის დაჯავშნის მოთხოვნა",
+    selectedTour: "არჩეული ტური",
+    name: "სახელი",
+    email: "ელ. ფოსტა",
+    phone: "ტელეფონი",
+    message: "შეტყობინება",
+    send: "მოთხოვნის გაგზავნა",
+    sending: "იგზავნება...",
+    successTitle: "მოთხოვნა გაგზავნილია",
+    success:
+      "თქვენი მოთხოვნა წარმატებით გაიგზავნა. ჩვენი ოპერატორი მალე დაგიკავშირდებათ.",
+    successAction: "გასაგებია",
+    priceWarning:
+      "ტურის ფასი და ხელმისაწვდომობა შეიძლება შეიცვალოს. საბოლოო პირობები დადასტურდება ოპერატორთან კომუნიკაციის შემდეგ.",
+    errors: {
+      required: "შეავსეთ სახელი, ელ. ფოსტა და ტელეფონი.",
+      email: "შეიყვანეთ სწორი ელ. ფოსტა.",
+      sendFailed: "მოთხოვნის გაგზავნა ვერ მოხერხდა. სცადეთ ხელახლა.",
+      emailNotConfigured:
+        "მოთხოვნის გაგზავნა დროებით მიუწვდომელია. გთხოვთ დაგვიკავშირდეთ info@aroundworld.ge-ზე.",
+    },
+  },
+});
+
+Object.assign(translationEnhancements.en.tours, {
+  bookTour: "Book tour",
+  includedTitle: "Included in the tour price",
+  notIncludedTitle: "Not included in the price",
+  availableDates: "Available dates",
+  bookingRequest: {
+    eyebrow: "Tour request",
+    title: "Tour booking request",
+    selectedTour: "Selected tour",
+    name: "Name",
+    email: "Email",
+    phone: "Phone",
+    message: "Message",
+    send: "Send request",
+    sending: "Sending...",
+    successTitle: "Request sent",
+    success:
+      "Your request has been sent successfully. Our operator will contact you soon.",
+    successAction: "Got it",
+    priceWarning:
+      "Tour price and availability may change. Final conditions will be confirmed after communication with an operator.",
+    errors: {
+      required: "Please enter your name, email, and phone.",
+      email: "Please enter a valid email address.",
+      sendFailed: "We could not send your request. Please try again.",
+      emailNotConfigured:
+        "Request sending is temporarily unavailable. Please contact info@aroundworld.ge.",
+    },
+  },
+});
+
 translationEnhancements.ka.admin = translationEnhancements.ka.admin || {};
 translationEnhancements.en.admin = translationEnhancements.en.admin || {};
 translationEnhancements.ka.admin.descriptionHelper =
@@ -466,6 +528,24 @@ Object.assign(translationEnhancements.ka.admin, {
     "დაშვებულია JPG, PNG ან WebP ფაილი 5MB-მდე. შენახვისას სურათი WebP ფორმატში ოპტიმიზდება.",
   selectedImage: "არჩეული ფაილი",
   clearSelectedImage: "ფაილის მოცილება",
+  addIncludedItem: "შედის პუნქტის დამატება",
+  addNotIncludedItem: "არ შედის პუნქტის დამატება",
+  removeItem: "პუნქტის წაშლა",
+  examplesLabel: "მაგალითები",
+  includedExamples: [
+    "ავიაბილეთი",
+    "ხელბარგი 8კგ",
+    "სასტუმრო",
+    "კვება",
+    "სამოგზაურო დაზღვევა",
+    "ტრანსფერი",
+  ],
+  notIncludedExamples: [
+    "სამოგზაურო დაზღვევა",
+    "ტრანსფერი",
+    "დამატებითი ბარგი",
+    "პირადი ხარჯები",
+  ],
 });
 
 translationEnhancements.ka.admin.errors = {
@@ -485,6 +565,24 @@ Object.assign(translationEnhancements.en.admin, {
     "JPG, PNG, or WebP up to 5MB. The image is optimized to WebP when you save.",
   selectedImage: "Selected file",
   clearSelectedImage: "Remove file",
+  addIncludedItem: "Add included item",
+  addNotIncludedItem: "Add not included item",
+  removeItem: "Remove item",
+  examplesLabel: "Examples",
+  includedExamples: [
+    "Flight ticket",
+    "Hand luggage 8kg",
+    "Hotel",
+    "Meals",
+    "Travel insurance",
+    "Transfer",
+  ],
+  notIncludedExamples: [
+    "Travel insurance",
+    "Transfer",
+    "Additional baggage",
+    "Personal expenses",
+  ],
 });
 
 translationEnhancements.en.admin.errors = {

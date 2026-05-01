@@ -80,6 +80,39 @@ function normalizeLocalizedField(value) {
   };
 }
 
+function normalizeTextList(value) {
+  const values = Array.isArray(value)
+    ? value
+    : typeof value === "string"
+      ? value.split(/[\n,]/)
+      : [];
+
+  return values
+    .map((entry) => String(entry || "").replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+}
+
+function normalizeLocalizedListField(value) {
+  if (Array.isArray(value)) {
+    return {
+      ka: normalizeTextList(value),
+      en: [],
+    };
+  }
+
+  if (!value || typeof value !== "object") {
+    return {
+      ka: [],
+      en: [],
+    };
+  }
+
+  return {
+    ka: normalizeTextList(value.ka),
+    en: normalizeTextList(value.en),
+  };
+}
+
 function normalizeTourRecord(record) {
   return {
     id: String(record?.id || ""),
@@ -90,6 +123,8 @@ function normalizeTourRecord(record) {
     currency: String(record?.currency || "USD").trim().toUpperCase() || "USD",
     duration: normalizeLocalizedField(record?.duration),
     dates: normalizeDates(record?.dates),
+    included: normalizeLocalizedListField(record?.included),
+    notIncluded: normalizeLocalizedListField(record?.notIncluded),
     category: String(record?.category || "").trim(),
     image: normalizeImage(record?.image),
     createdAt: record?.createdAt || null,

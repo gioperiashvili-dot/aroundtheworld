@@ -14,6 +14,9 @@ export default function AdminTourForm({
   onChange,
   onImageFileChange,
   onClearImageFile,
+  onLocalizedItemChange,
+  onAddLocalizedItem,
+  onRemoveLocalizedItem,
   onSubmit,
   onReset,
 }) {
@@ -289,6 +292,34 @@ export default function AdminTourForm({
           </label>
         </div>
 
+        <div className="grid gap-4 xl:grid-cols-2">
+          <LocalizedItemsEditor
+            title={t("tours.includedTitle")}
+            addLabel={t("admin.addIncludedItem")}
+            examples={t("admin.includedExamples")}
+            rows={form.included}
+            section="included"
+            saving={saving}
+            onChange={onLocalizedItemChange}
+            onAdd={onAddLocalizedItem}
+            onRemove={onRemoveLocalizedItem}
+            t={t}
+          />
+
+          <LocalizedItemsEditor
+            title={t("tours.notIncludedTitle")}
+            addLabel={t("admin.addNotIncludedItem")}
+            examples={t("admin.notIncludedExamples")}
+            rows={form.notIncluded}
+            section="notIncluded"
+            saving={saving}
+            onChange={onLocalizedItemChange}
+            onAdd={onAddLocalizedItem}
+            onRemove={onRemoveLocalizedItem}
+            t={t}
+          />
+        </div>
+
         <button
           type="submit"
           disabled={saving}
@@ -302,5 +333,93 @@ export default function AdminTourForm({
         </button>
       </form>
     </div>
+  );
+}
+
+function LocalizedItemsEditor({
+  title,
+  addLabel,
+  examples,
+  rows = [],
+  section,
+  saving,
+  onChange,
+  onAdd,
+  onRemove,
+  t,
+}) {
+  const visibleRows = rows.length > 0 ? rows : [{ ka: "", en: "" }];
+  const exampleItems = Array.isArray(examples) ? examples : [];
+
+  return (
+    <section className="space-y-4 rounded-[1.6rem] bg-slate-50 p-4 dark:bg-slate-800/70">
+      <div>
+        <h4 className="[font-family:var(--font-display)] text-xl font-semibold text-slate-950 dark:text-white">
+          {title}
+        </h4>
+        {exampleItems.length > 0 ? (
+          <p className="mt-2 text-xs leading-6 text-slate-600 dark:text-slate-400">
+            {t("admin.examplesLabel")}: {exampleItems.join(", ")}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="space-y-3">
+        {visibleRows.map((row, index) => (
+          <div
+            key={`${section}-${index}`}
+            className="rounded-[1.25rem] border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900"
+          >
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="space-y-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                  KA
+                </span>
+                <input
+                  value={row.ka}
+                  onChange={(event) =>
+                    onChange(section, index, "ka", event.target.value)
+                  }
+                  disabled={saving}
+                  className={inputClassName}
+                />
+              </label>
+
+              <label className="space-y-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                  EN
+                </span>
+                <input
+                  value={row.en}
+                  onChange={(event) =>
+                    onChange(section, index, "en", event.target.value)
+                  }
+                  disabled={saving}
+                  className={inputClassName}
+                />
+              </label>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => onRemove(section, index)}
+              disabled={saving}
+              className="mt-3 rounded-full bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-rose-500/10 dark:text-rose-200 dark:hover:bg-rose-500/20"
+            >
+              {t("admin.removeItem")}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onAdd(section)}
+        disabled={saving}
+        className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
+      >
+        {addLabel}
+      </button>
+    </section>
   );
 }

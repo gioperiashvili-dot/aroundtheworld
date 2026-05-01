@@ -24,20 +24,32 @@ const TOKEN_STORAGE_KEY = "around-the-world-admin-token";
 const EXPIRY_STORAGE_KEY = "around-the-world-admin-expiry";
 const IMAGE_UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_UPLOAD_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const EMPTY_FORM = {
-  titleKa: "",
-  titleEn: "",
-  destinationKa: "",
-  destinationEn: "",
-  descriptionKa: "",
-  descriptionEn: "",
-  price: "",
-  durationKa: "",
-  durationEn: "",
-  dates: "",
-  category: "",
-  image: "",
-};
+
+function createEmptyLocalizedItem() {
+  return {
+    ka: "",
+    en: "",
+  };
+}
+
+function createEmptyForm() {
+  return {
+    titleKa: "",
+    titleEn: "",
+    destinationKa: "",
+    destinationEn: "",
+    descriptionKa: "",
+    descriptionEn: "",
+    price: "",
+    durationKa: "",
+    durationEn: "",
+    dates: "",
+    category: "",
+    image: "",
+    included: [createEmptyLocalizedItem()],
+    notIncluded: [createEmptyLocalizedItem()],
+  };
+}
 
 function replaceToken(message, replacements) {
   return Object.entries(replacements).reduce(
@@ -60,6 +72,30 @@ function toFormValues(tour) {
     dates: Array.isArray(tour?.dates) ? tour.dates.join(", ") : "",
     category: tour?.category || "",
     image: tour?.image || "",
+    included: toLocalizedItemRows(tour?.included),
+    notIncluded: toLocalizedItemRows(tour?.notIncluded),
+  };
+}
+
+function toLocalizedItemRows(value) {
+  const kaItems = Array.isArray(value?.ka) ? value.ka : [];
+  const enItems = Array.isArray(value?.en) ? value.en : [];
+  const itemCount = Math.max(kaItems.length, enItems.length, 1);
+
+  return Array.from({ length: itemCount }, (_entry, index) => ({
+    ka: kaItems[index] || "",
+    en: enItems[index] || "",
+  }));
+}
+
+function toLocalizedListPayload(rows = []) {
+  return {
+    ka: rows
+      .map((row) => row?.ka?.trim())
+      .filter(Boolean),
+    en: rows
+      .map((row) => row?.en?.trim())
+      .filter(Boolean),
   };
 }
 
@@ -69,7 +105,7 @@ export default function AdminPage() {
   const [token, setToken] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [tours, setTours] = useState([]);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(createEmptyForm);
   const [editingId, setEditingId] = useState("");
   const [loading, setLoading] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
@@ -127,7 +163,7 @@ export default function AdminPage() {
     setTours([]);
     setPassword("");
     setEditingId("");
-    setForm(EMPTY_FORM);
+    setForm(createEmptyForm());
     setImageFile(null);
     setImageInputKey((currentKey) => currentKey + 1);
 
@@ -172,7 +208,7 @@ export default function AdminPage() {
 
   const resetForm = () => {
     setEditingId("");
-    setForm(EMPTY_FORM);
+    setForm(createEmptyForm());
     setImageFile(null);
     setImageInputKey((currentKey) => currentKey + 1);
   };
@@ -246,6 +282,8 @@ export default function AdminPage() {
       en: form.durationEn.trim(),
     },
     dates: parseDatesInput(form.dates),
+    included: toLocalizedListPayload(form.included),
+    notIncluded: toLocalizedListPayload(form.notIncluded),
     category: form.category.trim(),
     image: imageValue.trim(),
   });
@@ -303,6 +341,50 @@ export default function AdminPage() {
     setImageFile(nextFile);
     setError("");
     setSuccess("");
+  };
+
+  const handleLocalizedItemChange = (section, index, locale, value) => {
+    setForm((previousForm) => {
+      const rows = Array.isArray(previousForm[section])
+        ? previousForm[section]
+        : [createEmptyLocalizedItem()];
+
+      return {
+        ...previousForm,
+        [section]: rows.map((row, rowIndex) =>
+          rowIndex === index
+            ? {
+                ...row,
+                [locale]: value,
+              }
+            : row
+        ),
+      };
+    });
+  };
+
+  const addLocalizedItem = (section) => {
+    setForm((previousForm) => ({
+      ...previousForm,
+      [section]: [
+        ...(Array.isArray(previousForm[section]) ? previousForm[section] : []),
+        createEmptyLocalizedItem(),
+      ],
+    }));
+  };
+
+  const removeLocalizedItem = (section, index) => {
+    setForm((previousForm) => {
+      const rows = Array.isArray(previousForm[section])
+        ? previousForm[section]
+        : [createEmptyLocalizedItem()];
+      const nextRows = rows.filter((_row, rowIndex) => rowIndex !== index);
+
+      return {
+        ...previousForm,
+        [section]: nextRows.length > 0 ? nextRows : [createEmptyLocalizedItem()],
+      };
+    });
   };
 
   const handleLogin = async (event) => {
@@ -561,6 +643,9 @@ export default function AdminPage() {
             }}
             onImageFileChange={handleImageFileChange}
             onClearImageFile={clearSelectedImageFile}
+            onLocalizedItemChange={handleLocalizedItemChange}
+            onAddLocalizedItem={addLocalizedItem}
+            onRemoveLocalizedItem={removeLocalizedItem}
             onSubmit={handleSubmit}
             onReset={resetForm}
           />

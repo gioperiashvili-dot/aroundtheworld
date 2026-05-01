@@ -74,6 +74,11 @@ export async function fetchTourById(id) {
   return response.data;
 }
 
+export async function submitTourBookingRequest(payload) {
+  const response = await apiClient.post("/api/tours/booking-request", payload);
+  return response.data;
+}
+
 export async function createAdminSession(password) {
   const response = await apiClient.post("/api/admin/session", {
     password,

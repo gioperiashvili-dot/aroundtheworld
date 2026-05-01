@@ -3,11 +3,19 @@ import { MemoryRouter } from "react-router-dom";
 import App from "./App";
 import { LanguageProvider } from "./i18n/LanguageContext";
 import { ThemeProvider } from "./theme/ThemeContext";
-import { fetchFlights, submitFlightBookingRequest } from "./lib/api";
+import {
+  fetchFlights,
+  fetchTourById,
+  submitFlightBookingRequest,
+  submitTourBookingRequest,
+} from "./lib/api";
 
 jest.mock("./lib/api", () => ({
   fetchFlights: jest.fn(),
+  fetchTourById: jest.fn(),
+  resolvePublicAssetUrl: jest.fn((value) => value),
   submitFlightBookingRequest: jest.fn(),
+  submitTourBookingRequest: jest.fn(),
 }));
 
 function renderAppAt(initialEntry = "/flights") {
@@ -33,7 +41,9 @@ function renderFlightsPage() {
 
 afterEach(() => {
   fetchFlights.mockReset();
+  fetchTourById.mockReset();
   submitFlightBookingRequest.mockReset();
+  submitTourBookingRequest.mockReset();
   jest.useRealTimers();
 });
 
@@ -402,6 +412,96 @@ test("opens and submits the flight booking request modal", async () => {
   expect(screen.queryByRole("dialog", { name: /booking request/i })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: /got it/i }));
   expect(screen.queryByRole("dialog", { name: /request sent/i })).not.toBeInTheDocument();
+});
+
+test("opens and submits the tour booking request modal", async () => {
+  fetchTourById.mockResolvedValue({
+    tour: {
+      id: "tour-1",
+      title: {
+        ka: "რომის ტური",
+        en: "Rome Escape",
+      },
+      destination: {
+        ka: "თბილისი - რომი",
+        en: "Tbilisi - Rome",
+      },
+      description: {
+        ka: "ტურის აღწერა",
+        en: "A polished city break.",
+      },
+      price: 850,
+      currency: "USD",
+      duration: {
+        ka: "4 დღე",
+        en: "4 days",
+      },
+      dates: ["2026-06-10"],
+      category: "City",
+      image: "",
+      included: {
+        ka: ["სასტუმრო"],
+        en: ["Hotel", "Meals"],
+      },
+      notIncluded: {
+        ka: ["პირადი ხარჯები"],
+        en: ["Personal expenses"],
+      },
+      updatedAt: "2026-05-01T00:00:00.000Z",
+    },
+  });
+  submitTourBookingRequest.mockResolvedValue({ ok: true });
+
+  renderAppAt("/tours/tour-1");
+
+  expect((await screen.findAllByText("Rome Escape")).length).toBeGreaterThan(0);
+  expect(screen.getByText(/included in the tour price/i)).toBeInTheDocument();
+  expect(screen.getAllByText("Hotel").length).toBeGreaterThan(0);
+  expect(screen.getByText(/not included in the price/i)).toBeInTheDocument();
+  expect(screen.getAllByText("Personal expenses").length).toBeGreaterThan(0);
+
+  fireEvent.click(screen.getByRole("button", { name: /book tour/i }));
+  expect(
+    screen.getByRole("dialog", { name: /tour booking request/i })
+  ).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: /send request/i }));
+  expect(screen.getByText(/please enter your name/i)).toBeInTheDocument();
+  expect(submitTourBookingRequest).not.toHaveBeenCalled();
+
+  fireEvent.change(screen.getByLabelText(/^name$/i), {
+    target: { value: "Ana Traveler" },
+  });
+  fireEvent.change(screen.getByLabelText(/^email$/i), {
+    target: { value: "ana@example.com" },
+  });
+  fireEvent.change(screen.getByLabelText(/^phone$/i), {
+    target: { value: "+995555111222" },
+  });
+
+  await act(async () => {
+    fireEvent.click(screen.getByRole("button", { name: /send request/i }));
+  });
+
+  await waitFor(() =>
+    expect(submitTourBookingRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customerName: "Ana Traveler",
+        customerEmail: "ana@example.com",
+        customerPhone: "+995555111222",
+        language: "en",
+        selectedTour: expect.objectContaining({
+          title: "Rome Escape",
+          destination: "Tbilisi - Rome",
+          included: expect.arrayContaining(["Hotel", "Meals"]),
+          notIncluded: expect.arrayContaining(["Personal expenses"]),
+        }),
+      })
+    )
+  );
+  expect(
+    await screen.findByRole("dialog", { name: /request sent/i })
+  ).toBeInTheDocument();
+  expect(screen.queryByRole("dialog", { name: /tour booking request/i })).not.toBeInTheDocument();
 });
 
 test("keeps validation and empty states on the redesigned flight page", async () => {

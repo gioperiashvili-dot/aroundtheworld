@@ -1,49 +1,10 @@
-const nodemailer = require("nodemailer");
 const {
-  BOOKING_REQUEST_TO,
-  SMTP_HOST,
-  SMTP_PASS,
-  SMTP_PORT,
-  SMTP_SECURE,
-  SMTP_USER,
-} = require("../config/env");
-
-const MAX_BOOKING_REQUEST_BYTES = 40 * 1024;
-const MAX_TEXT_LENGTH = 1000;
-const MAX_LONG_TEXT_LENGTH = 5000;
-
-function parseBoolean(value) {
-  return ["1", "true", "yes"].includes(String(value || "").trim().toLowerCase());
-}
-
-function isEmailConfigured() {
-  return Boolean(SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS);
-}
-
-function normalizeText(value, maxLength = MAX_TEXT_LENGTH) {
-  if (value === undefined || value === null) {
-    return "";
-  }
-
-  return String(value)
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, maxLength);
-}
-
-function escapeHtml(value) {
-  return normalizeText(value, MAX_LONG_TEXT_LENGTH).replace(
-    /[&<>"']/g,
-    (character) =>
-      ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;",
-      })[character]
-  );
-}
+  MAX_BOOKING_REQUEST_BYTES,
+  MAX_LONG_TEXT_LENGTH,
+  escapeHtml,
+  normalizeText,
+  sendBookingEmail,
+} = require("./bookingEmail");
 
 function firstText(source, keys, fallback = "") {
   for (const key of keys) {
@@ -283,13 +244,6 @@ function buildHtmlEmail({ customer, flight, language }) {
 }
 
 async function sendFlightBookingRequestEmail(payload) {
-  if (!isEmailConfigured()) {
-    const error = new Error("Flight booking email is not configured.");
-    error.code = "EMAIL_NOT_CONFIGURED";
-    error.statusCode = 503;
-    throw error;
-  }
-
   const language = payload.language === "ka" ? "ka" : "en";
   const customer = {
     name: normalizeText(payload.customerName),
@@ -302,19 +256,8 @@ async function sendFlightBookingRequestEmail(payload) {
     language === "ka"
       ? "ახალი ავიაბილეთის მოთხოვნა | Around The World"
       : "New flight booking request | Around The World";
-  const transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: Number.parseInt(SMTP_PORT, 10) || 587,
-    secure: parseBoolean(SMTP_SECURE),
-    auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS,
-    },
-  });
 
-  return transporter.sendMail({
-    from: SMTP_USER,
-    to: BOOKING_REQUEST_TO,
+  return sendBookingEmail({
     replyTo: customer.email,
     subject,
     text: buildTextEmail({ customer, flight, language }),
