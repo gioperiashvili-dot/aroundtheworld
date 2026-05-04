@@ -59,6 +59,7 @@ export default function TravelImage({
   image,
   title,
   subtitle,
+  alt,
   variant = "hotel",
   className = "h-64",
   width = 640,
@@ -88,7 +89,7 @@ export default function TravelImage({
       {showImage ? (
         <img
           src={imageSource}
-          alt={title || variantLabel}
+          alt={getImageAlt({ alt, title, variant, variantLabel })}
           width={width}
           height={height}
           loading={loading}
@@ -128,4 +129,22 @@ export default function TravelImage({
       <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10" />
     </div>
   );
+}
+
+function getImageAlt({ alt, title, variant, variantLabel }) {
+  const explicitAlt = String(alt || "").trim();
+
+  if (explicitAlt) {
+    return explicitAlt;
+  }
+
+  const imageTitle = String(title || "").trim();
+
+  if (variant === "tour") {
+    return imageTitle
+      ? `${imageTitle} - ტური საქართველოდან Around The World`
+      : "Around The World - ტური საქართველოდან";
+  }
+
+  return imageTitle || variantLabel;
 }

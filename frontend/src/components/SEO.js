@@ -6,21 +6,21 @@ export const DEFAULT_OG_IMAGE = `${SITE_URL}/favicon.ico`;
 
 export const PAGE_SEO = {
   home: {
-    title: "Around The World | ტურები, ავიაბილეთები და მოგზაურობა საქართველოში",
+    title: "ტურები და ტურისტული სააგენტო საქართველოში | Around The World",
     description:
-      "Around The World დაგეხმარებათ ტურების, ავიაბილეთების, სასტუმროების, რესტორნებისა და სავიზო მომსახურების მარტივად მოძიებაში.",
+      "Around The World არის ტურისტული სააგენტო და ტურისტული კომპანია, რომელიც გთავაზობთ ტურებს, ავიაბილეთებს, ფრენების ძიებას, სასტუმროებს და სავიზო მომსახურებას.",
     canonical: `${SITE_URL}/`,
   },
   tours: {
-    title: "ტურები საქართველოდან | Around The World",
+    title: "ტურები საქართველოდან | ტურისტული კომპანია Around The World",
     description:
-      "დაათვალიერეთ ტურები, შეარჩიეთ მიმართულება და დაგეგმეთ მოგზაურობა Around The World-ის დახმარებით.",
+      "დაათვალიერეთ ტურები საქართველოდან, შეარჩიეთ სასურველი მიმართულება და გააგზავნეთ ტურის დაჯავშნის მოთხოვნა Around The World-ის დახმარებით.",
     canonical: `${SITE_URL}/tours`,
   },
   flights: {
-    title: "ავიაბილეთების ძიება | Around The World",
+    title: "ავიაბილეთები და ფრენები | Around The World",
     description:
-      "მოძებნეთ ავიაბილეთები სასურველ მიმართულებაზე და შეარჩიეთ თქვენთვის მოსახერხებელი რეისი.",
+      "მოძებნეთ ავიაბილეთები და ფრენები სასურველ მიმართულებაზე, შეარჩიეთ რეისი და გააგზავნეთ დაჯავშნის მოთხოვნა Around The World-ის ვებგვერდიდან.",
     canonical: `${SITE_URL}/flights`,
   },
   hotels: {
@@ -36,21 +36,21 @@ export const PAGE_SEO = {
     canonical: `${SITE_URL}/restaurants`,
   },
   visaServices: {
-    title: "სავიზო მომსახურება | Around The World",
+    title: "სავიზო მომსახურება ტურისტული სააგენტოსგან | Around The World",
     description:
-      "მიიღეთ კონსულტაცია სავიზო პროცესთან დაკავშირებით და მოამზადეთ მოგზაურობისთვის საჭირო დოკუმენტები.",
+      "მიიღეთ სავიზო მომსახურება და კონსულტაცია Around The World-ისგან. მოამზადეთ მოგზაურობისთვის საჭირო დოკუმენტები მარტივად და კომფორტულად.",
     canonical: `${SITE_URL}/visa-services`,
   },
   about: {
-    title: "ჩვენს შესახებ | Around The World",
+    title: "ტურისტული სააგენტო Around The World | ჩვენს შესახებ",
     description:
-      "Around The World არის ტურისტული სააგენტო, რომელიც მომხმარებლებს სთავაზობს ტურებს, ავიაბილეთებს, სასტუმროებს და სამოგზაურო კონსულტაციას.",
+      "Around The World არის ტურისტული სააგენტო საქართველოში, რომელიც მომხმარებლებს სთავაზობს ტურებს, ავიაბილეთებს, სასტუმროებს, რესტორნებს და სავიზო მომსახურებას.",
     canonical: `${SITE_URL}/about`,
   },
   contact: {
-    title: "კონტაქტი | Around The World",
+    title: "კონტაქტი | ტურისტული სააგენტო Around The World",
     description:
-      "დაუკავშირდით Around The World-ს ტურების, ავიაბილეთების, სასტუმროების და სავიზო მომსახურების შესახებ.",
+      "დაუკავშირდით Around The World-ს ტურების, ავიაბილეთების, ფრენების, სასტუმროების და სავიზო მომსახურების შესახებ.",
     canonical: `${SITE_URL}/contact`,
   },
 };
@@ -103,16 +103,52 @@ export function truncateSeoText(value, maxLength = 160) {
   return `${text.slice(0, maxLength - 3).trim()}...`;
 }
 
-export function buildTourSeoDescription({ description, destination, duration }) {
-  const descriptionText = truncateSeoText(description);
+function cleanTourDescriptionForSeo(value) {
+  return String(value || "")
+    .replace(/https?:\/\/\S+/gi, "")
+    .replace(/www\.\S+/gi, "")
+    .replace(/\bSee less\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-  if (descriptionText) {
-    return descriptionText;
+function isUsefulTourDescriptionForSeo(value) {
+  const text = cleanTourDescriptionForSeo(value);
+
+  return (
+    text.length >= 50 &&
+    text.length <= 155 &&
+    !/[{}<>]/.test(text) &&
+    !/https?:|www\.|@\w+/i.test(value || "")
+  );
+}
+
+export function buildTourSeoDescription({
+  description,
+  destination,
+  duration,
+  language = "ka",
+}) {
+  const cleanedDescription = cleanTourDescriptionForSeo(description);
+
+  if (isUsefulTourDescriptionForSeo(description)) {
+    return truncateSeoText(cleanedDescription);
   }
 
+  if (language === "ka") {
+    return truncateSeoText(
+      destination
+        ? `შეარჩიეთ ${destination}-ის ტური Around The World-თან ერთად. ნახეთ ტურის დეტალები, ღირებულება და გააგზავნეთ დაჯავშნის მოთხოვნა.`
+        : "შეარჩიეთ ტური Around The World-თან ერთად. ნახეთ ტურის დეტალები, ღირებულება და გააგზავნეთ დაჯავშნის მოთხოვნა."
+    );
+  }
+
+  const descriptionText = truncateSeoText(cleanedDescription);
+
   return truncateSeoText(
-    [destination, duration].filter(Boolean).join(" | ") ||
-      "დაათვალიერეთ ტურის დეტალები და დაგეგმეთ მოგზაურობა Around The World-ის დახმარებით."
+    descriptionText ||
+      [destination, duration].filter(Boolean).join(" | ") ||
+      "View tour details, pricing, and booking request options with Around The World."
   );
 }
 

@@ -124,11 +124,16 @@ export default function TourDetailPage() {
   const includedItems = getLocalizedList(tour?.included, language);
   const notIncludedItems = getLocalizedList(tour?.notIncluded, language);
   const canonical = buildCanonicalUrl(`/tours/${encodeURIComponent(id || "")}`);
-  const seoTitle = title ? `${title} | Around The World` : PAGE_SEO.tours.title;
+  const seoTitle = title
+    ? language === "ka"
+      ? `${title} | ტურები საქართველოდან | Around The World`
+      : `${title} | Tours from Georgia | Around The World`
+    : PAGE_SEO.tours.title;
   const seoDescription = buildTourSeoDescription({
     description,
     destination,
     duration,
+    language,
   });
   const seoImage = tour?.image ? toAbsoluteUrl(tour.image) : undefined;
 

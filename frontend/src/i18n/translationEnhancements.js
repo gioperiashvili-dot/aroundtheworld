@@ -16,6 +16,9 @@ export const translationEnhancements = {
       searchPlaceholder: "მოძებნეთ",
     },
     home: {
+      title: "ტურები, ავიაბილეთები და სამოგზაურო სერვისები ერთ სივრცეში",
+      description:
+        "Around The World არის ტურისტული სააგენტო საქართველოში, რომელიც გეხმარებათ ტურების, ფრენების, სასტუმროებისა და სავიზო მომსახურების მარტივად მოძიებაში.",
       search: {
         fromLabel: "საიდან?",
         toLabel: "სად?",
@@ -138,6 +141,9 @@ export const translationEnhancements = {
       searchPlaceholder: "Search",
     },
     home: {
+      title: "Tours, flights, and travel services in one place",
+      description:
+        "Around The World is a travel agency in Georgia that helps you search tours, flights, hotels, and visa services more easily.",
       search: {
         fromLabel: "Where from?",
         toLabel: "Where to?",
@@ -247,8 +253,10 @@ export const translationEnhancements = {
 
 translationEnhancements.ka.hotels.heroDescription = "";
 translationEnhancements.en.hotels.heroDescription = "";
-translationEnhancements.ka.flights.heroDescription = "";
-translationEnhancements.en.flights.heroDescription = "";
+translationEnhancements.ka.flights.heroDescription =
+  "მოძებნეთ ფრენები სასურველ მიმართულებაზე და გააგზავნეთ ავიაბილეთის დაჯავშნის მოთხოვნა.";
+translationEnhancements.en.flights.heroDescription =
+  "Search flights to your preferred destination and send a flight ticket booking request.";
 translationEnhancements.ka.restaurants.heroDescription = "";
 translationEnhancements.en.restaurants.heroDescription = "";
 
@@ -280,12 +288,27 @@ translationEnhancements.en.app.pages.hotels = {
 translationEnhancements.ka.app.pages.flights = {
   ...(translationEnhancements.ka.app.pages.flights || {}),
   eyebrow: "შეარჩიეთ სასურველი მიმართულება",
-  title: "",
+  title: "ავიაბილეთები და ფრენების ძიება",
 };
 translationEnhancements.en.app.pages.flights = {
   ...(translationEnhancements.en.app.pages.flights || {}),
   eyebrow: "Select the desired direction",
-  title: "",
+  title: "Flight tickets and flight search",
+};
+translationEnhancements.ka.app.pages.tours = {
+  ...(translationEnhancements.ka.app.pages.tours || {}),
+  eyebrow: "ტურები",
+  title: "ტურები საქართველოდან",
+  description:
+    "შეარჩიეთ ტური თქვენი სურვილების, ბიუჯეტის და მოგზაურობის სტილის მიხედვით.",
+  highlights: [],
+};
+translationEnhancements.en.app.pages.tours = {
+  ...(translationEnhancements.en.app.pages.tours || {}),
+  eyebrow: "Tours",
+  title: "Tours from Georgia",
+  description: "Choose a tour by your preferences, budget, and travel style.",
+  highlights: [],
 };
 translationEnhancements.ka.app.pages.restaurants = {
   ...(translationEnhancements.ka.app.pages.restaurants || {}),

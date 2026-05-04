@@ -143,9 +143,9 @@ export default function ToursPage() {
     <PublicPageShell
       backgroundImage={backgroundTwo}
       eyebrow={heroContent.eyebrow}
-      title=""
-      description=""
-      highlights={[]}
+      title={heroContent.title}
+      description={heroContent.description}
+      highlights={Array.isArray(heroContent.highlights) ? heroContent.highlights : []}
       compactHero
     >
       <SEO {...PAGE_SEO.tours} />

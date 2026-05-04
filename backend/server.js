@@ -6,6 +6,7 @@ const restaurantsRoute = require("./routes/restaurants");
 const toursRoute = require("./routes/tours");
 const adminRoute = require("./routes/admin");
 const { PORT } = require("./config/env");
+const { buildSitemapXml } = require("./services/sitemap");
 const { getUploadsRoot } = require("./services/uploads");
 
 const app = express();
@@ -45,6 +46,16 @@ app.use(
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
+});
+
+app.get("/sitemap.xml", async (_req, res) => {
+  try {
+    const sitemapXml = await buildSitemapXml();
+    res.type("application/xml").send(sitemapXml);
+  } catch (error) {
+    console.error("[sitemap] Unable to generate sitemap:", error);
+    res.status(500).type("text/plain").send("Unable to generate sitemap.");
+  }
 });
 
 app.use("/api/flights", flightsRoute);
