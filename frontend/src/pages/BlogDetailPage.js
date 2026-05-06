@@ -130,7 +130,7 @@ export default function BlogDetailPage() {
             fetchPriority="high"
           />
 
-          <div className="space-y-8 p-6 md:p-8">
+          <div className="space-y-8 p-6 md:p-8 bg-white dark:bg-[#071426]">
             <header className="space-y-4">
               <div className="flex flex-wrap items-center gap-3">
                 {category ? (
