@@ -13,21 +13,28 @@ const app = express();
 
 const allowedOrigins = [
   process.env.FRONTEND_URL,
+  "https://aroundworld.ge",
+  "https://www.aroundworld.ge",
+  "http://aroundworld.ge",
+  "http://www.aroundworld.ge",
   "http://localhost:3000",
   "http://localhost:5173",
-].filter(Boolean);
+]
+  .filter(Boolean)
+  .map((origin) => origin.trim().replace(/\/$/, ""));
 
 const corsOptions = {
   origin(origin, callback) {
-    // allow non-browser/server-to-server requests with no origin
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin)) {
+    const normalizedOrigin = origin.trim().replace(/\/$/, "");
+
+    if (allowedOrigins.includes(normalizedOrigin)) {
       return callback(null, true);
     }
 
     console.warn("[CORS] Blocked origin:", origin);
-    return callback(new Error("Not allowed by CORS"));
+    return callback(null, false);
   },
   credentials: true,
 };
