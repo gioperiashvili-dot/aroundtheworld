@@ -5,8 +5,17 @@ const { createAdminSession, requireAdmin } = require("../services/adminAuth");
 const {
   ALLOWED_IMAGE_MIME_TYPES,
   MAX_UPLOAD_BYTES,
+  optimizeBlogImage,
   optimizeTourImage,
 } = require("../services/uploads");
+const {
+  MAX_BLOG_PAYLOAD_BYTES,
+  createBlog,
+  deleteBlog,
+  getBlogById,
+  getBlogs: getAdminBlogs,
+  updateBlog,
+} = require("../services/blogs");
 const {
   createTour,
   deleteTour,
@@ -19,6 +28,27 @@ const {
   deleteReview,
   getReviews,
 } = require("../services/reviews");
+
+function getBodySize(body) {
+  try {
+    return Buffer.byteLength(JSON.stringify(body || {}), "utf8");
+  } catch (_error) {
+    return MAX_BLOG_PAYLOAD_BYTES + 1;
+  }
+}
+
+function rejectLargeBlogPayload(req, res) {
+  if (getBodySize(req.body) <= MAX_BLOG_PAYLOAD_BYTES) {
+    return false;
+  }
+
+  res.status(413).json({
+    code: "PAYLOAD_TOO_LARGE",
+    error: "Blog payload is too large",
+    details: "Blog post data must be 256KB or smaller.",
+  });
+  return true;
+}
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -108,6 +138,42 @@ router.post("/uploads/tours", (req, res) => {
   });
 });
 
+router.post("/uploads/blogs", (req, res) => {
+  upload.single("image")(req, res, async (uploadError) => {
+    if (uploadError) {
+      const isTooLarge =
+        uploadError instanceof multer.MulterError &&
+        uploadError.code === "LIMIT_FILE_SIZE";
+      const statusCode = isTooLarge ? 413 : uploadError.statusCode || 400;
+
+      return res.status(statusCode).json({
+        ok: false,
+        code: isTooLarge ? "FILE_TOO_LARGE" : uploadError.code || "UPLOAD_FAILED",
+        error: isTooLarge ? "File too large" : uploadError.message || "Upload failed",
+        details: isTooLarge
+          ? "The selected image must be 5MB or smaller."
+          : uploadError.details || "Choose a valid JPEG, PNG, or WebP image.",
+      });
+    }
+
+    try {
+      const optimizedImage = await optimizeBlogImage(req.file);
+
+      return res.status(201).json({
+        ok: true,
+        imageUrl: optimizedImage.imageUrl,
+      });
+    } catch (error) {
+      return res.status(error.statusCode || 500).json({
+        ok: false,
+        code: error.code || "UPLOAD_FAILED",
+        error: error.message || "Upload failed",
+        details: error.details || "Please try another image.",
+      });
+    }
+  });
+});
+
 router.get("/tours", async (_req, res) => {
   try {
     const tours = await getTours();
@@ -120,6 +186,23 @@ router.get("/tours", async (_req, res) => {
       error: error.message || "Unable to load tours",
       details: error.details || "Please try again in a moment.",
       tours: [],
+    });
+  }
+});
+
+router.get("/blogs", async (_req, res) => {
+  try {
+    const blogs = await getAdminBlogs();
+
+    return res.json({
+      blogs,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      code: error.code || "BLOGS_LOAD_FAILED",
+      error: error.message || "Unable to load blog posts",
+      details: error.details || "Please try again in a moment.",
+      blogs: [],
     });
   }
 });
@@ -168,6 +251,72 @@ router.delete("/reviews/:id", async (req, res) => {
     return res.status(error.statusCode || 500).json({
       code: error.code || "REVIEW_DELETE_FAILED",
       error: error.message || "Unable to delete review",
+      details: error.details || "Please try again in a moment.",
+    });
+  }
+});
+
+router.post("/blogs", async (req, res) => {
+  if (rejectLargeBlogPayload(req, res)) {
+    return;
+  }
+
+  try {
+    const blog = await createBlog(req.body || {});
+
+    return res.status(201).json({
+      blog,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      code: error.code || "BLOG_CREATE_FAILED",
+      error: error.message || "Unable to create blog post",
+      details: error.details || "Please try again in a moment.",
+    });
+  }
+});
+
+router.put("/blogs/:id", async (req, res) => {
+  if (rejectLargeBlogPayload(req, res)) {
+    return;
+  }
+
+  try {
+    const existingBlog = await getBlogById(req.params.id);
+
+    if (!existingBlog) {
+      return res.status(404).json({
+        code: "BLOG_NOT_FOUND",
+        error: "Blog post not found",
+        details: "We could not find a blog post with that id.",
+      });
+    }
+
+    const blog = await updateBlog(req.params.id, req.body || {});
+
+    return res.json({
+      blog,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      code: error.code || "BLOG_UPDATE_FAILED",
+      error: error.message || "Unable to update blog post",
+      details: error.details || "Please try again in a moment.",
+    });
+  }
+});
+
+router.delete("/blogs/:id", async (req, res) => {
+  try {
+    const blog = await deleteBlog(req.params.id);
+
+    return res.json({
+      blog,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      code: error.code || "BLOG_DELETE_FAILED",
+      error: error.message || "Unable to delete blog post",
       details: error.details || "Please try again in a moment.",
     });
   }

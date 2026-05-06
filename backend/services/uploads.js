@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const sharp = require("sharp");
 
 const TOUR_UPLOAD_PUBLIC_PATH = "/uploads/tours";
+const BLOG_UPLOAD_PUBLIC_PATH = "/uploads/blogs";
 const ALLOWED_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
@@ -29,6 +30,10 @@ function getUploadsRoot() {
 
 function getTourUploadsDir() {
   return path.join(getUploadsRoot(), "tours");
+}
+
+function getBlogUploadsDir() {
+  return path.join(getUploadsRoot(), "blogs");
 }
 
 function assertAllowedImageFile(file) {
@@ -57,6 +62,12 @@ function createTourImageFilename() {
   return `tour-${timestamp}-${randomSuffix}.webp`;
 }
 
+function createBlogImageFilename() {
+  const timestamp = Date.now();
+  const randomSuffix = crypto.randomBytes(8).toString("hex");
+  return `blog-${timestamp}-${randomSuffix}.webp`;
+}
+
 function getMimeTypeFromSharpFormat(format) {
   if (format === "jpeg" || format === "jpg") {
     return "image/jpeg";
@@ -73,11 +84,9 @@ function getMimeTypeFromSharpFormat(format) {
   return "";
 }
 
-async function optimizeTourImage(file) {
+async function optimizeImageFile(file, uploadDir, filename) {
   assertAllowedImageFile(file);
 
-  const uploadDir = getTourUploadsDir();
-  const filename = createTourImageFilename();
   const outputPath = path.join(uploadDir, filename);
 
   await fs.mkdir(uploadDir, { recursive: true });
@@ -124,9 +133,26 @@ async function optimizeTourImage(file) {
       "The image could not be processed. Try another JPEG, PNG, or WebP file."
     );
   }
+}
+
+async function optimizeTourImage(file) {
+  const filename = createTourImageFilename();
+
+  await optimizeImageFile(file, getTourUploadsDir(), filename);
 
   return {
     imageUrl: `${TOUR_UPLOAD_PUBLIC_PATH}/${filename}`,
+    filename,
+  };
+}
+
+async function optimizeBlogImage(file) {
+  const filename = createBlogImageFilename();
+
+  await optimizeImageFile(file, getBlogUploadsDir(), filename);
+
+  return {
+    imageUrl: `${BLOG_UPLOAD_PUBLIC_PATH}/${filename}`,
     filename,
   };
 }
@@ -135,5 +161,6 @@ module.exports = {
   ALLOWED_IMAGE_MIME_TYPES,
   MAX_UPLOAD_BYTES,
   getUploadsRoot,
+  optimizeBlogImage,
   optimizeTourImage,
 };

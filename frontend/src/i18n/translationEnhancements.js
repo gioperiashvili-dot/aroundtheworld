@@ -812,3 +812,152 @@ Object.assign(translationEnhancements.en.flights, {
     },
   },
 });
+
+translationEnhancements.ka.nav.blog = "ბლოგი";
+translationEnhancements.en.nav.blog = "Blog";
+translationEnhancements.ka.common.blog = "ბლოგი";
+translationEnhancements.en.common.blog = "Blog";
+translationEnhancements.ka.common.blogAndReviews = "ბლოგი და შეფასებები";
+translationEnhancements.en.common.blogAndReviews = "Blog and Reviews";
+translationEnhancements.ka.common.customerReviews = "მომხმარებლების შეფასებები";
+translationEnhancements.en.common.customerReviews = "Customer Reviews";
+translationEnhancements.ka.image = translationEnhancements.ka.image || {};
+translationEnhancements.en.image = translationEnhancements.en.image || {};
+translationEnhancements.ka.image.blogLabel = "ბლოგის ფოტო";
+translationEnhancements.en.image.blogLabel = "Blog image";
+
+translationEnhancements.ka.blog = {
+  pageTitle: "ბლოგი და შეფასებები",
+  heroTitle: "ბლოგი და მომხმარებლების შეფასებები",
+  heroDescription:
+    "სასარგებლო რჩევები მოგზაურობისთვის, სიახლეები და Around The World-ის მომხმარებლების გამოცდილება.",
+  sectionTitle: "ბლოგი",
+  reviewsTitle: "მომხმარებლების შეფასებები",
+  readMore: "სრულად ნახვა",
+  emptyBlogs: "ბლოგის პოსტები მალე დაემატება.",
+  emptyReviews: "შეფასებები მალე გამოჩნდება.",
+  backToBlog: "ბლოგზე დაბრუნება",
+  notFoundTitle: "ბლოგის პოსტი ვერ მოიძებნა",
+  notFoundMessage: "ეს ბლოგის პოსტი ვერ მოიძებნა ან ჯერ გამოქვეყნებული არ არის.",
+  viewTours: "ტურების ნახვა",
+  contactUs: "დაგვიკავშირდით",
+  errors: {
+    loadBlogs: "ბლოგის პოსტების ჩატვირთვა ვერ მოხერხდა.",
+    loadBlog: "ბლოგის პოსტის ჩატვირთვა ვერ მოხერხდა.",
+  },
+};
+
+translationEnhancements.en.blog = {
+  pageTitle: "Blog and Reviews",
+  heroTitle: "Blog and Customer Reviews",
+  heroDescription:
+    "Helpful travel tips, updates, and real customer experiences from Around The World.",
+  sectionTitle: "Blog",
+  reviewsTitle: "Customer Reviews",
+  readMore: "Read more",
+  emptyBlogs: "Blog posts will be added soon.",
+  emptyReviews: "Reviews will appear soon.",
+  backToBlog: "Back to blog",
+  notFoundTitle: "Blog post not found",
+  notFoundMessage: "This blog post was not found or is not published yet.",
+  viewTours: "View tours",
+  contactUs: "Contact us",
+  errors: {
+    loadBlogs: "We could not load blog posts.",
+    loadBlog: "We could not load this blog post.",
+  },
+};
+
+Object.assign(translationEnhancements.ka.admin, {
+  blogManagerLabel: "ბლოგის მართვა",
+  blogManagerHeading: "ბლოგის პოსტები",
+  blogCountSuffix: "პოსტი",
+  createBlogPost: "ბლოგის პოსტის შექმნა",
+  editBlogPost: "ბლოგის პოსტის რედაქტირება",
+  deleteBlogPost: "ბლოგის პოსტის წაშლა",
+  blogFormHeading: "მოამზადეთ ახალი სამოგზაურო სტატია",
+  blogPreviewTitle: "ბლოგის წინასწარი ხედი",
+  blogPreviewSubtitle: "კატეგორია ან მოკლე აღწერა",
+  draft: "დრაფტი",
+  published: "გამოქვეყნებული",
+  publishStatus: "გამოქვეყნების სტატუსი",
+  categoryKa: "კატეგორია ქართულად",
+  categoryEn: "კატეგორია ინგლისურად",
+  excerptKa: "მოკლე აღწერა ქართულად",
+  excerptEn: "მოკლე აღწერა ინგლისურად",
+  contentKa: "სტატიის ტექსტი ქართულად",
+  contentEn: "სტატიის ტექსტი ინგლისურად",
+  slug: "Slug",
+  uploadBlogImage: "ბლოგის სურათის ატვირთვა",
+  saveBlogCreate: "ბლოგის პოსტის შექმნა",
+  saveBlogUpdate: "ბლოგის პოსტის განახლება",
+  noBlogsTitle: "ბლოგის პოსტები ჯერ არ არის",
+  noBlogsMessage: "შექმენით პირველი პოსტი ბლოგის გვერდზე გამოსაჩენად.",
+  confirmBlogDelete: "წავშალო ეს ბლოგის პოსტი?",
+});
+
+Object.assign(translationEnhancements.en.admin, {
+  blogManagerLabel: "Blog Manager",
+  blogManagerHeading: "Blog posts",
+  blogCountSuffix: "posts",
+  createBlogPost: "Create blog post",
+  editBlogPost: "Edit blog post",
+  deleteBlogPost: "Delete blog post",
+  blogFormHeading: "Prepare a new travel article",
+  blogPreviewTitle: "Blog preview",
+  blogPreviewSubtitle: "Category or short description",
+  draft: "Draft",
+  published: "Published",
+  publishStatus: "Publish status",
+  categoryKa: "Georgian category",
+  categoryEn: "English category",
+  excerptKa: "Georgian excerpt",
+  excerptEn: "English excerpt",
+  contentKa: "Georgian content",
+  contentEn: "English content",
+  slug: "Slug",
+  uploadBlogImage: "Upload blog image",
+  saveBlogCreate: "Create blog post",
+  saveBlogUpdate: "Update blog post",
+  noBlogsTitle: "No blog posts yet",
+  noBlogsMessage: "Create the first post to show it on the blog page.",
+  confirmBlogDelete: "Delete this blog post?",
+});
+
+translationEnhancements.ka.admin.errors = {
+  ...(translationEnhancements.ka.admin.errors || {}),
+  blogsLoadFailed: "ბლოგის პოსტების ჩატვირთვა ვერ მოხერხდა.",
+  blogSaveFailed: "ბლოგის პოსტის შენახვა ვერ მოხერხდა.",
+  blogDeleteFailed: "ბლოგის პოსტის წაშლა ვერ მოხერხდა.",
+  blogTitleKaRequired: "შეიყვანეთ ბლოგის სათაური ქართულად.",
+  blogContentKaRequired: "შეიყვანეთ ბლოგის ტექსტი ქართულად.",
+  blogStatusInvalid: "აირჩიეთ სტატუსი: დრაფტი ან გამოქვეყნებული.",
+  blogSlugExists: "ეს slug უკვე გამოიყენება. აირჩიეთ სხვა.",
+  blogPayloadTooLarge: "ბლოგის პოსტი ძალიან დიდია.",
+};
+
+translationEnhancements.en.admin.errors = {
+  ...(translationEnhancements.en.admin.errors || {}),
+  blogsLoadFailed: "Something went wrong while loading blog posts.",
+  blogSaveFailed: "Something went wrong while saving the blog post.",
+  blogDeleteFailed: "Something went wrong while deleting the blog post.",
+  blogTitleKaRequired: "Please enter a Georgian blog title.",
+  blogContentKaRequired: "Please enter Georgian blog content.",
+  blogStatusInvalid: "Choose draft or published status.",
+  blogSlugExists: "This slug is already used. Choose another one.",
+  blogPayloadTooLarge: "The blog post is too large.",
+};
+
+translationEnhancements.ka.admin.success = {
+  ...(translationEnhancements.ka.admin.success || {}),
+  blogCreated: "ბლოგის პოსტი შეიქმნა.",
+  blogUpdated: "ბლოგის პოსტი განახლდა.",
+  blogDeleted: "ბლოგის პოსტი წაიშალა.",
+};
+
+translationEnhancements.en.admin.success = {
+  ...(translationEnhancements.en.admin.success || {}),
+  blogCreated: "Blog post created.",
+  blogUpdated: "Blog post updated.",
+  blogDeleted: "Blog post deleted.",
+};

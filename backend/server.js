@@ -5,6 +5,7 @@ const hotelsRoute = require("./routes/hotels");
 const restaurantsRoute = require("./routes/restaurants");
 const toursRoute = require("./routes/tours");
 const reviewsRoute = require("./routes/reviews");
+const blogsRoute = require("./routes/blogs");
 const adminRoute = require("./routes/admin");
 const { PORT } = require("./config/env");
 const { buildSitemapXml } = require("./services/sitemap");
@@ -71,6 +72,7 @@ app.use("/api/hotels", hotelsRoute);
 app.use("/api/restaurants", restaurantsRoute);
 app.use("/api/tours", toursRoute);
 app.use("/api/reviews", reviewsRoute);
+app.use("/api/blogs", blogsRoute);
 app.use("/api/admin", adminRoute);
 
 app.listen(PORT, () => {

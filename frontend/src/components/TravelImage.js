@@ -53,6 +53,24 @@ const VARIANT_STYLES = {
       </svg>
     ),
   },
+  blog: {
+    gradient: "from-cyan-500 via-emerald-500 to-rose-400",
+    accent: "bg-white/20 text-white",
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        className="h-8 w-8"
+        aria-hidden="true"
+      >
+        <path d="M6 4h9l3 3v13H6z" />
+        <path d="M15 4v4h4" />
+        <path d="M9 11h6M9 15h6M9 18h3" />
+      </svg>
+    ),
+  },
 };
 
 export default function TravelImage({
@@ -75,6 +93,8 @@ export default function TravelImage({
       ? t("image.restaurantLabel")
       : variant === "tour"
         ? t("image.tourLabel")
+        : variant === "blog"
+          ? t("image.blogLabel")
         : t("image.hotelLabel");
 
   useEffect(() => {

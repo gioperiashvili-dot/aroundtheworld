@@ -22,6 +22,7 @@ export default function PublicFooter() {
       label: isEnglish ? "Visa Services" : "სავიზო მომსახურება",
       href: "/visa-services",
     },
+    { label: isEnglish ? "Blog" : "ბლოგი", href: "/blog" },
   ];
   const legalLinks = [
     { label: isEnglish ? "About us" : "ჩვენს შესახებ", href: "/about" },

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import AdminBlogManager from "../components/AdminBlogManager";
 import AdminReviewsPanel from "../components/AdminReviewsPanel";
 import AdminTourForm from "../components/AdminTourForm";
 import EmptyState from "../components/EmptyState";
@@ -739,6 +740,8 @@ export default function AdminPage() {
             onSubmit={handleSubmit}
             onReset={resetForm}
           />
+
+          <AdminBlogManager token={token} onUnauthorized={clearSession} />
 
           <AdminReviewsPanel
             reviews={reviews}

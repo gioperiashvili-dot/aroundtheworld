@@ -41,6 +41,12 @@ export const PAGE_SEO = {
       "მიიღეთ სავიზო მომსახურება და კონსულტაცია Around The World-ისგან. მოამზადეთ მოგზაურობისთვის საჭირო დოკუმენტები მარტივად და კომფორტულად.",
     canonical: `${SITE_URL}/visa-services`,
   },
+  blog: {
+    title: "ბლოგი და შეფასებები | Around The World",
+    description:
+      "წაიკითხეთ Around The World-ის ბლოგი, მოგზაურობის რჩევები და მომხმარებლების შეფასებები ტურებზე, ავიაბილეთებსა და სამოგზაურო სერვისებზე.",
+    canonical: `${SITE_URL}/blog`,
+  },
   about: {
     title: "ტურისტული სააგენტო Around The World | ჩვენს შესახებ",
     description:

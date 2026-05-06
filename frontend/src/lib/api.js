@@ -95,6 +95,16 @@ export async function fetchReviews(params = {}) {
   return response.data;
 }
 
+export async function fetchBlogs() {
+  const response = await apiClient.get("/api/blogs");
+  return response.data;
+}
+
+export async function fetchBlogBySlug(slug) {
+  const response = await apiClient.get(`/api/blogs/${encodeURIComponent(slug)}`);
+  return response.data;
+}
+
 export async function submitReview(idToken, payload) {
   const response = await apiClient.post(
     "/api/reviews",
@@ -123,8 +133,18 @@ export async function fetchAdminReviews(token) {
   return response.data;
 }
 
+export async function fetchAdminBlogs(token) {
+  const response = await apiClient.get("/api/admin/blogs", getAdminConfig(token));
+  return response.data;
+}
+
 export async function createAdminTour(token, payload) {
   const response = await apiClient.post("/api/admin/tours", payload, getAdminConfig(token));
+  return response.data;
+}
+
+export async function createAdminBlog(token, payload) {
+  const response = await apiClient.post("/api/admin/blogs", payload, getAdminConfig(token));
   return response.data;
 }
 
@@ -137,8 +157,22 @@ export async function updateAdminTour(token, id, payload) {
   return response.data;
 }
 
+export async function updateAdminBlog(token, id, payload) {
+  const response = await apiClient.put(
+    `/api/admin/blogs/${id}`,
+    payload,
+    getAdminConfig(token)
+  );
+  return response.data;
+}
+
 export async function deleteAdminTour(token, id) {
   const response = await apiClient.delete(`/api/admin/tours/${id}`, getAdminConfig(token));
+  return response.data;
+}
+
+export async function deleteAdminBlog(token, id) {
+  const response = await apiClient.delete(`/api/admin/blogs/${id}`, getAdminConfig(token));
   return response.data;
 }
 
@@ -167,6 +201,19 @@ export async function uploadAdminTourImage(token, imageFile) {
 
   const response = await apiClient.post(
     "/api/admin/uploads/tours",
+    formData,
+    getAdminConfig(token)
+  );
+
+  return response.data;
+}
+
+export async function uploadAdminBlogImage(token, imageFile) {
+  const formData = new FormData();
+  formData.append("image", imageFile);
+
+  const response = await apiClient.post(
+    "/api/admin/uploads/blogs",
     formData,
     getAdminConfig(token)
   );

@@ -35,6 +35,7 @@ export default function Navbar({ variant = "page" }) {
       { to: "/hotels", label: t("nav.hotels") },
       { to: "/restaurants", label: t("nav.restaurants") },
       { to: "/visa-services", label: t("nav.visaServices") },
+      { to: "/blog", label: t("nav.blog") },
       { to: "/about", label: t("nav.about") },
       { to: "/contact", label: t("nav.contact") },
     ],
