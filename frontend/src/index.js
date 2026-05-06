@@ -4,6 +4,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter } from "react-router-dom";
 import './index.css';
 import App from './App';
+import { FirebaseAuthProvider } from './auth/FirebaseAuthContext';
 import { LanguageProvider } from './i18n/LanguageContext';
 import reportWebVitals from './reportWebVitals';
 import { ThemeProvider } from './theme/ThemeContext';
@@ -14,9 +15,11 @@ root.render(
     <HelmetProvider>
       <ThemeProvider>
         <LanguageProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
+          <FirebaseAuthProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </FirebaseAuthProvider>
         </LanguageProvider>
       </ThemeProvider>
     </HelmetProvider>

@@ -35,6 +35,14 @@ function getAdminConfig(token) {
   };
 }
 
+function getFirebaseUserConfig(idToken) {
+  return {
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
+  };
+}
+
 export async function fetchFlights(params) {
   const response = await apiClient.get("/api/flights/search", {
     params,
@@ -79,6 +87,24 @@ export async function submitTourBookingRequest(payload) {
   return response.data;
 }
 
+export async function fetchReviews(params = {}) {
+  const response = await apiClient.get("/api/reviews", {
+    params,
+  });
+
+  return response.data;
+}
+
+export async function submitReview(idToken, payload) {
+  const response = await apiClient.post(
+    "/api/reviews",
+    payload,
+    getFirebaseUserConfig(idToken)
+  );
+
+  return response.data;
+}
+
 export async function createAdminSession(password) {
   const response = await apiClient.post("/api/admin/session", {
     password,
@@ -89,6 +115,11 @@ export async function createAdminSession(password) {
 
 export async function fetchAdminTours(token) {
   const response = await apiClient.get("/api/admin/tours", getAdminConfig(token));
+  return response.data;
+}
+
+export async function fetchAdminReviews(token) {
+  const response = await apiClient.get("/api/admin/reviews", getAdminConfig(token));
   return response.data;
 }
 
@@ -108,6 +139,25 @@ export async function updateAdminTour(token, id, payload) {
 
 export async function deleteAdminTour(token, id) {
   const response = await apiClient.delete(`/api/admin/tours/${id}`, getAdminConfig(token));
+  return response.data;
+}
+
+export async function approveAdminReview(token, id) {
+  const response = await apiClient.patch(
+    `/api/admin/reviews/${id}/approve`,
+    null,
+    getAdminConfig(token)
+  );
+
+  return response.data;
+}
+
+export async function deleteAdminReview(token, id) {
+  const response = await apiClient.delete(
+    `/api/admin/reviews/${id}`,
+    getAdminConfig(token)
+  );
+
   return response.data;
 }
 

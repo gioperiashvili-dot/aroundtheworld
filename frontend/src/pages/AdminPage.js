@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import AdminReviewsPanel from "../components/AdminReviewsPanel";
 import AdminTourForm from "../components/AdminTourForm";
 import EmptyState from "../components/EmptyState";
 import LoadingSkeleton from "../components/LoadingSkeleton";
@@ -6,9 +7,12 @@ import SEO from "../components/SEO";
 import TravelImage from "../components/TravelImage";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 import {
+  approveAdminReview,
   createAdminSession,
   createAdminTour,
+  deleteAdminReview,
   deleteAdminTour,
+  fetchAdminReviews,
   fetchAdminTours,
   uploadAdminTourImage,
   updateAdminTour,
@@ -105,11 +109,14 @@ export default function AdminPage() {
   const [token, setToken] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [tours, setTours] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [form, setForm] = useState(createEmptyForm);
   const [editingId, setEditingId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [reviewActionId, setReviewActionId] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const [imageInputKey, setImageInputKey] = useState(0);
@@ -161,6 +168,7 @@ export default function AdminPage() {
     setToken("");
     setExpiresAt("");
     setTours([]);
+    setReviews([]);
     setPassword("");
     setEditingId("");
     setForm(createEmptyForm());
@@ -198,13 +206,39 @@ export default function AdminPage() {
     [clearSession, t]
   );
 
+  const loadAdminReviews = useCallback(
+    async (activeToken) => {
+      setReviewsLoading(true);
+      setError("");
+
+      try {
+        const response = await fetchAdminReviews(activeToken);
+        setReviews(Array.isArray(response?.reviews) ? response.reviews : []);
+      } catch (requestError) {
+        if (requestError.response?.status === 401) {
+          clearSession();
+        }
+
+        setError(
+          getFriendlyApiError(requestError, t("admin.errors.reviewsLoadFailed"), {
+            unauthorizedMessage: t("admin.errors.loginFailed"),
+          })
+        );
+      } finally {
+        setReviewsLoading(false);
+      }
+    },
+    [clearSession, t]
+  );
+
   useEffect(() => {
     if (!token) {
       return;
     }
 
     void loadAdminTours(token);
-  }, [token, loadAdminTours]);
+    void loadAdminReviews(token);
+  }, [token, loadAdminReviews, loadAdminTours]);
 
   const resetForm = () => {
     setEditingId("");
@@ -501,6 +535,62 @@ export default function AdminPage() {
     }
   };
 
+  const handleApproveReview = async (id) => {
+    setReviewActionId(id);
+    setError("");
+    setSuccess("");
+
+    try {
+      await approveAdminReview(token, id);
+      setSuccess(t("admin.success.reviewApproved"));
+      await loadAdminReviews(token);
+    } catch (requestError) {
+      if (requestError.response?.status === 401) {
+        clearSession();
+      }
+
+      setError(
+        getFriendlyApiError(requestError, t("admin.errors.reviewApproveFailed"), {
+          unauthorizedMessage: t("admin.errors.loginFailed"),
+        })
+      );
+    } finally {
+      setReviewActionId("");
+    }
+  };
+
+  const handleDeleteReview = async (id) => {
+    if (typeof window !== "undefined") {
+      const shouldDelete = window.confirm(t("admin.confirmReviewDelete"));
+
+      if (!shouldDelete) {
+        return;
+      }
+    }
+
+    setReviewActionId(id);
+    setError("");
+    setSuccess("");
+
+    try {
+      await deleteAdminReview(token, id);
+      setSuccess(t("admin.success.reviewDeleted"));
+      await loadAdminReviews(token);
+    } catch (requestError) {
+      if (requestError.response?.status === 401) {
+        clearSession();
+      }
+
+      setError(
+        getFriendlyApiError(requestError, t("admin.errors.reviewDeleteFailed"), {
+          unauthorizedMessage: t("admin.errors.loginFailed"),
+        })
+      );
+    } finally {
+      setReviewActionId("");
+    }
+  };
+
   if (!token) {
     return (
       <div className="min-h-screen bg-[#f5efe7] px-4 py-8 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
@@ -648,6 +738,14 @@ export default function AdminPage() {
             onRemoveLocalizedItem={removeLocalizedItem}
             onSubmit={handleSubmit}
             onReset={resetForm}
+          />
+
+          <AdminReviewsPanel
+            reviews={reviews}
+            loading={reviewsLoading}
+            actionId={reviewActionId}
+            onApprove={handleApproveReview}
+            onDelete={handleDeleteReview}
           />
 
           <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 p-5 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">

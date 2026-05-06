@@ -14,6 +14,11 @@ const {
   getTours,
   updateTour,
 } = require("../services/tours");
+const {
+  approveReview,
+  deleteReview,
+  getReviews,
+} = require("../services/reviews");
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -115,6 +120,55 @@ router.get("/tours", async (_req, res) => {
       error: error.message || "Unable to load tours",
       details: error.details || "Please try again in a moment.",
       tours: [],
+    });
+  }
+});
+
+router.get("/reviews", async (_req, res) => {
+  try {
+    const reviews = await getReviews();
+
+    return res.json({
+      reviews,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      code: error.code || "REVIEWS_LOAD_FAILED",
+      error: error.message || "Unable to load reviews",
+      details: error.details || "Please try again in a moment.",
+      reviews: [],
+    });
+  }
+});
+
+router.patch("/reviews/:id/approve", async (req, res) => {
+  try {
+    const review = await approveReview(req.params.id);
+
+    return res.json({
+      review,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      code: error.code || "REVIEW_APPROVE_FAILED",
+      error: error.message || "Unable to approve review",
+      details: error.details || "Please try again in a moment.",
+    });
+  }
+});
+
+router.delete("/reviews/:id", async (req, res) => {
+  try {
+    const review = await deleteReview(req.params.id);
+
+    return res.json({
+      review,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      code: error.code || "REVIEW_DELETE_FAILED",
+      error: error.message || "Unable to delete review",
+      details: error.details || "Please try again in a moment.",
     });
   }
 });

@@ -4,6 +4,7 @@ import FlightSearchPanel from "../components/FlightSearchPanel";
 import HomeHeroSlider from "../components/HomeHeroSlider";
 import Navbar from "../components/Navbar";
 import PublicFooter from "../components/PublicFooter";
+import ReviewsSection from "../components/ReviewsSection";
 import SEO, { PAGE_SEO, TRAVEL_AGENCY_JSON_LD } from "../components/SEO";
 import { useLanguage } from "../i18n/LanguageContext";
 import { PUBLIC_BACKGROUND_SLIDES } from "../lib/publicBackgrounds";
@@ -124,6 +125,10 @@ export default function HomePage({ seoPage = "home" }) {
             </button>
           ))}
         </section>
+
+        <div className="mt-8">
+          <ReviewsSection relatedType="site" />
+        </div>
       </main>
 
       <PublicFooter />

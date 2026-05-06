@@ -617,6 +617,126 @@ translationEnhancements.en.admin.errors = {
     "Image optimization failed. Try another JPG, PNG, or WebP file.",
 };
 
+translationEnhancements.ka.reviews = {
+  sectionLabel: "შეფასებები",
+  heading: "მოგზაურთა შეფასებები",
+  description:
+    "წაიკითხეთ დამტკიცებული შეფასებები და დატოვეთ თქვენი გამოცდილება Google ანგარიშით.",
+  formHeading: "დატოვეთ შეფასება",
+  signInToReview: "შეფასების დასაწერად შედით Google ანგარიშით.",
+  signInButton: "Google-ით შესვლა",
+  signingIn: "შესვლა...",
+  signedInAs: "შესული ხართ როგორც",
+  signOut: "გასვლა",
+  ratingLabel: "რეიტინგი",
+  commentLabel: "კომენტარი",
+  commentPlaceholder: "გაგვიზიარეთ თქვენი გამოცდილება",
+  submit: "შეფასების გაგზავნა",
+  submitting: "იგზავნება...",
+  pendingSuccess: "შეფასება გაიგზავნა და გამოჩნდება დამტკიცების შემდეგ.",
+  emptyTitle: "დამტკიცებული შეფასებები ჯერ არ არის",
+  emptyMessage: "პირველი დამტკიცებული შეფასებები აქ გამოჩნდება.",
+  tourHeading: "ტურის შეფასებები",
+  tourDescription: "ამ ტურთან დაკავშირებული დამტკიცებული შეფასებები.",
+  errors: {
+    loadFailed: "შეფასებების ჩატვირთვა ვერ მოხერხდა.",
+    authNotConfigured: "Google შესვლა ჯერ არ არის კონფიგურირებული.",
+    signInFailed: "Google-ით შესვლა ვერ მოხერხდა.",
+    loginRequired: "შეფასების გასაგზავნად შედით Google ანგარიშით.",
+    commentRequired: "დაწერეთ კომენტარი.",
+    submitFailed: "შეფასების გაგზავნა ვერ მოხერხდა.",
+  },
+};
+
+translationEnhancements.en.reviews = {
+  sectionLabel: "Reviews",
+  heading: "Traveler reviews",
+  description:
+    "Read approved reviews and share your own experience with a Google account.",
+  formHeading: "Leave a review",
+  signInToReview: "Sign in with Google to write a review.",
+  signInButton: "Continue with Google",
+  signingIn: "Signing in...",
+  signedInAs: "Signed in as",
+  signOut: "Sign out",
+  ratingLabel: "Rating",
+  commentLabel: "Comment",
+  commentPlaceholder: "Share your travel experience",
+  submit: "Submit review",
+  submitting: "Submitting...",
+  pendingSuccess: "Review submitted. It will appear after admin approval.",
+  emptyTitle: "No approved reviews yet",
+  emptyMessage: "Approved reviews will appear here.",
+  tourHeading: "Tour reviews",
+  tourDescription: "Approved reviews connected with this tour.",
+  errors: {
+    loadFailed: "We could not load reviews.",
+    authNotConfigured: "Google sign-in is not configured yet.",
+    signInFailed: "Google sign-in failed.",
+    loginRequired: "Sign in with Google before submitting a review.",
+    commentRequired: "Please enter a comment.",
+    submitFailed: "We could not submit your review.",
+  },
+};
+
+Object.assign(translationEnhancements.ka.admin, {
+  reviewsLabel: "შეფასებების მოდერაცია",
+  reviewsHeading: "მოლოდინში და დამტკიცებული შეფასებები",
+  reviewStatus: {
+    pending: "მოლოდინში",
+    approved: "დამტკიცებული",
+  },
+  reviewRelated: "კავშირი",
+  reviewTourId: "ტურის ID",
+  approveReview: "დამტკიცება",
+  reviewActionWorking: "მუშავდება...",
+  noReviewsTitle: "შეფასებები ჯერ არ არის",
+  noReviewsMessage: "ახალი შეფასებები აქ გამოჩნდება.",
+  confirmReviewDelete: "წავშალო ეს შეფასება?",
+});
+
+Object.assign(translationEnhancements.en.admin, {
+  reviewsLabel: "Review moderation",
+  reviewsHeading: "Pending and approved reviews",
+  reviewStatus: {
+    pending: "pending",
+    approved: "approved",
+  },
+  reviewRelated: "Related to",
+  reviewTourId: "Tour ID",
+  approveReview: "Approve",
+  reviewActionWorking: "Working...",
+  noReviewsTitle: "No reviews yet",
+  noReviewsMessage: "New reviews will appear here.",
+  confirmReviewDelete: "Delete this review?",
+});
+
+translationEnhancements.ka.admin.errors = {
+  ...(translationEnhancements.ka.admin.errors || {}),
+  reviewsLoadFailed: "შეფასებების ჩატვირთვა ვერ მოხერხდა.",
+  reviewApproveFailed: "შეფასების დამტკიცება ვერ მოხერხდა.",
+  reviewDeleteFailed: "შეფასების წაშლა ვერ მოხერხდა.",
+};
+
+translationEnhancements.en.admin.errors = {
+  ...(translationEnhancements.en.admin.errors || {}),
+  reviewsLoadFailed: "Something went wrong while loading reviews.",
+  reviewApproveFailed: "Something went wrong while approving the review.",
+  reviewDeleteFailed: "Something went wrong while deleting the review.",
+};
+
+translationEnhancements.ka.admin.success = {
+  ...(translationEnhancements.ka.admin.success || {}),
+  reviewApproved: "შეფასება დამტკიცდა.",
+  reviewDeleted: "შეფასება წაიშალა.",
+};
+
+translationEnhancements.en.admin.success = {
+  ...(translationEnhancements.en.admin.success || {}),
+  reviewApproved: "Review approved.",
+  reviewDeleted: "Review deleted.",
+};
+
 Object.assign(translationEnhancements.ka.flights, {
   airlineLabel: "ავიაკომპანია",
   arrivalLabel: "ჩამოსვლა",

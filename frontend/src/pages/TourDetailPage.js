@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import EmptyState from "../components/EmptyState";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
+import ReviewsSection from "../components/ReviewsSection";
 import SEO, {
   PAGE_SEO,
   buildCanonicalUrl,
@@ -367,6 +368,17 @@ export default function TourDetailPage() {
             ) : null}
           </aside>
         </section>
+      ) : null}
+
+      {!loading && !error && tour ? (
+        <div className="mt-8">
+          <ReviewsSection
+            relatedType="tour"
+            tourId={tour.id}
+            title={t("reviews.tourHeading")}
+            description={t("reviews.tourDescription")}
+          />
+        </div>
       ) : null}
 
       {isBookingModalOpen && tour ? (
