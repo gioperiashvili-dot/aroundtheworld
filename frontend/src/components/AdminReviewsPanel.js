@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useLanguage } from "../i18n/LanguageContext";
-import { formatCalendarDate } from "../lib/formatters";
+import { formatDateTimeLabel } from "../lib/formatters";
 
 function getInitials(name) {
   return String(name || "G")
@@ -121,7 +121,7 @@ export default function AdminReviewsPanel({
                       label={t("common.date")}
                       value={
                         review.createdAt
-                          ? formatCalendarDate(review.createdAt, language)
+                          ? formatDateTimeLabel(review.createdAt, language)
                           : t("common.unknownDate")
                       }
                     />

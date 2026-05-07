@@ -8,7 +8,11 @@ import TravelImage from "../components/TravelImage";
 import backgroundThree from "../assets/background/background-3.webp";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 import { fetchBlogs, fetchReviews, fetchTours } from "../lib/api";
-import { formatCalendarDate, getFriendlyApiError } from "../lib/formatters";
+import {
+  formatCalendarDate,
+  formatDateTimeLabel,
+  getFriendlyApiError,
+} from "../lib/formatters";
 
 function getInitials(name) {
   return String(name || "G")
@@ -293,7 +297,7 @@ function PublicReviewCard({ review, tour, language, t }) {
       <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
         {relatedText ? <span>{relatedText}</span> : null}
         {review.createdAt ? (
-          <span>{formatCalendarDate(review.createdAt, language)}</span>
+          <span>{formatDateTimeLabel(review.createdAt, language)}</span>
         ) : (
           <span>{t("common.unknownDate")}</span>
         )}

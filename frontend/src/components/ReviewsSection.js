@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFirebaseAuth } from "../auth/FirebaseAuthContext";
 import { useLanguage } from "../i18n/LanguageContext";
 import { fetchReviews, submitReview } from "../lib/api";
-import { formatCalendarDate, getFriendlyApiError } from "../lib/formatters";
+import { formatDateTimeLabel, getFriendlyApiError } from "../lib/formatters";
 
 const DEFAULT_RATING = 5;
 
@@ -341,7 +341,7 @@ function ReviewCard({ review, language }) {
           </p>
           {review.createdAt ? (
             <p className="mt-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-              {formatCalendarDate(review.createdAt, language)}
+              {formatDateTimeLabel(review.createdAt, language)}
             </p>
           ) : null}
         </div>
