@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useFirebaseAuth } from "../auth/FirebaseAuthContext";
 import EmptyState from "../components/EmptyState";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
@@ -15,6 +16,11 @@ import TravelImage from "../components/TravelImage";
 import backgroundOne from "../assets/background/background-1.webp";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 import { fetchTourById, submitTourBookingRequest } from "../lib/api";
+import {
+  fetchUserProfile,
+  saveTourBookingRequestForUser,
+  saveUserPhoneIfMissing,
+} from "../lib/firebaseUserData";
 import {
   formatCalendarDate,
   formatCurrencyValue,
@@ -79,9 +85,43 @@ function buildSelectedTourPayload({
   };
 }
 
+function getTextValue(value) {
+  return String(value || "").trim();
+}
+
+function getBookingFormDefaults(user, profile = null) {
+  if (!user) {
+    return {
+      customerName: "",
+      customerEmail: "",
+      customerPhone: "",
+      customerMessage: "",
+    };
+  }
+
+  return {
+    customerName: getTextValue(user.displayName || profile?.displayName),
+    customerEmail: getTextValue(user.email || profile?.email),
+    customerPhone: getTextValue(profile?.phone),
+    customerMessage: "",
+  };
+}
+
+function mergeBookingPrefill(previousForm, user, profile) {
+  const defaults = getBookingFormDefaults(user, profile);
+
+  return {
+    ...previousForm,
+    customerName: previousForm.customerName || defaults.customerName,
+    customerEmail: defaults.customerEmail || previousForm.customerEmail,
+    customerPhone: previousForm.customerPhone || defaults.customerPhone,
+  };
+}
+
 export default function TourDetailPage() {
   const { id } = useParams();
   const { language, t } = useLanguage();
+  const { currentUser } = useFirebaseAuth();
   const [tour, setTour] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -95,6 +135,7 @@ export default function TourDetailPage() {
     customerPhone: "",
     customerMessage: "",
   });
+  const [userProfile, setUserProfile] = useState(null);
 
   useEffect(() => {
     const loadTour = async () => {
@@ -116,6 +157,44 @@ export default function TourDetailPage() {
       void loadTour();
     }
   }, [id, t]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!currentUser) {
+      setUserProfile(null);
+      setBookingForm(getBookingFormDefaults(null));
+      return undefined;
+    }
+
+    const loadUserProfile = async () => {
+      let profile = null;
+
+      try {
+        profile = await fetchUserProfile(currentUser.uid);
+      } catch (profileError) {
+        console.warn("[booking-request] User profile prefill failed:", profileError);
+      }
+
+      if (!isMounted) {
+        return;
+      }
+
+      setUserProfile(profile);
+      setBookingForm((previousForm) =>
+        mergeBookingPrefill(previousForm, currentUser, profile)
+      );
+    };
+
+    setBookingForm((previousForm) =>
+      mergeBookingPrefill(previousForm, currentUser, null)
+    );
+    void loadUserProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUser]);
 
   const title = getLocalized(tour?.title, language);
   const destination = getLocalized(tour?.destination, language);
@@ -146,6 +225,16 @@ export default function TourDetailPage() {
   const closeBookingSuccessModal = useCallback(() => {
     setIsBookingSuccessOpen(false);
   }, []);
+
+  const openBookingModal = useCallback(() => {
+    if (currentUser) {
+      setBookingForm((previousForm) =>
+        mergeBookingPrefill(previousForm, currentUser, userProfile)
+      );
+    }
+
+    setIsBookingModalOpen(true);
+  }, [currentUser, userProfile]);
 
   const handleBookingFieldChange = (event) => {
     const { name, value } = event.target;
@@ -192,30 +281,55 @@ export default function TourDetailPage() {
     setBookingError("");
 
     try {
-      await submitTourBookingRequest({
-        ...trimmedForm,
-        selectedTour: buildSelectedTourPayload({
-          tour,
-          title,
-          destination,
-          duration,
-          dates,
-          includedItems,
-          notIncludedItems,
-          price: formatCurrencyValue(tour.price, tour.currency, language),
-          category: tour.category,
-        }),
-        language,
+      const selectedTour = buildSelectedTourPayload({
+        tour,
+        title,
+        destination,
+        duration,
+        dates,
+        includedItems,
+        notIncludedItems,
+        price: formatCurrencyValue(tour.price, tour.currency, language),
+        category: tour.category,
       });
+      const requestPayload = {
+        ...trimmedForm,
+        selectedTour,
+        language,
+      };
+
+      await submitTourBookingRequest(requestPayload);
+
+      let nextUserProfile = userProfile;
+
+      if (currentUser) {
+        try {
+          const firestoreResults = await Promise.allSettled([
+            saveTourBookingRequestForUser(currentUser, requestPayload),
+            saveUserPhoneIfMissing(currentUser, trimmedForm.customerPhone),
+          ]);
+
+          firestoreResults.forEach((result) => {
+            if (result.status === "rejected") {
+              console.warn("[booking-request] Firestore save failed:", result.reason);
+            }
+          });
+
+          nextUserProfile = userProfile?.phone
+            ? userProfile
+            : {
+                ...(userProfile || {}),
+                phone: trimmedForm.customerPhone,
+              };
+          setUserProfile(nextUserProfile);
+        } catch (firestoreError) {
+          console.warn("[booking-request] Firestore save failed:", firestoreError);
+        }
+      }
 
       setIsBookingModalOpen(false);
       setIsBookingSuccessOpen(true);
-      setBookingForm({
-        customerName: "",
-        customerEmail: "",
-        customerPhone: "",
-        customerMessage: "",
-      });
+      setBookingForm(getBookingFormDefaults(currentUser, nextUserProfile));
     } catch (requestError) {
       const apiCode = requestError.response?.data?.code;
       setBookingError(
@@ -251,7 +365,7 @@ export default function TourDetailPage() {
           <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:flex-col">
             <button
               type="button"
-              onClick={() => setIsBookingModalOpen(true)}
+              onClick={openBookingModal}
               disabled={!tour}
               className="inline-flex items-center justify-center rounded-full bg-[#e64d53] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#d83f45] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700"
             >
@@ -398,6 +512,7 @@ export default function TourDetailPage() {
           onChange={handleBookingFieldChange}
           onClose={closeBookingModal}
           onSubmit={handleBookingSubmit}
+          emailReadOnly={Boolean(currentUser)}
         />
       ) : null}
 
@@ -455,6 +570,7 @@ function TourBookingRequestModal({
   form,
   error,
   isSubmitting,
+  emailReadOnly = false,
   language,
   title,
   destination,
@@ -579,6 +695,7 @@ function TourBookingRequestModal({
               type="email"
               value={form.customerEmail}
               onChange={onChange}
+              readOnly={emailReadOnly}
               required
             />
             <BookingTextField
@@ -700,6 +817,7 @@ function BookingTextField({
   onChange,
   type = "text",
   required = false,
+  readOnly = false,
 }) {
   return (
     <label className="block">
@@ -712,6 +830,7 @@ function BookingTextField({
         value={value}
         onChange={onChange}
         required={required}
+        readOnly={readOnly}
         className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-[#e64d53]/60 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
       />
     </label>

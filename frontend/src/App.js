@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { useFirebaseAuth } from "./auth/FirebaseAuthContext";
 import HomePage from "./pages/HomePage";
 
 const AdminPage = lazy(() => import("./pages/AdminPage"));
@@ -9,6 +10,9 @@ const BlogPage = lazy(() => import("./pages/BlogPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const FlightsPage = lazy(() => import("./pages/FlightsPage"));
 const HotelsPage = lazy(() => import("./pages/HotelsPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 const RestaurantsPage = lazy(() => import("./pages/RestaurantsPage"));
 const TourDetailPage = lazy(() => import("./pages/TourDetailPage"));
 const ToursPage = lazy(() => import("./pages/ToursPage"));
@@ -28,6 +32,21 @@ function RouteLoadingFallback() {
   );
 }
 
+function ProtectedRoute({ children }) {
+  const location = useLocation();
+  const { currentUser, loading } = useFirebaseAuth();
+
+  if (loading) {
+    return <RouteLoadingFallback />;
+  }
+
+  if (!currentUser) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  return children;
+}
+
 export default function App() {
   return (
     <Suspense fallback={<RouteLoadingFallback />}>
@@ -43,6 +62,16 @@ export default function App() {
         <Route path="/tours" element={<ToursPage />} />
         <Route path="/tours/:id" element={<TourDetailPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/AdminPanel" element={<AdminPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

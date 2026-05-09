@@ -1,44 +1,25 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { initializeApp, getApps } from "firebase/app";
 import {
-  getAuth,
+  createUserWithEmailAndPassword,
   GoogleAuthProvider,
   onAuthStateChanged,
+  signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  updateProfile,
 } from "firebase/auth";
+import { getFirebaseAuth } from "../lib/firebaseClient";
 
 const FirebaseAuthContext = createContext(null);
 
-function getFirebaseConfig() {
-  return {
-    apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-    authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.REACT_APP_FIREBASE_APP_ID,
-  };
-}
-
-function hasFirebaseConfig(config) {
-  return Boolean(config.apiKey && config.authDomain && config.projectId && config.appId);
-}
-
-function getConfiguredAuth() {
-  const config = getFirebaseConfig();
-
-  if (!hasFirebaseConfig(config)) {
-    return null;
-  }
-
-  const app = getApps().length > 0 ? getApps()[0] : initializeApp(config);
-  return getAuth(app);
+async function ensureProfile(user, overrides) {
+  const { ensureUserProfile } = await import("../lib/firebaseUserData");
+  return ensureUserProfile(user, overrides);
 }
 
 export function FirebaseAuthProvider({ children }) {
-  const auth = useMemo(() => getConfiguredAuth(), []);
-  const [user, setUser] = useState(null);
+  const auth = useMemo(() => getFirebaseAuth(), []);
+  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(Boolean(auth));
 
   useEffect(() => {
@@ -48,41 +29,98 @@ export function FirebaseAuthProvider({ children }) {
     }
 
     return onAuthStateChanged(auth, (nextUser) => {
-      setUser(nextUser);
+      setCurrentUser(nextUser);
       setLoading(false);
     });
   }, [auth]);
 
-  const value = useMemo(
-    () => ({
-      authConfigured: Boolean(auth),
-      loading,
-      user,
-      async signInWithGoogle(language = "ka") {
-        if (!auth) {
-          throw Object.assign(new Error("Firebase Auth is not configured."), {
-            code: "FIREBASE_NOT_CONFIGURED",
-          });
-        }
-
-        auth.languageCode = language === "en" ? "en" : "ka";
-        const provider = new GoogleAuthProvider();
-        provider.setCustomParameters({
-          prompt: "select_account",
+  const value = useMemo(() => {
+    const login = async (email, password) => {
+      if (!auth) {
+        throw Object.assign(new Error("Firebase Auth is not configured."), {
+          code: "FIREBASE_NOT_CONFIGURED",
         });
+      }
 
-        return signInWithPopup(auth, provider);
-      },
-      async signOutGoogle() {
-        if (!auth) {
-          return;
-        }
+      const credential = await signInWithEmailAndPassword(auth, email, password);
 
-        await signOut(auth);
-      },
-    }),
-    [auth, loading, user]
-  );
+      try {
+        await ensureProfile(credential.user);
+      } catch (profileError) {
+        console.warn("[auth] Unable to refresh user profile:", profileError);
+      }
+
+      return credential;
+    };
+
+    const register = async (email, password, displayName = "") => {
+      if (!auth) {
+        throw Object.assign(new Error("Firebase Auth is not configured."), {
+          code: "FIREBASE_NOT_CONFIGURED",
+        });
+      }
+
+      const credential = await createUserWithEmailAndPassword(auth, email, password);
+      const trimmedDisplayName = displayName.trim();
+
+      if (trimmedDisplayName) {
+        await updateProfile(credential.user, {
+          displayName: trimmedDisplayName,
+        });
+      }
+
+      await ensureProfile(credential.user, {
+        displayName: trimmedDisplayName || credential.user.displayName || "",
+      });
+
+      return credential;
+    };
+
+    const googleLogin = async (language = "ka") => {
+      if (!auth) {
+        throw Object.assign(new Error("Firebase Auth is not configured."), {
+          code: "FIREBASE_NOT_CONFIGURED",
+        });
+      }
+
+      auth.languageCode = language === "en" ? "en" : "ka";
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({
+        prompt: "select_account",
+      });
+
+      const credential = await signInWithPopup(auth, provider);
+
+      try {
+        await ensureProfile(credential.user);
+      } catch (profileError) {
+        console.warn("[auth] Unable to create Google user profile:", profileError);
+      }
+
+      return credential;
+    };
+
+    const logout = async () => {
+      if (!auth) {
+        return;
+      }
+
+      await signOut(auth);
+    };
+
+    return {
+      authConfigured: Boolean(auth),
+      currentUser,
+      loading,
+      user: currentUser,
+      login,
+      register,
+      googleLogin,
+      logout,
+      signInWithGoogle: googleLogin,
+      signOutGoogle: logout,
+    };
+  }, [auth, currentUser, loading]);
 
   return (
     <FirebaseAuthContext.Provider value={value}>

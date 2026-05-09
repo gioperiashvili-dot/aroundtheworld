@@ -13,8 +13,13 @@ function assertRequiredEnvVars(variableNames) {
 
 module.exports = {
   PORT: process.env.PORT || 5000,
-  CLIENT_ORIGIN: process.env.CLIENT_ORIGIN || "http://localhost:3000",
-  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || "12345",
+  CLIENT_ORIGIN:
+    process.env.CLIENT_ORIGIN ||
+    (process.env.NODE_ENV === "production" ? "" : "http://localhost:3000"),
+  CLIENT_ORIGINS: process.env.CLIENT_ORIGINS || "",
+  ADMIN_PASSWORD:
+    process.env.ADMIN_PASSWORD ||
+    (process.env.NODE_ENV === "production" ? "" : "12345"),
   RAPIDAPI_KEY: process.env.RAPIDAPI_KEY,
   RAPIDAPI_HOST: process.env.RAPIDAPI_HOST || "tripadvisor16.p.rapidapi.com",
   SKY_SCRAPPER_HOST:

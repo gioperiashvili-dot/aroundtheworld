@@ -38,6 +38,11 @@ export default function ReviewsSection({
   const [comment, setComment] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const reviewUser = user?.providerData?.some(
+    (provider) => provider.providerId === "google.com"
+  )
+    ? user
+    : null;
 
   const reviewParams = useMemo(() => {
     const params = {};
@@ -92,7 +97,7 @@ export default function ReviewsSection({
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (!user) {
+    if (!reviewUser) {
       setError(t("reviews.errors.loginRequired"));
       setSuccess("");
       return;
@@ -111,7 +116,7 @@ export default function ReviewsSection({
     setSuccess("");
 
     try {
-      const idToken = await user.getIdToken();
+      const idToken = await reviewUser.getIdToken();
       await submitReview(idToken, {
         rating,
         comment: trimmedComment,
@@ -193,13 +198,13 @@ export default function ReviewsSection({
                   {t("reviews.formHeading")}
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                  {user
-                    ? `${t("reviews.signedInAs")} ${user.displayName || user.email || ""}`
+                  {reviewUser
+                    ? `${t("reviews.signedInAs")} ${reviewUser.displayName || reviewUser.email || ""}`
                     : t("reviews.signInToReview")}
                 </p>
               </div>
 
-              {user ? (
+              {reviewUser ? (
                 <button
                   type="button"
                   onClick={() => {
@@ -214,7 +219,7 @@ export default function ReviewsSection({
               ) : null}
             </div>
 
-            {!user ? (
+            {!reviewUser ? (
               <>
                 <button
                   type="button"

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
+import AdminBookingsPanel from "../components/AdminBookingsPanel";
+import AdminBookingRequestsPanel from "../components/AdminBookingRequestsPanel";
 import AdminBlogManager from "../components/AdminBlogManager";
 import AdminReviewsPanel from "../components/AdminReviewsPanel";
 import AdminTourForm from "../components/AdminTourForm";
@@ -9,13 +11,21 @@ import TravelImage from "../components/TravelImage";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 import {
   approveAdminReview,
+  convertAdminBookingRequest,
   createAdminSession,
   createAdminTour,
+  deleteAdminBookingFile,
   deleteAdminReview,
   deleteAdminTour,
+  downloadAdminBookingFile,
+  fetchAdminBookings,
+  fetchAdminBookingRequests,
   fetchAdminReviews,
   fetchAdminTours,
+  uploadAdminBookingFile,
   uploadAdminTourImage,
+  updateAdminBooking,
+  updateAdminBookingRequest,
   updateAdminTour,
 } from "../lib/api";
 import {
@@ -29,6 +39,112 @@ const TOKEN_STORAGE_KEY = "around-the-world-admin-token";
 const EXPIRY_STORAGE_KEY = "around-the-world-admin-expiry";
 const IMAGE_UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_UPLOAD_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+const ADMIN_BOOKING_REQUEST_MESSAGES = {
+  ka: {
+    loadFailed: "ჯავშნის მოთხოვნების ჩატვირთვა ვერ მოხერხდა.",
+    updateFailed: "ჯავშნის მოთხოვნის განახლება ვერ მოხერხდა.",
+    updateSuccess: "ჯავშნის მოთხოვნა განახლდა.",
+    convertFailed: "მოთხოვნის აქტიურ ჯავშნად გადაქცევა ვერ მოხერხდა.",
+    convertSuccess: "აქტიური ჯავშანი შეიქმნა.",
+    convertErrors: {
+      BOOKING_REQUEST_ALREADY_CONVERTED:
+        "ეს მოთხოვნა უკვე გადაყვანილია აქტიურ ჯავშანში.",
+      BOOKING_REQUEST_UID_REQUIRED:
+        "სტუმრის მოთხოვნის აქტიურ ჯავშნად გადაქცევა შეუძლებელია. მოთხოვნა რეგისტრირებულ მომხმარებელს უნდა ეკუთვნოდეს.",
+      BOOKING_TITLE_REQUIRED: "სათაური აუცილებელია.",
+      BOOKING_CATEGORY_REQUIRED: "კატეგორია აუცილებელია.",
+      BOOKING_CURRENCY_REQUIRED: "ვალუტა აუცილებელია.",
+      BOOKING_TOTAL_PRICE_INVALID: "სრული ფასი უნდა იყოს 0-ზე მეტი რიცხვი.",
+      BOOKING_PAID_AMOUNT_INVALID:
+        "გადახდილი თანხა უნდა იყოს 0-ზე მეტი რიცხვი.",
+      BOOKING_PAID_AMOUNT_TOO_HIGH:
+        "გადახდილი თანხა სრულ ფასს არ უნდა აღემატებოდეს.",
+      BOOKING_MINIMUM_PAYMENT_REQUIRED:
+        "აქტიური ჯავშნის შესაქმნელად გადახდილი უნდა იყოს სრული ფასის მინიმუმ 30%.",
+    },
+  },
+  en: {
+    loadFailed: "Something went wrong while loading booking requests.",
+    updateFailed: "Something went wrong while updating the booking request.",
+    updateSuccess: "Booking request updated.",
+    convertFailed: "Something went wrong while converting the booking request.",
+    convertSuccess: "Active booking created.",
+    convertErrors: {
+      BOOKING_REQUEST_ALREADY_CONVERTED:
+        "This request is already converted to an active booking.",
+      BOOKING_REQUEST_UID_REQUIRED:
+        "Guest requests cannot be converted. The request must belong to a registered user.",
+      BOOKING_TITLE_REQUIRED: "Title is required.",
+      BOOKING_CATEGORY_REQUIRED: "Category is required.",
+      BOOKING_CURRENCY_REQUIRED: "Currency is required.",
+      BOOKING_TOTAL_PRICE_INVALID:
+        "Total price must be a number greater than 0.",
+      BOOKING_PAID_AMOUNT_INVALID:
+        "Paid amount must be a number greater than 0.",
+      BOOKING_PAID_AMOUNT_TOO_HIGH:
+        "Paid amount cannot be greater than total price.",
+      BOOKING_MINIMUM_PAYMENT_REQUIRED:
+        "At least 30% of the total price must be paid before creating an active booking.",
+    },
+  },
+};
+
+const ADMIN_BOOKING_MESSAGES = {
+  ka: {
+    loadFailed: "აქტიური ჯავშნების ჩატვირთვა ვერ მოხერხდა.",
+    updateFailed: "აქტიური ჯავშნის განახლება ვერ მოხერხდა.",
+    updateSuccess: "ჯავშანი განახლდა.",
+    fileUploadFailed: "PDF ფაილის ატვირთვა ვერ მოხერხდა.",
+    fileUploadSuccess: "PDF ფაილი აიტვირთა.",
+    fileDownloadFailed: "PDF ფაილის ჩამოტვირთვა ვერ მოხერხდა.",
+    fileDeleteFailed: "PDF ფაილის წაშლა ვერ მოხერხდა.",
+    fileDeleteSuccess: "PDF ფაილი წაიშალა.",
+    updateErrors: {
+      BOOKING_STATUS_INVALID:
+        "აირჩიეთ სტატუსი: აქტიური, დასრულებული ან გაუქმებული.",
+      BOOKING_TOTAL_PRICE_INVALID: "სრული ფასი უნდა იყოს 0-ზე მეტი რიცხვი.",
+      BOOKING_PAID_AMOUNT_INVALID:
+        "გადახდილი თანხა უნდა იყოს 0 ან მეტი რიცხვი.",
+      BOOKING_PAID_AMOUNT_TOO_HIGH:
+        "გადახდილი თანხა სრულ ფასს არ უნდა აღემატებოდეს.",
+      BOOKING_CURRENCY_REQUIRED: "ვალუტა აუცილებელია.",
+      BOOKING_NOT_FOUND: "ჯავშანი ვერ მოიძებნა.",
+      BOOKING_FILE_REQUIRED: "აირჩიეთ PDF ფაილი.",
+      BOOKING_FILE_INVALID_TYPE: "მხოლოდ PDF ფაილის ატვირთვაა შესაძლებელი.",
+      BOOKING_FILE_TOO_LARGE: "ფაილი ძალიან დიდია.",
+      BOOKING_FILE_NOT_FOUND: "PDF ფაილი ვერ მოიძებნა.",
+      FIREBASE_ADMIN_NOT_CONFIGURED:
+        "Firebase Storage არ არის კონფიგურირებული.",
+    },
+  },
+  en: {
+    loadFailed: "Something went wrong while loading bookings.",
+    updateFailed: "Something went wrong while updating the booking.",
+    updateSuccess: "Booking updated.",
+    fileUploadFailed: "Something went wrong while uploading the PDF.",
+    fileUploadSuccess: "PDF uploaded.",
+    fileDownloadFailed: "Something went wrong while downloading the PDF.",
+    fileDeleteFailed: "Something went wrong while deleting the PDF.",
+    fileDeleteSuccess: "PDF deleted.",
+    updateErrors: {
+      BOOKING_STATUS_INVALID: "Choose active, completed, or cancelled.",
+      BOOKING_TOTAL_PRICE_INVALID:
+        "Total price must be a number greater than 0.",
+      BOOKING_PAID_AMOUNT_INVALID:
+        "Paid amount must be a number that is 0 or greater.",
+      BOOKING_PAID_AMOUNT_TOO_HIGH:
+        "Paid amount cannot be greater than total price.",
+      BOOKING_CURRENCY_REQUIRED: "Currency is required.",
+      BOOKING_NOT_FOUND: "Booking not found.",
+      BOOKING_FILE_REQUIRED: "Choose a PDF file.",
+      BOOKING_FILE_INVALID_TYPE: "Only PDF files can be uploaded.",
+      BOOKING_FILE_TOO_LARGE: "The selected PDF is too large.",
+      BOOKING_FILE_NOT_FOUND: "PDF file not found.",
+      FIREBASE_ADMIN_NOT_CONFIGURED: "Firebase Storage is not configured.",
+    },
+  },
+};
 
 function createEmptyLocalizedItem() {
   return {
@@ -61,6 +177,27 @@ function replaceToken(message, replacements) {
     (value, [key, replacement]) => value.replace(`{${key}}`, replacement),
     message
   );
+}
+
+function saveBlobAsFile(blob, filename) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const objectUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = objectUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(objectUrl);
+}
+
+function getBookingFileDownloadName(file) {
+  const name = file?.originalName || file?.name || "booking-document.pdf";
+  return /\.pdf$/i.test(name) ? name : `${name}.pdf`;
 }
 
 function toFormValues(tour) {
@@ -111,18 +248,30 @@ export default function AdminPage() {
   const [expiresAt, setExpiresAt] = useState("");
   const [tours, setTours] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [bookingRequests, setBookingRequests] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [form, setForm] = useState(createEmptyForm);
   const [editingId, setEditingId] = useState("");
   const [loading, setLoading] = useState(false);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [bookingRequestsLoading, setBookingRequestsLoading] = useState(false);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [reviewActionId, setReviewActionId] = useState("");
+  const [bookingRequestActionId, setBookingRequestActionId] = useState("");
+  const [bookingActionId, setBookingActionId] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const [imageInputKey, setImageInputKey] = useState(0);
   const [error, setError] = useState("");
+  const [bookingRequestsError, setBookingRequestsError] = useState("");
+  const [bookingsError, setBookingsError] = useState("");
   const [success, setSuccess] = useState("");
+  const bookingRequestMessages =
+    ADMIN_BOOKING_REQUEST_MESSAGES[language] || ADMIN_BOOKING_REQUEST_MESSAGES.ka;
+  const bookingMessages =
+    ADMIN_BOOKING_MESSAGES[language] || ADMIN_BOOKING_MESSAGES.ka;
   const adminSeo = (
     <SEO title="Admin Panel | Around The World" robots="noindex,nofollow" />
   );
@@ -170,6 +319,10 @@ export default function AdminPage() {
     setExpiresAt("");
     setTours([]);
     setReviews([]);
+    setBookingRequests([]);
+    setBookings([]);
+    setBookingRequestsError("");
+    setBookingsError("");
     setPassword("");
     setEditingId("");
     setForm(createEmptyForm());
@@ -232,6 +385,58 @@ export default function AdminPage() {
     [clearSession, t]
   );
 
+  const loadAdminBookingRequests = useCallback(
+    async (activeToken) => {
+      setBookingRequestsLoading(true);
+      setBookingRequestsError("");
+
+      try {
+        const response = await fetchAdminBookingRequests(activeToken);
+        setBookingRequests(
+          Array.isArray(response?.bookingRequests) ? response.bookingRequests : []
+        );
+      } catch (requestError) {
+        if (requestError.response?.status === 401) {
+          clearSession();
+        }
+
+        setBookingRequestsError(
+          getFriendlyApiError(requestError, bookingRequestMessages.loadFailed, {
+            unauthorizedMessage: t("admin.errors.loginFailed"),
+          })
+        );
+      } finally {
+        setBookingRequestsLoading(false);
+      }
+    },
+    [bookingRequestMessages.loadFailed, clearSession, t]
+  );
+
+  const loadAdminBookings = useCallback(
+    async (activeToken) => {
+      setBookingsLoading(true);
+      setBookingsError("");
+
+      try {
+        const response = await fetchAdminBookings(activeToken);
+        setBookings(Array.isArray(response?.bookings) ? response.bookings : []);
+      } catch (requestError) {
+        if (requestError.response?.status === 401) {
+          clearSession();
+        }
+
+        setBookingsError(
+          getFriendlyApiError(requestError, bookingMessages.loadFailed, {
+            unauthorizedMessage: t("admin.errors.loginFailed"),
+          })
+        );
+      } finally {
+        setBookingsLoading(false);
+      }
+    },
+    [bookingMessages.loadFailed, clearSession, t]
+  );
+
   useEffect(() => {
     if (!token) {
       return;
@@ -239,7 +444,15 @@ export default function AdminPage() {
 
     void loadAdminTours(token);
     void loadAdminReviews(token);
-  }, [token, loadAdminReviews, loadAdminTours]);
+    void loadAdminBookingRequests(token);
+    void loadAdminBookings(token);
+  }, [
+    token,
+    loadAdminBookingRequests,
+    loadAdminBookings,
+    loadAdminReviews,
+    loadAdminTours,
+  ]);
 
   const resetForm = () => {
     setEditingId("");
@@ -592,6 +805,183 @@ export default function AdminPage() {
     }
   };
 
+  const handleSaveBookingRequest = async (id, payload) => {
+    setBookingRequestActionId(id);
+    setBookingRequestsError("");
+    setError("");
+    setSuccess("");
+
+    try {
+      await updateAdminBookingRequest(token, id, {
+        status: payload.status,
+        adminNote: payload.adminNote,
+      });
+      setSuccess(bookingRequestMessages.updateSuccess);
+      await loadAdminBookingRequests(token);
+    } catch (requestError) {
+      if (requestError.response?.status === 401) {
+        clearSession();
+      }
+
+      setBookingRequestsError(
+        getFriendlyApiError(requestError, bookingRequestMessages.updateFailed, {
+          unauthorizedMessage: t("admin.errors.loginFailed"),
+        })
+      );
+    } finally {
+      setBookingRequestActionId("");
+    }
+  };
+
+  const handleConvertBookingRequest = async (id, payload) => {
+    setBookingRequestActionId(id);
+    setBookingRequestsError("");
+    setError("");
+    setSuccess("");
+
+    try {
+      await convertAdminBookingRequest(token, id, payload);
+      setSuccess(bookingRequestMessages.convertSuccess);
+      await Promise.all([
+        loadAdminBookingRequests(token),
+        loadAdminBookings(token),
+      ]);
+    } catch (requestError) {
+      if (requestError.response?.status === 401) {
+        clearSession();
+      }
+
+      const convertErrorCode = requestError.response?.data?.code;
+      const localizedConvertError =
+        bookingRequestMessages.convertErrors?.[convertErrorCode];
+
+      setBookingRequestsError(
+        localizedConvertError ||
+          getFriendlyApiError(requestError, bookingRequestMessages.convertFailed, {
+            unauthorizedMessage: t("admin.errors.loginFailed"),
+          })
+      );
+    } finally {
+      setBookingRequestActionId("");
+    }
+  };
+
+  const getBookingActionErrorMessage = (requestError, fallbackMessage) => {
+    const errorCode = requestError.response?.data?.code;
+    const localizedError = bookingMessages.updateErrors?.[errorCode];
+
+    return (
+      localizedError ||
+      getFriendlyApiError(requestError, fallbackMessage, {
+        unauthorizedMessage: t("admin.errors.loginFailed"),
+      })
+    );
+  };
+
+  const handleSaveBooking = async (id, payload) => {
+    setBookingActionId(id);
+    setBookingsError("");
+    setError("");
+    setSuccess("");
+
+    try {
+      await updateAdminBooking(token, id, payload);
+      setSuccess(bookingMessages.updateSuccess);
+      await loadAdminBookings(token);
+    } catch (requestError) {
+      if (requestError.response?.status === 401) {
+        clearSession();
+      }
+
+      setBookingsError(
+        getBookingActionErrorMessage(requestError, bookingMessages.updateFailed)
+      );
+    } finally {
+      setBookingActionId("");
+    }
+  };
+
+  const handleUploadBookingFile = async (id, file, name) => {
+    setBookingActionId(id);
+    setBookingsError("");
+    setError("");
+    setSuccess("");
+
+    try {
+      await uploadAdminBookingFile(token, id, file, name);
+      setSuccess(bookingMessages.fileUploadSuccess);
+      await loadAdminBookings(token);
+      return true;
+    } catch (requestError) {
+      if (requestError.response?.status === 401) {
+        clearSession();
+      }
+
+      setBookingsError(
+        getBookingActionErrorMessage(requestError, bookingMessages.fileUploadFailed)
+      );
+      return false;
+    } finally {
+      setBookingActionId("");
+    }
+  };
+
+  const handleDownloadBookingFile = async (bookingId, file) => {
+    setBookingActionId(bookingId);
+    setBookingsError("");
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await downloadAdminBookingFile(token, bookingId, file.id);
+
+      saveBlobAsFile(
+        response.blob,
+        response.filename || getBookingFileDownloadName(file)
+      );
+      return true;
+    } catch (requestError) {
+      if (requestError.response?.status === 401) {
+        clearSession();
+      }
+
+      setBookingsError(
+        getBookingActionErrorMessage(
+          requestError,
+          bookingMessages.fileDownloadFailed
+        )
+      );
+      return false;
+    } finally {
+      setBookingActionId("");
+    }
+  };
+
+  const handleDeleteBookingFile = async (bookingId, fileId) => {
+    setBookingActionId(bookingId);
+    setBookingsError("");
+    setError("");
+    setSuccess("");
+
+    try {
+      await deleteAdminBookingFile(token, bookingId, fileId);
+      setSuccess(bookingMessages.fileDeleteSuccess);
+      await loadAdminBookings(token);
+      return true;
+    } catch (requestError) {
+      if (requestError.response?.status === 401) {
+        clearSession();
+      }
+
+      setBookingsError(
+        getBookingActionErrorMessage(requestError, bookingMessages.fileDeleteFailed)
+      );
+      return false;
+    } finally {
+      setBookingActionId("");
+    }
+  };
+
   if (!token) {
     return (
       <div className="min-h-screen bg-[#f5efe7] px-4 py-8 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
@@ -742,6 +1132,26 @@ export default function AdminPage() {
           />
 
           <AdminBlogManager token={token} onUnauthorized={clearSession} />
+
+          <AdminBookingRequestsPanel
+            bookingRequests={bookingRequests}
+            loading={bookingRequestsLoading}
+            error={bookingRequestsError}
+            actionId={bookingRequestActionId}
+            onSave={handleSaveBookingRequest}
+            onConvert={handleConvertBookingRequest}
+          />
+
+          <AdminBookingsPanel
+            bookings={bookings}
+            loading={bookingsLoading}
+            error={bookingsError}
+            actionId={bookingActionId}
+            onSave={handleSaveBooking}
+            onUploadFile={handleUploadBookingFile}
+            onDownloadFile={handleDownloadBookingFile}
+            onDeleteFile={handleDeleteBookingFile}
+          />
 
           <AdminReviewsPanel
             reviews={reviews}

@@ -1,1 +1,68 @@
-[]
+[
+  {
+    "id": "a31dcdb5-f430-4f2f-9461-7a7134c11798",
+    "userId": "eJiTcJnD3OSq5Lye7N0ctkOjyNd2",
+    "name": "Mariam Darchiashvili",
+    "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocKP5C6FfLrVOaTEgcdE72IE--1PktR-VeVRJ0xN_N1Nz9AFrqLF2A=s96-c",
+    "rating": 5,
+    "comment": "პასუხისმგებლიანი, მეგობრული, თავისი საქმის პროფესიონალი, ორგანიზებული კომპანია❤️❤️❤️",
+    "relatedType": "site",
+    "tourId": null,
+    "status": "approved",
+    "createdAt": "2026-05-07T17:53:39.311Z",
+    "updatedAt": "2026-05-07T17:55:56.734Z"
+  },
+  {
+    "id": "9db8a21e-fe57-4d90-81a9-9df761d0cddd",
+    "userId": "Hyo4TJKCNJSLykK7Nue3GO4W3ax2",
+    "name": "Zura Karsanauli",
+    "photoURL": "https://scontent.ftbs5-4.fna.fbcdn.net/v/t39.30808-6/679041481_122131712283060846_5983003910019769408_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=53a332&_nc_eui2=AeFBrczHg9AQWvKO0YeqmU0uyhY8KERknb3KFjwoRGSdvRW1INRY_xmETdlZ_Z2aiB0qRv7vl_sr1zbcuSP25t-e&_nc_ohc=a6pbR6MHi-sQ7kNvwGHYIAa&_nc_oc=AdqHcTM5ZBDWC8eL8PUHwPfZ6sRGGYa0JkMpDww2tlNFBvQp7ljpgKWNRGZIrPhP56I&_nc_zt=23&_nc_ht=scontent.ftbs5-4.fna&_nc_gid=zNcV2Jkxk1XDVy9WUsJVcg&_nc_ss=7b2a8&oh=00_Af50ze0Xu1aFp9ZIMHvcNlKDktoSv6qDxfdu-o4FmZwn9Q&oe=6A02E68B",
+    "rating": 5,
+    "comment": "სუპერ საუკეთესო მომსახურება.",
+    "relatedType": "site",
+    "tourId": null,
+    "status": "approved",
+    "createdAt": "2026-05-07T07:47:13.025Z",
+    "updatedAt": "2026-05-07T07:50:22.389Z"
+  },
+    {
+    "id": "c6e6a560-71cc-4210-919b-0e271c3e123ef",
+    "userId": "vTvHpqoUs9bws9OqvSKHHO12ykkw2",
+    "name": "Giorgi Konwliashvili",
+    "photoURL": "https://scontent.ftbs5-2.fna.fbcdn.net/v/t39.30808-6/471705685_2286836601690762_3873680284472646370_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=1d70fc&_nc_eui2=AeFrq_f4asZf_l72Ce88xjntKZtlXH-c5CMpm2Vcf5zkI7iV3iNFvDiwjDPguZIIDwmFFSMKp2PNcsEDBsP-CVXp&_nc_ohc=paI4GZsEJuwQ7kNvwEYaseJ&_nc_oc=Adqv4-xnbccrHKytpT9GmiDACNgFszAcVDqID5B8i26Zm1zfELiPAnpKf3-xsQCXuYI&_nc_zt=23&_nc_ht=scontent.ftbs5-2.fna&_nc_gid=rZxAww9rR__lEqhXsuGipg&_nc_ss=7b2a8&oh=00_Af5zIpN_IzuICpEIL5vzJ5x1pjNMKUba9tgwiYs3Tk673A&oe=6A02F887",
+    "rating": 5,
+    "comment": "მომსახურება იდეალური ✨, საიტი იდეალური 💻, ყველაზე სანდო და პასუხისმგებლიანი სააგენტო ❤️",
+    "relatedType": "site",
+    "tourId": null,
+    "status": "approved",
+    "createdAt": "2026-05-05T13:15:50.353Z",
+    "updatedAt": "2026-05-05T13:16:16.671Z"
+  },
+  {
+    "id": "c6e6a560-71cc-4210-919b-94jkhd21",
+    "userId": "vTvHpqoUs9bws9Oqjd031j3",
+    "name": "Vito Kosiashvili",
+    "photoURL": "https://scontent.ftbs5-2.fna.fbcdn.net/v/t39.30808-6/486167263_1346464049834695_2544036942043978453_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=53a332&_nc_eui2=AeHgwpVxq6I2e2-bJqr-DGK3rTHCFSp-iSWtMcIVKn6JJWY3kb5GdA9uyGN3qO5YKGPwi51PhBc0Fktvd3GHaXAM&_nc_ohc=_ABGcQa2VvAQ7kNvwEWjXyD&_nc_oc=AdpzzWzhWhfFsTmrHON5s4G2kB_xhFy3y8VM3q9WafGZyldKz0mUcPogntwu-B9vKB4&_nc_zt=23&_nc_ht=scontent.ftbs5-2.fna&_nc_gid=r4MjWwmSFU7RwWIZKmxUvw&_nc_ss=7b2a8&oh=00_Af66c3-Ekh3dzMJUiHheyAzXdAed1f9iORuNyNr-VkK45Q&oe=6A038629",
+    "rating": 5,
+    "comment": "უმაგრესი ხალხიი ❤️❤️❤️",
+    "relatedType": "site",
+    "tourId": null,
+    "status": "approved",
+    "createdAt": "2026-05-04T17:11:22.353Z",
+    "updatedAt": "2026-05-04T16:11:22.671Z"
+  },
+  {
+    "id": "c6e6a560-71cc-4210-919b-ckw29cm0",
+    "userId": "vTvHpqoUs9bws0d2po10q9",
+    "name": "Vika Wereteli",
+    "photoURL": "https://scontent.ftbs5-3.fna.fbcdn.net/v/t39.30808-6/484966135_1988230021582659_7037973434568339029_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=1d70fc&_nc_eui2=AeHwJ23FSq1MlxuAvo_2JrTV_pxx-stbW9P-nHH6y1tb03FJwPKhCgUaj5XSji_tg9R_MII8xB3cxE4voXg0gQO2&_nc_ohc=xklx-kaYUd8Q7kNvwFNnXcU&_nc_oc=AdrmB1nGYlvjN-psCyFuQRqa60RFSrKIIT852-hzzcrPIm1HknRW91zoSipDD6-G45k&_nc_zt=23&_nc_ht=scontent.ftbs5-3.fna&_nc_gid=QPluExhtA5kMJdTJ8c17sw&_nc_ss=7b2a8&oh=00_Af7bYOMDFnZeLVbkEoR3PX9EptqOOpkmKqzcx5KUWdwynQ&oe=6A038913",
+    "rating": 5,
+    "comment": "ყველაზე ადეკვატური ფასები და მომსახურება რაც კი მინახავს 💫",
+    "relatedType": "site",
+    "tourId": null,
+    "status": "approved",
+    "createdAt": "2026-05-03T12:25:15.353Z",
+    "updatedAt": "2026-05-03T12:27:17.671Z"
+  }
+
+]

@@ -17,6 +17,19 @@ const {
   updateBlog,
 } = require("../services/blogs");
 const {
+  convertBookingRequestToBooking,
+  getBookingRequests,
+  updateBookingRequest,
+} = require("../services/bookingRequests");
+const {
+  MAX_BOOKING_FILE_BYTES,
+  deleteBookingFile,
+  getBookingFileForDownload,
+  getBookings,
+  updateBooking,
+  uploadBookingFile,
+} = require("../services/bookings");
+const {
   createTour,
   deleteTour,
   getTourById,
@@ -70,6 +83,54 @@ const upload = multer({
     return callback(null, true);
   },
 });
+
+const bookingPdfUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: MAX_BOOKING_FILE_BYTES,
+    files: 1,
+  },
+  fileFilter(_req, file, callback) {
+    const hasPdfExtension = /\.pdf$/i.test(String(file.originalname || ""));
+
+    if (file.mimetype !== "application/pdf" || !hasPdfExtension) {
+      return callback(
+        Object.assign(new Error("Invalid file type"), {
+          statusCode: 400,
+          code: "BOOKING_FILE_INVALID_TYPE",
+          details: "Only PDF booking documents can be uploaded.",
+        })
+      );
+    }
+
+    return callback(null, true);
+  },
+});
+
+function sendBookingPdfUploadError(uploadError, res) {
+  const isTooLarge =
+    uploadError instanceof multer.MulterError &&
+    uploadError.code === "LIMIT_FILE_SIZE";
+  const statusCode = isTooLarge ? 413 : uploadError.statusCode || 400;
+
+  return res.status(statusCode).json({
+    ok: false,
+    code: isTooLarge
+      ? "BOOKING_FILE_TOO_LARGE"
+      : uploadError.code || "BOOKING_FILE_UPLOAD_FAILED",
+    error: isTooLarge ? "File too large" : uploadError.message || "Upload failed",
+    details: isTooLarge
+      ? "The selected PDF must be 10MB or smaller."
+      : uploadError.details || "Choose a valid PDF file.",
+  });
+}
+
+function sendBookingPdfFile(res, fileResult) {
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", fileResult.contentDisposition);
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  return res.sendFile(fileResult.absolutePath);
+}
 
 router.post("/session", async (req, res) => {
   const password = req.body?.password?.trim();
@@ -220,6 +281,150 @@ router.get("/reviews", async (_req, res) => {
       error: error.message || "Unable to load reviews",
       details: error.details || "Please try again in a moment.",
       reviews: [],
+    });
+  }
+});
+
+router.get("/booking-requests", async (_req, res) => {
+  try {
+    const bookingRequests = await getBookingRequests();
+
+    return res.json({
+      bookingRequests,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      code: error.code || "BOOKING_REQUESTS_LOAD_FAILED",
+      error: error.message || "Unable to load booking requests",
+      details: error.details || "Please try again in a moment.",
+      bookingRequests: [],
+    });
+  }
+});
+
+router.patch("/booking-requests/:id", async (req, res) => {
+  try {
+    const bookingRequest = await updateBookingRequest(
+      req.params.id,
+      req.body || {}
+    );
+
+    return res.json({
+      bookingRequest,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      code: error.code || "BOOKING_REQUEST_UPDATE_FAILED",
+      error: error.message || "Unable to update booking request",
+      details: error.details || "Please try again in a moment.",
+    });
+  }
+});
+
+router.post("/booking-requests/:requestId/convert", async (req, res) => {
+  try {
+    const result = await convertBookingRequestToBooking(
+      req.params.requestId,
+      req.body || {}
+    );
+
+    return res.status(201).json(result);
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      code: error.code || "BOOKING_REQUEST_CONVERT_FAILED",
+      error: error.message || "Unable to convert booking request",
+      details: error.details || "Please try again in a moment.",
+      convertedBookingId: error.convertedBookingId,
+    });
+  }
+});
+
+router.get("/bookings", async (_req, res) => {
+  try {
+    const bookings = await getBookings();
+
+    return res.json({
+      bookings,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      code: error.code || "BOOKINGS_LOAD_FAILED",
+      error: error.message || "Unable to load bookings",
+      details: error.details || "Please try again in a moment.",
+      bookings: [],
+    });
+  }
+});
+
+router.post("/bookings/:bookingId/files", (req, res) => {
+  bookingPdfUpload.single("file")(req, res, async (uploadError) => {
+    if (uploadError) {
+      return sendBookingPdfUploadError(uploadError, res);
+    }
+
+    try {
+      const result = await uploadBookingFile(req.params.bookingId, req.file, {
+        name: req.body?.name,
+        uploadedBy: req.adminSession?.role || "admin",
+      });
+
+      return res.status(201).json(result);
+    } catch (error) {
+      return res.status(error.statusCode || 500).json({
+        code: error.code || "BOOKING_FILE_UPLOAD_FAILED",
+        error: error.message || "Unable to upload booking PDF",
+        details: error.details || "Please try again in a moment.",
+      });
+    }
+  });
+});
+
+router.patch("/bookings/:bookingId", async (req, res) => {
+  try {
+    const booking = await updateBooking(req.params.bookingId, req.body || {});
+
+    return res.json({
+      booking,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      code: error.code || "BOOKING_UPDATE_FAILED",
+      error: error.message || "Unable to update booking",
+      details: error.details || "Please try again in a moment.",
+    });
+  }
+});
+
+router.get("/bookings/:bookingId/files/:fileId", async (req, res) => {
+  try {
+    const fileResult = await getBookingFileForDownload(
+      req.params.bookingId,
+      req.params.fileId
+    );
+
+    return sendBookingPdfFile(res, fileResult);
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      code: error.code || "BOOKING_FILE_DOWNLOAD_FAILED",
+      error: error.message || "Unable to download booking PDF",
+      details: error.details || "Please try again in a moment.",
+    });
+  }
+});
+
+router.delete("/bookings/:bookingId/files/:fileId", async (req, res) => {
+  try {
+    const result = await deleteBookingFile(
+      req.params.bookingId,
+      req.params.fileId
+    );
+
+    return res.json(result);
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      code: error.code || "BOOKING_FILE_DELETE_FAILED",
+      error: error.message || "Unable to delete booking PDF",
+      details: error.details || "Please try again in a moment.",
     });
   }
 });

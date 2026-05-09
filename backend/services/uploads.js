@@ -17,15 +17,11 @@ function createUploadError(statusCode, code, error, details) {
 }
 
 function getUploadsRoot() {
-  if (process.env.UPLOADS_ROOT || process.env.UPLOADS_DIR) {
-    return path.resolve(process.env.UPLOADS_ROOT || process.env.UPLOADS_DIR);
+  if (process.env.UPLOADS_DIR) {
+    return path.resolve(process.env.UPLOADS_DIR);
   }
 
-  if (process.env.NODE_ENV === "production") {
-    return "/var/www/aroundtheworld/uploads";
-  }
-
-  return path.resolve(__dirname, "../../uploads");
+  return path.resolve(__dirname, "../uploads");
 }
 
 function getTourUploadsDir() {
@@ -160,6 +156,8 @@ async function optimizeBlogImage(file) {
 module.exports = {
   ALLOWED_IMAGE_MIME_TYPES,
   MAX_UPLOAD_BYTES,
+  getBlogUploadsDir,
+  getTourUploadsDir,
   getUploadsRoot,
   optimizeBlogImage,
   optimizeTourImage,

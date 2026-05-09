@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
+import { useFirebaseAuth } from "../auth/FirebaseAuthContext";
 import TourSearchModal from "./TourSearchModal";
 import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE_NAV_128.png";
 import { useLanguage } from "../i18n/LanguageContext";
@@ -17,6 +18,23 @@ const LANGUAGE_OPTIONS = [
     label: "English",
   },
 ];
+
+const ACCOUNT_LABELS = {
+  ka: {
+    account: "ანგარიში",
+    login: "შესვლა",
+    register: "რეგისტრაცია",
+    profile: "პროფილი",
+    logout: "გასვლა",
+  },
+  en: {
+    account: "Account",
+    login: "Login",
+    register: "Register",
+    profile: "Profile",
+    logout: "Logout",
+  },
+};
 
 export default function Navbar({ variant = "page" }) {
   const location = useLocation();
@@ -257,6 +275,19 @@ function getMobileNavLinkClass(isActive) {
 }
 
 function Controls({ compact = false, language, setLanguage, theme, toggleTheme, t }) {
+  const { currentUser, loading, logout } = useFirebaseAuth();
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const accountLabels = ACCOUNT_LABELS[language] || ACCOUNT_LABELS.ka;
+
+  useEffect(() => {
+    setIsAccountMenuOpen(false);
+  }, [currentUser?.uid]);
+
+  const handleLogout = async () => {
+    setIsAccountMenuOpen(false);
+    await logout();
+  };
+
   return (
     <div
       className={`flex items-center gap-2 ${compact ? "flex-wrap justify-end" : "flex-nowrap"}`}
@@ -284,6 +315,70 @@ function Controls({ compact = false, language, setLanguage, theme, toggleTheme, 
       >
         {theme === "dark" ? t("nav.lightMode") : t("nav.darkMode")}
       </button>
+
+      <div className="relative flex-shrink-0">
+        <button
+          type="button"
+          onClick={() => setIsAccountMenuOpen((currentState) => !currentState)}
+          disabled={loading}
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/8 text-white/84 transition hover:bg-white/14 hover:text-white disabled:cursor-wait disabled:opacity-70"
+          aria-label={accountLabels.account}
+          aria-haspopup="menu"
+          aria-expanded={isAccountMenuOpen}
+          title={accountLabels.account}
+        >
+          <UserIcon />
+        </button>
+
+        {isAccountMenuOpen ? (
+          <div
+            className="absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-[1.2rem] border border-white/15 bg-slate-950/95 p-1 text-sm font-semibold text-white shadow-[0_20px_70px_-38px_rgba(2,6,23,0.95)] backdrop-blur"
+            role="menu"
+          >
+            {currentUser ? (
+              <>
+                <Link
+                  to="/profile"
+                  onClick={() => setIsAccountMenuOpen(false)}
+                  className="block rounded-[0.95rem] px-4 py-3 transition hover:bg-white/10"
+                  role="menuitem"
+                >
+                  {accountLabels.profile}
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void handleLogout();
+                  }}
+                  className="block w-full rounded-[0.95rem] px-4 py-3 text-left transition hover:bg-white/10"
+                  role="menuitem"
+                >
+                  {accountLabels.logout}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  onClick={() => setIsAccountMenuOpen(false)}
+                  className="block rounded-[0.95rem] px-4 py-3 transition hover:bg-white/10"
+                  role="menuitem"
+                >
+                  {accountLabels.login}
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setIsAccountMenuOpen(false)}
+                  className="block rounded-[0.95rem] px-4 py-3 transition hover:bg-white/10"
+                  role="menuitem"
+                >
+                  {accountLabels.register}
+                </Link>
+              </>
+            )}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -356,6 +451,24 @@ function SearchIcon({ className = "h-4 w-4" }) {
     >
       <circle cx="11" cy="11" r="6.5" />
       <path d="M20 20l-3.5-3.5" />
+    </svg>
+  );
+}
+
+function UserIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-5 w-5"
+      aria-hidden="true"
+    >
+      <path d="M20 21a8 8 0 0 0-16 0" />
+      <circle cx="12" cy="8" r="4" />
     </svg>
   );
 }

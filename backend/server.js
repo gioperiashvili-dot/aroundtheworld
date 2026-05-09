@@ -6,24 +6,30 @@ const restaurantsRoute = require("./routes/restaurants");
 const toursRoute = require("./routes/tours");
 const reviewsRoute = require("./routes/reviews");
 const blogsRoute = require("./routes/blogs");
+const bookingsRoute = require("./routes/bookings");
 const adminRoute = require("./routes/admin");
-const { PORT } = require("./config/env");
+const { CLIENT_ORIGIN, CLIENT_ORIGINS, PORT } = require("./config/env");
 const { buildSitemapXml } = require("./services/sitemap");
-const { getUploadsRoot } = require("./services/uploads");
+const { getBlogUploadsDir, getTourUploadsDir } = require("./services/uploads");
 
 const app = express();
 
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  "https://aroundworld.ge",
-  "https://www.aroundworld.ge",
-  "http://aroundworld.ge",
-  "http://www.aroundworld.ge",
-  "http://localhost:3000",
-  "http://localhost:5173",
-]
-  .filter(Boolean)
-  .map((origin) => origin.trim().replace(/\/$/, ""));
+function normalizeOrigin(origin) {
+  return String(origin || "").trim().replace(/\/$/, "");
+}
+
+function parseAllowedOrigins() {
+  const configuredOrigins = [
+    CLIENT_ORIGIN,
+    ...String(CLIENT_ORIGINS || "").split(","),
+  ]
+    .map(normalizeOrigin)
+    .filter(Boolean);
+
+  return [...new Set(configuredOrigins)];
+}
+
+const allowedOrigins = parseAllowedOrigins();
 
 const corsOptions = {
   origin(origin, callback) {
@@ -39,6 +45,7 @@ const corsOptions = {
     return callback(null, false);
   },
   credentials: true,
+  exposedHeaders: ["Content-Disposition"],
 };
 
 app.use(cors(corsOptions));
@@ -46,8 +53,15 @@ app.options(/.*/, cors(corsOptions));
 
 app.use(express.json());
 app.use(
-  "/uploads",
-  express.static(getUploadsRoot(), {
+  "/uploads/tours",
+  express.static(getTourUploadsDir(), {
+    maxAge: "30d",
+    immutable: true,
+  })
+);
+app.use(
+  "/uploads/blogs",
+  express.static(getBlogUploadsDir(), {
     maxAge: "30d",
     immutable: true,
   })
@@ -73,6 +87,7 @@ app.use("/api/restaurants", restaurantsRoute);
 app.use("/api/tours", toursRoute);
 app.use("/api/reviews", reviewsRoute);
 app.use("/api/blogs", blogsRoute);
+app.use("/api/bookings", bookingsRoute);
 app.use("/api/admin", adminRoute);
 
 app.listen(PORT, () => {

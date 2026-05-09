@@ -17,6 +17,20 @@ const apiClient = axios.create({
   baseURL: API_BASE_URL,
 });
 
+export function resolveApiUrl(value) {
+  const source = String(value || "").trim();
+
+  if (/^https?:\/\//i.test(source)) {
+    return source;
+  }
+
+  if (source.startsWith("/")) {
+    return `${API_BASE_URL}${source}`;
+  }
+
+  return `${API_BASE_URL}/${source}`;
+}
+
 export function resolvePublicAssetUrl(value) {
   const source = String(value || "").trim();
 
@@ -24,7 +38,7 @@ export function resolvePublicAssetUrl(value) {
     return source;
   }
 
-  return process.env.NODE_ENV === "development" ? `${API_BASE_URL}${source}` : source;
+  return resolveApiUrl(source);
 }
 
 function getAdminConfig(token) {
@@ -41,6 +55,22 @@ function getFirebaseUserConfig(idToken) {
       Authorization: `Bearer ${idToken}`,
     },
   };
+}
+
+function getFilenameFromContentDisposition(value) {
+  const header = String(value || "");
+  const utf8Match = header.match(/filename\*=UTF-8''([^;]+)/i);
+
+  if (utf8Match) {
+    try {
+      return decodeURIComponent(utf8Match[1]);
+    } catch (_error) {
+      return utf8Match[1];
+    }
+  }
+
+  const asciiMatch = header.match(/filename="?([^";]+)"?/i);
+  return asciiMatch ? asciiMatch[1] : "";
 }
 
 export async function fetchFlights(params) {
@@ -133,6 +163,22 @@ export async function fetchAdminReviews(token) {
   return response.data;
 }
 
+export async function fetchAdminBookingRequests(token) {
+  const response = await apiClient.get(
+    "/api/admin/booking-requests",
+    getAdminConfig(token)
+  );
+  return response.data;
+}
+
+export async function fetchAdminBookings(token) {
+  const response = await apiClient.get(
+    "/api/admin/bookings",
+    getAdminConfig(token)
+  );
+  return response.data;
+}
+
 export async function fetchAdminBlogs(token) {
   const response = await apiClient.get("/api/admin/blogs", getAdminConfig(token));
   return response.data;
@@ -193,6 +239,93 @@ export async function deleteAdminReview(token, id) {
   );
 
   return response.data;
+}
+
+export async function updateAdminBookingRequest(token, id, payload) {
+  const response = await apiClient.patch(
+    `/api/admin/booking-requests/${id}`,
+    payload,
+    getAdminConfig(token)
+  );
+
+  return response.data;
+}
+
+export async function convertAdminBookingRequest(token, id, payload) {
+  const response = await apiClient.post(
+    `/api/admin/booking-requests/${id}/convert`,
+    payload,
+    getAdminConfig(token)
+  );
+
+  return response.data;
+}
+
+export async function updateAdminBooking(token, id, payload) {
+  const response = await apiClient.patch(
+    `/api/admin/bookings/${id}`,
+    payload,
+    getAdminConfig(token)
+  );
+
+  return response.data;
+}
+
+export async function uploadAdminBookingFile(token, bookingId, file, name = "") {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  if (name) {
+    formData.append("name", name);
+  }
+
+  const response = await apiClient.post(
+    `/api/admin/bookings/${bookingId}/files`,
+    formData,
+    getAdminConfig(token)
+  );
+
+  return response.data;
+}
+
+export async function deleteAdminBookingFile(token, bookingId, fileId) {
+  const response = await apiClient.delete(
+    `/api/admin/bookings/${bookingId}/files/${fileId}`,
+    getAdminConfig(token)
+  );
+
+  return response.data;
+}
+
+export async function downloadAdminBookingFile(token, bookingId, fileId) {
+  const response = await apiClient.get(
+    `/api/admin/bookings/${bookingId}/files/${fileId}`,
+    {
+      ...getAdminConfig(token),
+      responseType: "blob",
+    }
+  );
+
+  return {
+    blob: response.data,
+    filename: getFilenameFromContentDisposition(
+      response.headers?.["content-disposition"]
+    ),
+  };
+}
+
+export async function downloadUserBookingFile(idToken, bookingId, fileId) {
+  const response = await apiClient.get(`/api/bookings/${bookingId}/files/${fileId}`, {
+    ...getFirebaseUserConfig(idToken),
+    responseType: "blob",
+  });
+
+  return {
+    blob: response.data,
+    filename: getFilenameFromContentDisposition(
+      response.headers?.["content-disposition"]
+    ),
+  };
 }
 
 export async function uploadAdminTourImage(token, imageFile) {

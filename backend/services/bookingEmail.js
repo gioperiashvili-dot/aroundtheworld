@@ -17,6 +17,7 @@ function parseBoolean(value) {
 }
 
 function isEmailConfigured() {
+  
   return Boolean(SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS);
 }
 
