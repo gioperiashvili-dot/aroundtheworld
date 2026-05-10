@@ -385,10 +385,10 @@ export default function AdminBookingRequestsPanel({
   };
 
   return (
-    <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 p-5 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
+    <div className="overflow-hidden rounded-[2.4rem] border border-white/80 bg-[#fffdf8]/92 p-5 shadow-[0_30px_100px_-72px_rgba(72,52,34,0.72)] dark:border-white/10 dark:bg-slate-900/88 sm:p-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#d83f45] dark:text-[#ff8c90]">
+          <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#c26b45] dark:text-orange-200">
             {labels.label}
           </p>
           <h3 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
@@ -413,7 +413,7 @@ export default function AdminBookingRequestsPanel({
                 className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 transition ${
                   isActive
                     ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950"
-                    : "bg-slate-50 text-slate-700 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                    : "bg-[#f7f1e8] text-slate-700 hover:bg-white dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                 }`}
               >
                 <span>{label}</span>
@@ -469,7 +469,7 @@ export default function AdminBookingRequestsPanel({
               return (
                 <article
                   key={request.id}
-                  className="rounded-[1.5rem] border border-slate-100 bg-slate-50 p-5 dark:border-white/10 dark:bg-slate-800/70"
+                  className="rounded-[1.7rem] border border-[#efe4d4] bg-white p-5 shadow-[0_22px_80px_-62px_rgba(72,52,34,0.72)] dark:border-white/10 dark:bg-slate-800/70"
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
@@ -523,7 +523,7 @@ export default function AdminBookingRequestsPanel({
                           updateDraft(request.id, "status", event.target.value)
                         }
                         disabled={isBusy}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
+                        className="w-full rounded-[1.15rem] border border-[#eadfcc] bg-[#fffdf8] px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-[#c26b45] focus:ring-4 focus:ring-[#c26b45]/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-orange-200 dark:focus:ring-orange-200/20"
                       >
                         {STATUS_OPTIONS.map((status) => (
                           <option key={status} value={status}>
@@ -545,7 +545,7 @@ export default function AdminBookingRequestsPanel({
                         disabled={isBusy}
                         rows={4}
                         maxLength={1500}
-                        className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
+                        className="w-full resize-none rounded-[1.15rem] border border-[#eadfcc] bg-[#fffdf8] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#c26b45] focus:ring-4 focus:ring-[#c26b45]/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-orange-200 dark:focus:ring-orange-200/20"
                       />
                     </label>
 
@@ -568,7 +568,7 @@ export default function AdminBookingRequestsPanel({
                           type="button"
                           onClick={() => toggleConversionForm(request)}
                           disabled={isBusy}
-                          className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:bg-emerald-400 dark:text-slate-950 dark:hover:bg-emerald-300 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
+                          className="rounded-full bg-[#2f6f55] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#285d49] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:bg-emerald-300 dark:text-slate-950 dark:hover:bg-emerald-200 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
                         >
                           {isConversionOpen
                             ? labels.closeConversion
@@ -612,7 +612,7 @@ export default function AdminBookingRequestsPanel({
                                   )
                                 }
                                 disabled={isBusy}
-                                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
+                                className="w-full rounded-[1.15rem] border border-[#eadfcc] bg-[#fffdf8] px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-[#c26b45] focus:ring-4 focus:ring-[#c26b45]/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-orange-200 dark:focus:ring-orange-200/20"
                               >
                                 <option value="">{labels.chooseCategory}</option>
                                 {BOOKING_CATEGORY_OPTIONS.map((category) => (
@@ -663,7 +663,7 @@ export default function AdminBookingRequestsPanel({
                               disabled={isBusy}
                               required
                             />
-                            <div className="grid gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-900">
+                            <div className="grid gap-2 rounded-[1.15rem] border border-[#eadfcc] bg-[#fffdf8] px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-900">
                               <span className="font-semibold text-slate-700 dark:text-slate-200">
                                 {labels.remainingAmount}:{" "}
                                 {Number.isFinite(paymentPreview.remainingAmount)
@@ -747,7 +747,7 @@ export default function AdminBookingRequestsPanel({
             })}
           </div>
         ) : (
-          <div className="rounded-[1.5rem] bg-slate-50 p-6 dark:bg-slate-800/70">
+          <div className="rounded-[1.5rem] border border-[#efe4d4] bg-[#faf4ea] p-6 dark:border-white/10 dark:bg-slate-800/70">
             <h4 className="font-semibold text-slate-950 dark:text-white">
               {labels.emptyTitle}
             </h4>
@@ -784,7 +784,7 @@ function ConversionInput({
         required={required}
         onChange={(event) => onChange(event.target.value)}
         disabled={disabled}
-        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
+        className="w-full rounded-[1.15rem] border border-[#eadfcc] bg-[#fffdf8] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#c26b45] focus:ring-4 focus:ring-[#c26b45]/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-orange-200 dark:focus:ring-orange-200/20"
       />
     </label>
   );
@@ -801,7 +801,7 @@ function ConversionTextarea({ disabled = false, label, onChange, rows, value }) 
         onChange={(event) => onChange(event.target.value)}
         disabled={disabled}
         rows={rows}
-        className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
+        className="w-full resize-none rounded-[1.15rem] border border-[#eadfcc] bg-[#fffdf8] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#c26b45] focus:ring-4 focus:ring-[#c26b45]/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-orange-200 dark:focus:ring-orange-200/20"
       />
     </label>
   );
@@ -813,7 +813,7 @@ function RequestMeta({ label, value }) {
   }
 
   return (
-    <div className="rounded-[1.1rem] bg-white p-3 dark:bg-slate-900">
+    <div className="rounded-[1.1rem] bg-[#faf4ea] p-3 dark:bg-slate-900">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
         {label}
       </p>

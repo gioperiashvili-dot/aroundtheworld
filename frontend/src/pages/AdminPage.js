@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AdminBookingsPanel from "../components/AdminBookingsPanel";
 import AdminBookingRequestsPanel from "../components/AdminBookingRequestsPanel";
 import AdminBlogManager from "../components/AdminBlogManager";
@@ -8,6 +8,7 @@ import EmptyState from "../components/EmptyState";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import SEO from "../components/SEO";
 import TravelImage from "../components/TravelImage";
+import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE_NAV_128.png";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 import {
   approveAdminReview,
@@ -300,6 +301,63 @@ function toLocalizedListPayload(rows = []) {
   };
 }
 
+const ADMIN_TAB_IDS = {
+  dashboard: "dashboard",
+  tours: "tours",
+  requests: "requests",
+  bookings: "bookings",
+  blog: "blog",
+  reviews: "reviews",
+};
+
+const ADMIN_COPY = {
+  ka: {
+    dashboard: "\u10DB\u10D7\u10D0\u10D5\u10D0\u10E0\u10D8",
+    tours: "\u10E2\u10E3\u10E0\u10D4\u10D1\u10D8",
+    requests:
+      "\u10EF\u10D0\u10D5\u10E8\u10DC\u10D8\u10E1 \u10DB\u10DD\u10D7\u10EE\u10DD\u10D5\u10DC\u10D4\u10D1\u10D8",
+    bookings: "\u10EF\u10D0\u10D5\u10E8\u10DC\u10D4\u10D1\u10D8",
+    blog: "\u10D1\u10DA\u10DD\u10D2\u10D8",
+    reviews: "\u10E8\u10D4\u10E4\u10D0\u10E1\u10D4\u10D1\u10D4\u10D1\u10D8",
+    workspace:
+      "\u10E1\u10D0\u10DB\u10E3\u10E8\u10D0\u10DD \u10E1\u10D8\u10D5\u10E0\u10EA\u10D4",
+    overview:
+      "\u10E1\u10EC\u10E0\u10D0\u10E4\u10D8 \u10DB\u10D8\u10DB\u10DD\u10EE\u10D8\u10DA\u10D5\u10D0",
+    manage: "\u10DB\u10D0\u10E0\u10D7\u10D5\u10D0",
+    pending: "\u10DB\u10DD\u10DA\u10DD\u10D3\u10D8\u10DC\u10E8\u10D8",
+    addPackage:
+      "\u10D0\u10EE\u10D0\u10DA\u10D8 \u10E2\u10E3\u10E0\u10D8\u10E1 \u10D3\u10D0\u10DB\u10D0\u10E2\u10D4\u10D1\u10D0",
+    activeBookings:
+      "\u10D0\u10E5\u10E2\u10D8\u10E3\u10E0\u10D8 \u10EF\u10D0\u10D5\u10E8\u10DC\u10D4\u10D1\u10D8",
+    completedBookings:
+      "\u10D3\u10D0\u10E1\u10E0\u10E3\u10DA\u10D4\u10D1\u10E3\u10DA\u10D8 \u10EF\u10D0\u10D5\u10E8\u10DC\u10D4\u10D1\u10D8",
+  },
+  en: {
+    dashboard: "Dashboard",
+    tours: "Packages",
+    requests: "Requests",
+    bookings: "Bookings",
+    blog: "Blog",
+    reviews: "Reviews",
+    workspace: "Workspace",
+    overview: "Overview",
+    manage: "Manage",
+    pending: "pending",
+    addPackage: "Add New Package",
+    activeBookings: "Active bookings",
+    completedBookings: "Completed bookings",
+  },
+};
+
+function getAdminCopy(language) {
+  return ADMIN_COPY[language] || ADMIN_COPY.ka;
+}
+
+function getAdminBookingStatus(value) {
+  const status = String(value || "").trim().toLowerCase();
+  return status === "confirmed" ? "active" : status;
+}
+
 export default function AdminPage() {
   const { language, t } = useLanguage();
   const [password, setPassword] = useState("");
@@ -320,6 +378,7 @@ export default function AdminPage() {
   const [reviewActionId, setReviewActionId] = useState("");
   const [bookingRequestActionId, setBookingRequestActionId] = useState("");
   const [bookingActionId, setBookingActionId] = useState("");
+  const [activeAdminTab, setActiveAdminTab] = useState(ADMIN_TAB_IDS.dashboard);
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState([]);
   const [imageInputKey, setImageInputKey] = useState(0);
@@ -333,6 +392,118 @@ export default function AdminPage() {
     ADMIN_BOOKING_MESSAGES[language] || ADMIN_BOOKING_MESSAGES.ka;
   const adminSeo = (
     <SEO title="Admin Panel | Around The World" robots="noindex,nofollow" />
+  );
+  const adminCopy = useMemo(() => getAdminCopy(language), [language]);
+  const activeAdminTitle =
+    activeAdminTab === ADMIN_TAB_IDS.dashboard
+      ? t("admin.dashboardHeading")
+      : adminCopy[activeAdminTab] || t("admin.dashboardHeading");
+  const bookingStats = useMemo(() => {
+    const nextStats = {
+      active: 0,
+      completed: 0,
+      cancelled: 0,
+    };
+
+    bookings.forEach((booking) => {
+      const status = getAdminBookingStatus(booking.status);
+
+      if (Object.prototype.hasOwnProperty.call(nextStats, status)) {
+        nextStats[status] += 1;
+      }
+    });
+
+    return nextStats;
+  }, [bookings]);
+  const pendingRequestCount = useMemo(
+    () =>
+      bookingRequests.filter((request) => request.status === "pending").length,
+    [bookingRequests]
+  );
+  const adminTabs = useMemo(
+    () => [
+      {
+        id: ADMIN_TAB_IDS.dashboard,
+        label: adminCopy.dashboard,
+      },
+      {
+        id: ADMIN_TAB_IDS.tours,
+        label: adminCopy.tours,
+        count: tours.length,
+      },
+      {
+        id: ADMIN_TAB_IDS.requests,
+        label: adminCopy.requests,
+        count: bookingRequests.length,
+      },
+      {
+        id: ADMIN_TAB_IDS.bookings,
+        label: adminCopy.bookings,
+        count: bookings.length,
+      },
+      {
+        id: ADMIN_TAB_IDS.blog,
+        label: adminCopy.blog,
+      },
+      {
+        id: ADMIN_TAB_IDS.reviews,
+        label: adminCopy.reviews,
+        count: reviews.length,
+      },
+    ],
+    [
+      adminCopy,
+      bookingRequests.length,
+      bookings.length,
+      reviews.length,
+      tours.length,
+    ]
+  );
+  const dashboardStats = useMemo(
+    () => [
+      {
+        id: ADMIN_TAB_IDS.tours,
+        label: adminCopy.tours,
+        value: tours.length,
+        tone: "bg-[#fff8ed]",
+      },
+      {
+        id: ADMIN_TAB_IDS.requests,
+        label: adminCopy.requests,
+        value: bookingRequests.length,
+        helper: pendingRequestCount
+          ? `${pendingRequestCount} ${adminCopy.pending}`
+          : "",
+        tone: "bg-[#fff4f0]",
+      },
+      {
+        id: ADMIN_TAB_IDS.bookings,
+        label: adminCopy.activeBookings,
+        value: bookingStats.active,
+        tone: "bg-[#eef8ef]",
+      },
+      {
+        id: ADMIN_TAB_IDS.bookings,
+        label: adminCopy.completedBookings,
+        value: bookingStats.completed,
+        tone: "bg-[#eef4ff]",
+      },
+      {
+        id: ADMIN_TAB_IDS.reviews,
+        label: adminCopy.reviews,
+        value: reviews.length,
+        tone: "bg-[#fff8ed]",
+      },
+    ],
+    [
+      adminCopy,
+      bookingRequests.length,
+      bookingStats.active,
+      bookingStats.completed,
+      pendingRequestCount,
+      reviews.length,
+      tours.length,
+    ]
   );
 
   useEffect(() => {
@@ -384,6 +555,7 @@ export default function AdminPage() {
     setBookingsError("");
     setPassword("");
     setEditingId("");
+    setActiveAdminTab(ADMIN_TAB_IDS.dashboard);
     setForm(createEmptyForm());
     setImageFiles([]);
     setImageInputKey((currentKey) => currentKey + 1);
@@ -1119,304 +1291,573 @@ export default function AdminPage() {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-[#f5efe7] px-4 py-8 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      <div className="min-h-screen bg-[#f7f1e8] px-4 py-8 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
         {adminSeo}
-        <div className="mx-auto max-w-7xl">
-            <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-              <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
-                <TravelImage
-                  image={null}
-                  title={t("admin.loginHeading")}
-                  subtitle={t("admin.loginDescription")}
-                  variant="tour"
-                  className="h-full min-h-[24rem]"
-                />
+        <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl items-center">
+          <section className="grid w-full overflow-hidden rounded-[2.25rem] border border-white/80 bg-[#fffdf8] p-3 shadow-[0_30px_100px_-70px_rgba(72,52,34,0.75)] dark:border-white/10 dark:bg-slate-900/90 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="overflow-hidden rounded-[1.75rem]">
+              <TravelImage
+                image={null}
+                title={t("admin.loginHeading")}
+                subtitle={t("admin.loginDescription")}
+                variant="tour"
+                className="h-full min-h-[25rem]"
+              />
+            </div>
+
+            <form onSubmit={handleLogin} className="space-y-6 p-5 sm:p-8 lg:p-10">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#c26b45] dark:text-orange-200">
+                  {t("admin.loginLabel")}
+                </p>
+                <h2 className="[font-family:var(--font-display)] mt-3 text-3xl font-semibold text-slate-950 dark:text-white sm:text-4xl">
+                  {t("admin.loginHeading")}
+                </h2>
+                <p className="mt-3 max-w-xl text-sm leading-7 text-slate-600 dark:text-slate-300">
+                  {t("admin.loginDescription")}
+                </p>
               </div>
 
-              <form
-                onSubmit={handleLogin}
-                className="space-y-5 rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]"
-              >
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
-                    {t("admin.loginLabel")}
-                  </p>
-                  <h2 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
-                    {t("admin.loginHeading")}
-                  </h2>
-                  <p className="mt-3 text-sm leading-7 text-slate-700 dark:text-slate-300">
-                    {t("admin.loginDescription")}
-                  </p>
+              <label className="block space-y-2">
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  {t("common.password")}
+                </span>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => {
+                    setPassword(event.target.value);
+                    if (error) {
+                      setError("");
+                    }
+                  }}
+                  placeholder={t("admin.passwordPlaceholder")}
+                  className="w-full rounded-[1.25rem] border border-[#eadfcc] bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#c26b45] focus:ring-4 focus:ring-[#c26b45]/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-200 dark:focus:ring-orange-200/20"
+                />
+              </label>
+
+              {error ? (
+                <div className="rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
+                  {error}
                 </div>
+              ) : null}
 
-                <label className="block space-y-2">
-                  <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    {t("common.password")}
-                  </span>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(event) => {
-                      setPassword(event.target.value);
-                      if (error) {
-                        setError("");
-                      }
-                    }}
-                    placeholder={t("admin.passwordPlaceholder")}
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
-                  />
-                </label>
+              {success ? (
+                <div className="rounded-[1.25rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
+                  {success}
+                </div>
+              ) : null}
 
-                {error ? (
-                  <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
-                    {error}
-                  </div>
-                ) : null}
-
-                {success ? (
-                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
-                    {success}
-                  </div>
-                ) : null}
-
-                <button
-                  type="submit"
-                  disabled={authLoading}
-                  className="inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
-                >
-                  {authLoading ? t("admin.loginLoading") : t("admin.loginButton")}
-                </button>
-              </form>
-            </section>
+              <button
+                type="submit"
+                disabled={authLoading}
+                className="inline-flex rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_-18px_rgba(15,23,42,0.9)] transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
+              >
+                {authLoading ? t("admin.loginLoading") : t("admin.loginButton")}
+              </button>
+            </form>
+          </section>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f5efe7] px-4 py-8 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div className="min-h-screen bg-[#30302f] px-3 py-5 text-slate-900 dark:bg-slate-950 dark:text-slate-100 sm:px-5 sm:py-8">
       {adminSeo}
-      <div className="mx-auto max-w-7xl">
-        <section className="space-y-6">
-          <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
-            <div className="flex flex-col gap-4 p-6 lg:flex-row lg:items-center lg:justify-between lg:p-8">
+      <main className="mx-auto max-w-[1540px] overflow-hidden rounded-[2.9rem] border-[8px] border-white/10 bg-[#fff] p-4 shadow-[0_34px_120px_-54px_rgba(0,0,0,0.8)] dark:border-white/10 dark:bg-slate-900/90 sm:p-5 lg:p-6">
+        <section className="rounded-[2.15rem] bg-transparent">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex shrink-0 items-center gap-3">
+              <span className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-white/65 shadow-[0_14px_30px_-26px_rgba(72,52,34,0.9)] dark:bg-white/10">
+                <img
+                  src={logoMain}
+                  alt="Around The World"
+                  className="h-11 w-11 object-contain"
+                />
+              </span>
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
-                  {t("admin.dashboardLabel")}
+                <p className="[font-family:var(--font-display)] text-xl font-semibold text-slate-950 dark:text-white">
+                  Around The World
                 </p>
-                <h2 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
-                  {t("admin.dashboardHeading")}
-                </h2>
-                <p className="mt-3 text-sm leading-7 text-slate-700 dark:text-slate-300">
-                  {t("admin.sessionExpires")}:{" "}
-                  {expiresAt
-                    ? formatDateTimeLabel(Number(expiresAt), language)
-                    : t("admin.unknownExpiry")}
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#9a5435] dark:text-orange-200">
+                  {adminCopy.workspace}
                 </p>
               </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  clearSession();
-                  setSuccess(t("admin.logoutSuccess"));
-                }}
-                className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-              >
-                {t("common.logout")}
-              </button>
             </div>
 
-            {(error || success) && (
-              <div className="border-t border-slate-100 px-6 py-4 lg:px-8 dark:border-white/10">
-                {error ? (
-                  <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
-                    {error}
-                  </div>
-                ) : null}
-                {success ? (
-                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
-                    {success}
-                  </div>
-                ) : null}
-              </div>
-            )}
+            <AdminTabBar
+              activeTab={activeAdminTab}
+              tabs={adminTabs}
+              onChange={setActiveAdminTab}
+            />
+
+            <AdminHeaderActions
+              logoutLabel={t("common.logout")}
+              onLogout={() => {
+                clearSession();
+                setSuccess(t("admin.logoutSuccess"));
+              }}
+            />
           </div>
 
-          <AdminTourForm
-            form={form}
-            editing={Boolean(editingId)}
-            saving={saving}
-            galleryImages={getFormGalleryImages(form)}
-            imageFileNames={imageFiles.map((imageFile) => imageFile.name)}
-            imagePreviewUrls={imagePreviewUrls}
-            imageInputKey={imageInputKey}
-            onChange={(event) => {
-              const { name, value } = event.target;
-              setForm((previousForm) => ({
-                ...previousForm,
-                [name]: value,
-              }));
-            }}
-            onImageFileChange={handleImageFileChange}
-            onClearImageFile={clearSelectedImageFile}
-            onRemoveGalleryImage={handleRemoveGalleryImage}
-            onMakeCoverImage={handleMakeCoverImage}
-            onRemovePendingImage={handleRemovePendingImage}
-            onLocalizedItemChange={handleLocalizedItemChange}
-            onAddLocalizedItem={addLocalizedItem}
-            onRemoveLocalizedItem={removeLocalizedItem}
-            onSubmit={handleSubmit}
-            onReset={resetForm}
-          />
-
-          <AdminBlogManager token={token} onUnauthorized={clearSession} />
-
-          <AdminBookingRequestsPanel
-            bookingRequests={bookingRequests}
-            loading={bookingRequestsLoading}
-            error={bookingRequestsError}
-            actionId={bookingRequestActionId}
-            onSave={handleSaveBookingRequest}
-            onConvert={handleConvertBookingRequest}
-          />
-
-          <AdminBookingsPanel
-            bookings={bookings}
-            loading={bookingsLoading}
-            error={bookingsError}
-            actionId={bookingActionId}
-            onSave={handleSaveBooking}
-            onUploadFile={handleUploadBookingFile}
-            onDownloadFile={handleDownloadBookingFile}
-            onDeleteFile={handleDeleteBookingFile}
-          />
-
-          <AdminReviewsPanel
-            reviews={reviews}
-            loading={reviewsLoading}
-            actionId={reviewActionId}
-            onApprove={handleApproveReview}
-            onDelete={handleDeleteReview}
-          />
-
-          <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 p-5 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
-            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
-                  {t("admin.existingTours")}
-                </p>
-                <h3 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
-                  {t("admin.catalogEntries")}
-                </h3>
-              </div>
-              <p className="text-sm text-slate-700 dark:text-slate-300">
-                {tours.length} {t("admin.tourCountSuffix")}
+          <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="[font-family:var(--font-display)] text-4xl font-semibold text-slate-950 dark:text-white">
+                {activeAdminTitle}
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+                {t("admin.sessionExpires")}:{" "}
+                {expiresAt
+                  ? formatDateTimeLabel(Number(expiresAt), language)
+                  : t("admin.unknownExpiry")}
               </p>
             </div>
-
-            <div className="mt-6">
-              {loading ? (
-                <LoadingSkeleton />
-              ) : tours.length > 0 ? (
-                <div className="grid gap-5 md:grid-cols-2">
-                  {tours.map((tour) => {
-                    const tourTitle = getLocalized(tour.title, language);
-                    const tourDestination = getLocalized(tour.destination, language);
-                    const tourDescription = getLocalized(tour.description, language);
-                    const tourDuration = getLocalized(tour.duration, language);
-
-                    return (
-                      <article
-                        key={tour.id}
-                        className="overflow-hidden rounded-[1.8rem] border border-slate-100 bg-slate-50 shadow-[0_22px_80px_-60px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-800/70 dark:shadow-[0_22px_80px_-60px_rgba(2,6,23,0.85)]"
-                      >
-                        <TravelImage
-                          image={getTourCoverImage(tour)}
-                          title={tourTitle}
-                          subtitle={tourDestination}
-                          variant="tour"
-                          className="h-52"
-                        />
-
-                        <div className="space-y-4 p-5">
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
-                                {tourDestination}
-                              </p>
-                              <h4 className="[font-family:var(--font-display)] mt-2 text-2xl font-semibold text-slate-950 dark:text-white">
-                                {tourTitle}
-                              </h4>
-                            </div>
-                            <span className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-slate-950 shadow dark:bg-slate-950 dark:text-white">
-                              {formatCurrencyValue(tour.price, tour.currency, language)}
-                            </span>
-                          </div>
-
-                          <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
-                            {tourDescription}
-                          </p>
-
-                          <div className="grid gap-3 sm:grid-cols-2">
-                            <div className="rounded-[1.3rem] bg-white p-4 dark:bg-slate-900">
-                              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
-                                {t("common.duration")}
-                              </p>
-                              <p className="mt-2 font-semibold text-slate-950 dark:text-white">
-                                {tourDuration}
-                              </p>
-                            </div>
-                            <div className="rounded-[1.3rem] bg-white p-4 dark:bg-slate-900">
-                              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
-                                {t("common.updated")}
-                              </p>
-                              <p className="mt-2 font-semibold text-slate-950 dark:text-white">
-                                {tour.updatedAt
-                                  ? formatDateTimeLabel(tour.updatedAt, language)
-                                  : t("common.recent")}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex flex-wrap gap-3">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingId(tour.id);
-                                setForm(toFormValues(tour));
-                                clearSelectedImageFile();
-                                setError("");
-                                setSuccess("");
-                              }}
-                              className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-                            >
-                              {t("admin.editAction")}
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleDelete(tour.id)}
-                              className="rounded-full bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-200 dark:hover:bg-rose-500/20"
-                            >
-                              {t("admin.deleteAction")}
-                            </button>
-                          </div>
-                        </div>
-                      </article>
-                    );
-                  })}
-                </div>
-              ) : (
-                <EmptyState
-                  title={t("admin.noToursTitle")}
-                  message={t("admin.noToursMessage")}
-                />
-              )}
-            </div>
           </div>
+
+          {(error || success) && (
+            <div className="mt-5 space-y-3 border-t border-[#efe4d4] pt-5 dark:border-white/10">
+              {error ? (
+                <div className="rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
+                  {error}
+                </div>
+              ) : null}
+              {success ? (
+                <div className="rounded-[1.25rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
+                  {success}
+                </div>
+              ) : null}
+            </div>
+          )}
         </section>
+
+        <section className="mt-7 space-y-6">
+          <AdminTabPanel active={activeAdminTab === ADMIN_TAB_IDS.dashboard}>
+            <AdminDashboardOverview
+              copy={adminCopy}
+              stats={dashboardStats}
+              onOpenTab={setActiveAdminTab}
+            />
+          </AdminTabPanel>
+
+          <AdminTabPanel active={activeAdminTab === ADMIN_TAB_IDS.tours}>
+            <ToursAdminSection
+              form={form}
+              editing={Boolean(editingId)}
+              saving={saving}
+              loading={loading}
+              tours={tours}
+              language={language}
+              copy={adminCopy}
+              t={t}
+              galleryImages={getFormGalleryImages(form)}
+              imageFileNames={imageFiles.map((imageFile) => imageFile.name)}
+              imagePreviewUrls={imagePreviewUrls}
+              imageInputKey={imageInputKey}
+              onFormChange={(event) => {
+                const { name, value } = event.target;
+                setForm((previousForm) => ({
+                  ...previousForm,
+                  [name]: value,
+                }));
+              }}
+              onImageFileChange={handleImageFileChange}
+              onClearImageFile={clearSelectedImageFile}
+              onRemoveGalleryImage={handleRemoveGalleryImage}
+              onMakeCoverImage={handleMakeCoverImage}
+              onRemovePendingImage={handleRemovePendingImage}
+              onLocalizedItemChange={handleLocalizedItemChange}
+              onAddLocalizedItem={addLocalizedItem}
+              onRemoveLocalizedItem={removeLocalizedItem}
+              onSubmit={handleSubmit}
+              onReset={resetForm}
+              onEditTour={(tour) => {
+                setEditingId(tour.id);
+                setForm(toFormValues(tour));
+                clearSelectedImageFile();
+                setError("");
+                setSuccess("");
+              }}
+              onDeleteTour={handleDelete}
+            />
+          </AdminTabPanel>
+
+          <AdminTabPanel active={activeAdminTab === ADMIN_TAB_IDS.requests}>
+            <AdminBookingRequestsPanel
+              bookingRequests={bookingRequests}
+              loading={bookingRequestsLoading}
+              error={bookingRequestsError}
+              actionId={bookingRequestActionId}
+              onSave={handleSaveBookingRequest}
+              onConvert={handleConvertBookingRequest}
+            />
+          </AdminTabPanel>
+
+          <AdminTabPanel active={activeAdminTab === ADMIN_TAB_IDS.bookings}>
+            <AdminBookingsPanel
+              bookings={bookings}
+              loading={bookingsLoading}
+              error={bookingsError}
+              actionId={bookingActionId}
+              onSave={handleSaveBooking}
+              onUploadFile={handleUploadBookingFile}
+              onDownloadFile={handleDownloadBookingFile}
+              onDeleteFile={handleDeleteBookingFile}
+            />
+          </AdminTabPanel>
+
+          <AdminTabPanel active={activeAdminTab === ADMIN_TAB_IDS.blog}>
+            <AdminBlogManager token={token} onUnauthorized={clearSession} />
+          </AdminTabPanel>
+
+          <AdminTabPanel active={activeAdminTab === ADMIN_TAB_IDS.reviews}>
+            <AdminReviewsPanel
+              reviews={reviews}
+              loading={reviewsLoading}
+              actionId={reviewActionId}
+              onApprove={handleApproveReview}
+              onDelete={handleDeleteReview}
+            />
+          </AdminTabPanel>
+        </section>
+      </main>
+    </div>
+  );
+}
+
+function AdminTabPanel({ active, children }) {
+  return (
+    <div className={active ? "block" : "hidden"} aria-hidden={!active}>
+      {children}
+    </div>
+  );
+}
+
+function AdminTabBar({ activeTab, onChange, tabs = [] }) {
+  return (
+    <nav className="min-w-0 flex-1 overflow-x-auto pb-1 xl:flex xl:justify-center xl:pb-0">
+      <div className="flex min-w-max gap-1.5 rounded-full bg-white/86 p-1.5 shadow-[0_18px_60px_-48px_rgba(72,52,34,0.8)] backdrop-blur dark:bg-slate-950/70">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => onChange(tab.id)}
+              aria-pressed={isActive}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition ${
+                isActive
+                  ? "bg-[#2f2f2f] text-[#ffd84f] shadow-[0_12px_24px_-18px_rgba(15,23,42,0.85)] dark:bg-white dark:text-slate-950"
+                  : "text-slate-600 hover:bg-white hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+              }`}
+            >
+              <span>{tab.label}</span>
+              {typeof tab.count === "number" ? (
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs ${
+                    isActive
+                      ? "bg-white/15 text-white dark:bg-slate-950/10 dark:text-slate-950"
+                      : "bg-white text-slate-600 dark:bg-slate-900 dark:text-slate-300"
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+function AdminHeaderActions({ logoutLabel, onLogout }) {
+  const actions = [
+    {
+      label: "Search",
+      icon: (
+        <path d="m15 15 4 4M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+      ),
+    },
+    {
+      label: "Alerts",
+      icon: (
+        <path d="M12 3a4 4 0 0 0-4 4v3.6L6.4 14h11.2L16 10.6V7a4 4 0 0 0-4-4ZM10 17h4" />
+      ),
+    },
+    {
+      label: "Settings",
+      icon: (
+        <path d="M12 8.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7ZM4 12h2M18 12h2M12 4v2M12 18v2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M17.7 6.3l-1.4 1.4M7.7 16.3l-1.4 1.4" />
+      ),
+    },
+  ];
+
+  return (
+    <div className="flex shrink-0 items-center gap-2">
+      {actions.map((action) => (
+        <span
+          key={action.label}
+          className="hidden h-12 w-12 items-center justify-center rounded-full border border-[#d8caa9] bg-white/25 text-slate-800 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 sm:flex"
+          title={action.label}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            {action.icon}
+          </svg>
+        </span>
+      ))}
+      <button
+        type="button"
+        onClick={onLogout}
+        className="rounded-full border border-[#d8caa9] bg-white/30 px-4 py-3 text-sm font-semibold text-slate-800 transition hover:bg-white/65 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
+      >
+        {logoutLabel}
+      </button>
+    </div>
+  );
+}
+
+function AdminDashboardOverview({ copy, onOpenTab, stats = [] }) {
+  return (
+    <div className="rounded-[2.4rem] border border-white/80 bg-[#fffdf8]/92 p-5 shadow-[0_30px_100px_-72px_rgba(72,52,34,0.72)] dark:border-white/10 dark:bg-slate-900/88 sm:p-6 lg:p-8">
+      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#c26b45] dark:text-orange-200">
+            {copy.dashboard}
+          </p>
+          <h3 className="[font-family:var(--font-display)] mt-3 text-3xl font-semibold text-slate-950 dark:text-white">
+            {copy.overview}
+          </h3>
+        </div>
+      </div>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        {stats.map((stat) => (
+          <button
+            key={`${stat.id}-${stat.label}`}
+            type="button"
+            onClick={() => onOpenTab(stat.id)}
+            className={`group min-h-[10.5rem] rounded-[1.7rem] border border-white/80 p-5 text-left shadow-[0_18px_60px_-50px_rgba(72,52,34,0.65)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_70px_-48px_rgba(72,52,34,0.75)] dark:border-white/10 dark:bg-slate-800/70 ${stat.tone}`}
+          >
+            <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+              {stat.label}
+            </span>
+            <span className="mt-5 block text-4xl font-semibold text-slate-950 dark:text-white">
+              {stat.value}
+            </span>
+            <span className="mt-4 inline-flex rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-slate-600 transition group-hover:bg-slate-950 group-hover:text-white dark:bg-slate-950/70 dark:text-slate-200 dark:group-hover:bg-white dark:group-hover:text-slate-950">
+              {stat.helper || copy.manage}
+            </span>
+          </button>
+        ))}
       </div>
     </div>
+  );
+}
+
+function ToursAdminSection({
+  copy,
+  editing,
+  form,
+  galleryImages,
+  imageFileNames,
+  imageInputKey,
+  imagePreviewUrls,
+  language,
+  loading,
+  onAddLocalizedItem,
+  onClearImageFile,
+  onDeleteTour,
+  onEditTour,
+  onFormChange,
+  onImageFileChange,
+  onLocalizedItemChange,
+  onMakeCoverImage,
+  onRemoveGalleryImage,
+  onRemoveLocalizedItem,
+  onRemovePendingImage,
+  onReset,
+  onSubmit,
+  saving,
+  t,
+  tours,
+}) {
+  return (
+    <>
+      <AdminTourForm
+        form={form}
+        editing={editing}
+        saving={saving}
+        galleryImages={galleryImages}
+        imageFileNames={imageFileNames}
+        imagePreviewUrls={imagePreviewUrls}
+        imageInputKey={imageInputKey}
+        onChange={onFormChange}
+        onImageFileChange={onImageFileChange}
+        onClearImageFile={onClearImageFile}
+        onRemoveGalleryImage={onRemoveGalleryImage}
+        onMakeCoverImage={onMakeCoverImage}
+        onRemovePendingImage={onRemovePendingImage}
+        onLocalizedItemChange={onLocalizedItemChange}
+        onAddLocalizedItem={onAddLocalizedItem}
+        onRemoveLocalizedItem={onRemoveLocalizedItem}
+        onSubmit={onSubmit}
+        onReset={onReset}
+      />
+
+      <div className="overflow-hidden rounded-[2.1rem] border border-white/80 bg-[#fffdf8] p-5 shadow-[0_30px_100px_-72px_rgba(72,52,34,0.72)] dark:border-white/10 dark:bg-slate-900/88 sm:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#c26b45] dark:text-orange-200">
+              {t("admin.existingTours")}
+            </p>
+            <h3 className="[font-family:var(--font-display)] mt-3 text-3xl font-semibold text-slate-950 dark:text-white">
+              {t("admin.catalogEntries")}
+            </h3>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="rounded-full bg-[#f7f1e8] px-4 py-2 text-sm font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+              {tours.length} {t("admin.tourCountSuffix")}
+            </p>
+            <button
+              type="button"
+              onClick={onReset}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-950/80 bg-[#f5efd8] px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-white dark:border-white/20 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
+            >
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#2f2f2f] text-[#ffd84f]">
+                +
+              </span>
+              {copy.addPackage}
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-6">
+          {loading ? (
+            <LoadingSkeleton />
+          ) : tours.length > 0 ? (
+            <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-4">
+              {tours.map((tour) => {
+                const tourTitle = getLocalized(tour.title, language);
+                const tourDestination = getLocalized(tour.destination, language);
+                const tourDuration = getLocalized(tour.duration, language);
+
+                return (
+                  <article
+                    key={tour.id}
+                    className="group relative min-h-[23rem] overflow-hidden rounded-[1.55rem] bg-slate-950 shadow-[0_22px_80px_-58px_rgba(0,0,0,0.75)] transition hover:-translate-y-0.5 hover:shadow-[0_30px_95px_-56px_rgba(0,0,0,0.85)]"
+                  >
+                    <TravelImage
+                      image={getTourCoverImage(tour)}
+                      title={tourTitle}
+                      subtitle={tourDestination}
+                      variant="tour"
+                      className="absolute inset-0 h-full transition duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent" />
+                    <div className="absolute right-4 top-4 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onEditTour(tour)}
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/22 text-white backdrop-blur transition hover:bg-white/35"
+                        aria-label={t("admin.editAction")}
+                        title={t("admin.editAction")}
+                      >
+                        <EditIcon />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDeleteTour(tour.id)}
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/22 text-white backdrop-blur transition hover:bg-rose-500/75"
+                        aria-label={t("admin.deleteAction")}
+                        title={t("admin.deleteAction")}
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
+
+                    <div className="absolute inset-x-0 bottom-0 space-y-4 p-5 text-white">
+                      <div className="flex items-end justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="truncate text-base font-semibold">
+                            {tourTitle}
+                          </h4>
+                          <p className="mt-2 truncate text-sm text-white/78">
+                            {tourDestination}
+                          </p>
+                        </div>
+                        <span className="shrink-0 text-sm font-semibold text-white">
+                          {formatCurrencyValue(tour.price, tour.currency, language)}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-3 text-sm text-white">
+                        <span>{tourDuration || "-"}</span>
+                        <span className="truncate text-white/78">
+                          {tour.category || t("admin.category")}
+                        </span>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <EmptyState
+              title={t("admin.noToursTitle")}
+              message={t("admin.noToursMessage")}
+            />
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function EditIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M4 7h16" />
+      <path d="M10 11v6M14 11v6" />
+      <path d="M6 7l1 14h10l1-14" />
+      <path d="M9 7V4h6v3" />
+    </svg>
   );
 }

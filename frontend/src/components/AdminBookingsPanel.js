@@ -470,10 +470,10 @@ export default function AdminBookingsPanel({
   };
 
   return (
-    <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 p-5 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
+    <div className="overflow-hidden rounded-[2.4rem] border border-white/80 bg-[#fffdf8]/92 p-5 shadow-[0_30px_100px_-72px_rgba(72,52,34,0.72)] dark:border-white/10 dark:bg-slate-900/88 sm:p-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#d83f45] dark:text-[#ff8c90]">
+          <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#c26b45] dark:text-orange-200">
             {labels.label}
           </p>
           <h3 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
@@ -495,7 +495,7 @@ export default function AdminBookingsPanel({
                 className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 transition ${
                   isActive
                     ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950"
-                    : "bg-slate-50 text-slate-700 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                    : "bg-[#f7f1e8] text-slate-700 hover:bg-white dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                 }`}
               >
                 <span>{label}</span>
@@ -547,18 +547,18 @@ export default function AdminBookingsPanel({
               return (
                 <article
                   key={booking.id}
-                  className="rounded-[1.5rem] border border-slate-100 bg-slate-50 p-5 dark:border-white/10 dark:bg-slate-800/70"
+                  className="rounded-[1.7rem] border border-[#efe4d4] bg-white p-5 shadow-[0_22px_80px_-62px_rgba(72,52,34,0.72)] dark:border-white/10 dark:bg-slate-800/70"
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <h4 className="text-lg font-semibold text-slate-950 dark:text-white">
                         {booking.title || booking.tourTitle || labels.title}
                       </h4>
-                      <p className="mt-2 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+                      <p className="mt-2 text-sm font-semibold text-[#c26b45] dark:text-orange-200">
                         {customerName}
                       </p>
                     </div>
-                    <span className="inline-flex w-fit rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200">
+                    <span className="inline-flex w-fit rounded-full bg-[#eef8ef] px-3 py-1.5 text-xs font-semibold text-[#2f6f55] dark:bg-emerald-500/10 dark:text-emerald-200">
                       {labels.statuses[booking.status] || booking.status}
                     </span>
                   </div>
@@ -663,7 +663,7 @@ export default function AdminBookingsPanel({
                             updateDraft(booking.id, "status", event.target.value)
                           }
                           disabled={isBusy}
-                          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
+                          className="w-full rounded-[1.15rem] border border-[#eadfcc] bg-[#fffdf8] px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-[#c26b45] focus:ring-4 focus:ring-[#c26b45]/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-orange-200 dark:focus:ring-orange-200/20"
                         >
                           {BOOKING_STATUS_OPTIONS.map((status) => (
                             <option key={status} value={status}>
@@ -720,7 +720,7 @@ export default function AdminBookingsPanel({
                         }
                         disabled={isBusy}
                       />
-                      <div className="grid gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-900">
+                      <div className="grid gap-2 rounded-[1.15rem] border border-[#eadfcc] bg-[#fffdf8] px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-900">
                         <span className="font-semibold text-slate-700 dark:text-slate-200">
                           {labels.remainingAmount}:{" "}
                           {Number.isFinite(paymentPreview.remainingAmount)
@@ -773,7 +773,7 @@ export default function AdminBookingsPanel({
             })}
           </div>
         ) : (
-          <div className="rounded-[1.5rem] bg-slate-50 p-6 dark:bg-slate-800/70">
+          <div className="rounded-[1.5rem] border border-[#efe4d4] bg-[#faf4ea] p-6 dark:border-white/10 dark:bg-slate-800/70">
             <h4 className="font-semibold text-slate-950 dark:text-white">
               {labels.emptyTitle}
             </h4>
@@ -806,7 +806,7 @@ function BookingFilesSection({
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
           {labels.pdfDocuments}
         </p>
-        <span className="inline-flex w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-900 dark:text-slate-200">
+        <span className="inline-flex w-fit rounded-full bg-[#faf4ea] px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-900 dark:text-slate-200">
           {files.length} {labels.pdfType}
         </span>
       </div>
@@ -816,7 +816,7 @@ function BookingFilesSection({
           {files.map((file) => (
             <li
               key={file.id}
-              className="flex flex-col gap-3 rounded-[1.1rem] bg-white p-3 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-3 rounded-[1.1rem] bg-[#faf4ea] p-3 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-slate-950 dark:text-white">
@@ -848,7 +848,7 @@ function BookingFilesSection({
           ))}
         </ul>
       ) : (
-        <p className="mt-3 rounded-[1.1rem] bg-white px-4 py-3 text-sm font-semibold text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+        <p className="mt-3 rounded-[1.1rem] bg-[#faf4ea] px-4 py-3 text-sm font-semibold text-slate-600 dark:bg-slate-900 dark:text-slate-300">
           {labels.noFiles}
         </p>
       )}
@@ -866,7 +866,7 @@ function BookingFilesSection({
               onFileChange(booking.id, event.target.files?.[0] || null)
             }
             disabled={disabled}
-            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 file:mr-3 file:rounded-full file:border-0 file:bg-slate-950 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:file:bg-white dark:file:text-slate-950 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20 dark:disabled:bg-slate-800"
+            className="w-full rounded-[1.15rem] border border-[#eadfcc] bg-[#fffdf8] px-4 py-3 text-sm text-slate-900 file:mr-3 file:rounded-full file:border-0 file:bg-slate-950 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white focus:border-[#c26b45] focus:outline-none focus:ring-4 focus:ring-[#c26b45]/15 disabled:cursor-not-allowed disabled:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:file:bg-white dark:file:text-slate-950 dark:focus:border-orange-200 dark:focus:ring-orange-200/20 dark:disabled:bg-slate-800"
           />
         </label>
 
@@ -880,7 +880,7 @@ function BookingFilesSection({
             onChange={(event) => onNameChange(event.target.value)}
             disabled={disabled}
             placeholder={labels.fileName}
-            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20 dark:disabled:bg-slate-800"
+            className="w-full rounded-[1.15rem] border border-[#eadfcc] bg-[#fffdf8] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#c26b45] focus:ring-4 focus:ring-[#c26b45]/15 disabled:cursor-not-allowed disabled:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-200 dark:focus:ring-orange-200/20 dark:disabled:bg-slate-800"
           />
         </label>
 
@@ -926,7 +926,7 @@ function BookingInput({
         step={step}
         onChange={(event) => onChange(event.target.value)}
         disabled={disabled}
-        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
+        className="w-full rounded-[1.15rem] border border-[#eadfcc] bg-[#fffdf8] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#c26b45] focus:ring-4 focus:ring-[#c26b45]/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-orange-200 dark:focus:ring-orange-200/20"
       />
     </label>
   );
@@ -943,7 +943,7 @@ function BookingTextarea({ disabled = false, label, onChange, rows, value }) {
         onChange={(event) => onChange(event.target.value)}
         disabled={disabled}
         rows={rows}
-        className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
+        className="w-full resize-none rounded-[1.15rem] border border-[#eadfcc] bg-[#fffdf8] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#c26b45] focus:ring-4 focus:ring-[#c26b45]/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-orange-200 dark:focus:ring-orange-200/20"
       />
     </label>
   );
@@ -955,7 +955,7 @@ function BookingMeta({ label, value }) {
   }
 
   return (
-    <div className="rounded-[1.1rem] bg-white p-3 dark:bg-slate-900">
+    <div className="rounded-[1.1rem] bg-[#faf4ea] p-3 dark:bg-slate-900">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
         {label}
       </p>

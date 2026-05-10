@@ -29,10 +29,10 @@ export default function AdminReviewsPanel({
   );
 
   return (
-    <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 p-5 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
+    <div className="overflow-hidden rounded-[2.4rem] border border-white/80 bg-[#fffdf8]/92 p-5 shadow-[0_30px_100px_-72px_rgba(72,52,34,0.72)] dark:border-white/10 dark:bg-slate-900/88 sm:p-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#d83f45] dark:text-[#ff8c90]">
+          <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#c26b45] dark:text-orange-200">
             {t("admin.reviewsLabel")}
           </p>
           <h3 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
@@ -68,7 +68,7 @@ export default function AdminReviewsPanel({
               return (
                 <article
                   key={review.id}
-                  className="rounded-[1.5rem] border border-slate-100 bg-slate-50 p-5 dark:border-white/10 dark:bg-slate-800/70"
+                  className="rounded-[1.7rem] border border-[#efe4d4] bg-white p-5 shadow-[0_22px_80px_-62px_rgba(72,52,34,0.72)] dark:border-white/10 dark:bg-slate-800/70"
                 >
                   <div className="flex items-start gap-3">
                     {review.photoURL ? (
@@ -159,7 +159,7 @@ export default function AdminReviewsPanel({
             })}
           </div>
         ) : (
-          <div className="rounded-[1.5rem] bg-slate-50 p-6 dark:bg-slate-800/70">
+          <div className="rounded-[1.5rem] border border-[#efe4d4] bg-[#faf4ea] p-6 dark:border-white/10 dark:bg-slate-800/70">
             <h4 className="font-semibold text-slate-950 dark:text-white">
               {t("admin.noReviewsTitle")}
             </h4>
@@ -175,7 +175,7 @@ export default function AdminReviewsPanel({
 
 function ReviewMeta({ label, value }) {
   return (
-    <div className="rounded-[1.1rem] bg-white p-3 dark:bg-slate-900">
+    <div className="rounded-[1.1rem] bg-[#faf4ea] p-3 dark:bg-slate-900">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
         {label}
       </p>

@@ -3,7 +3,7 @@ import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 import { MAX_TOUR_IMAGES, RECOMMENDED_TOUR_IMAGES } from "../lib/tourImages";
 
 const inputClassName =
-  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20";
+  "w-full rounded-[1.15rem] border border-[#eadfcc] bg-[#fffdf8] px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#c26b45] focus:ring-4 focus:ring-[#c26b45]/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-200 dark:focus:ring-orange-200/20";
 
 const TOUR_IMAGE_TEXT = {
   ka: {
@@ -76,47 +76,64 @@ export default function AdminTourForm({
       language
     ) || t("admin.previewSubtitle");
   const previewImages = [...galleryImages, ...imagePreviewUrls];
-  const previewImage = previewImages[0] || form.image;
   const hasSelectedImages = imagePreviewUrls.length > 0;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-      <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
-        <TravelImage
-          image={previewImage}
-          title={previewTitle}
-          subtitle={previewSubtitle}
-          variant="tour"
-          className="h-72"
-        />
-
-        {previewImages.length > 1 ? (
-          <div className="grid grid-cols-5 gap-2 bg-white p-3 dark:bg-slate-900">
-            {previewImages.slice(0, MAX_TOUR_IMAGES).map((image, index) => (
+    <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
+      <div className="rounded-[2.4rem] border border-white/80 bg-white p-5 shadow-[0_30px_100px_-72px_rgba(72,52,34,0.72)] dark:border-white/10 dark:bg-slate-900/88">
+        <div className="grid grid-cols-2 gap-4">
+          {previewImages.length > 0 ? (
+            previewImages.slice(0, 7).map((image, index) => (
               <div
                 key={`${image}-${index}`}
-                className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700"
+                className="overflow-hidden rounded-[1.15rem] border border-[#efe4d4] dark:border-slate-700"
               >
                 <TravelImage
                   image={image}
                   title={previewTitle}
                   subtitle={previewSubtitle}
                   variant="tour"
-                  className="h-16"
+                  className="h-40"
                 />
               </div>
-            ))}
-          </div>
-        ) : null}
+            ))
+          ) : (
+            <div className="col-span-2 overflow-hidden rounded-[1.15rem] border border-[#efe4d4] dark:border-slate-700">
+              <TravelImage
+                image={form.image}
+                title={previewTitle}
+                subtitle={previewSubtitle}
+                variant="tour"
+                className="h-72"
+              />
+            </div>
+          )}
+
+          <label className="flex min-h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-[1.15rem] border border-dashed border-[#d9c8ae] bg-[#e8e5d8] text-sm font-semibold text-slate-600 transition hover:border-[#c26b45] hover:bg-[#fff8ed] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-400/50">
+              +
+            </span>
+            <span>{getTourImageText(language, "chooseImages")}</span>
+            <input
+              key={`preview-${imageInputKey}`}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              onChange={onImageFileChange}
+              disabled={saving}
+              className="sr-only"
+            />
+          </label>
+        </div>
       </div>
 
       <form
         onSubmit={onSubmit}
-        className="space-y-5 rounded-[2rem] border border-white/70 bg-white/92 p-5 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]"
+        className="space-y-6 rounded-[2.4rem] border border-white/80 bg-[#fffdf8]/92 p-5 shadow-[0_30px_100px_-72px_rgba(72,52,34,0.72)] dark:border-white/10 dark:bg-slate-900/88 sm:p-6"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
+            <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#c26b45] dark:text-orange-200">
               {editing ? t("admin.editTour") : t("admin.createTour")}
             </p>
             <h3 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
@@ -128,7 +145,7 @@ export default function AdminTourForm({
             <button
               type="button"
               onClick={onReset}
-              className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              className="rounded-full border border-[#eadfcc] bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-[#d9c8ae] hover:bg-[#fff8ed] dark:border-white/10 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             >
               {t("common.cancel")}
             </button>
@@ -136,7 +153,7 @@ export default function AdminTourForm({
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-4 rounded-[1.6rem] bg-slate-50 p-4 dark:bg-slate-800/70">
+          <div className="space-y-4 rounded-[1.6rem] border border-[#efe4d4] bg-[#faf4ea] p-4 dark:border-white/10 dark:bg-slate-800/70">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
                 {t("admin.georgianContent")}
@@ -196,7 +213,7 @@ export default function AdminTourForm({
             </label>
           </div>
 
-          <div className="space-y-4 rounded-[1.6rem] bg-slate-50 p-4 dark:bg-slate-800/70">
+          <div className="space-y-4 rounded-[1.6rem] border border-[#efe4d4] bg-[#faf4ea] p-4 dark:border-white/10 dark:bg-slate-800/70">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
                 {t("admin.englishContent")}
@@ -305,7 +322,7 @@ export default function AdminTourForm({
             <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
               {getTourImageText(language, "tourImages")}
             </span>
-            <label className="flex cursor-pointer flex-col gap-2 rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-4 text-sm text-slate-700 transition hover:border-emerald-400 hover:bg-emerald-50/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-emerald-400 dark:hover:bg-emerald-500/10">
+            <label className="flex cursor-pointer flex-col gap-2 rounded-[1.25rem] border border-dashed border-[#d9c8ae] bg-white px-4 py-4 text-sm text-slate-700 transition hover:border-[#c26b45] hover:bg-[#fff8ed] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-orange-200 dark:hover:bg-orange-200/10">
               <span className="font-semibold">
                 {getTourImageText(language, "chooseImages")}
               </span>
@@ -342,7 +359,7 @@ export default function AdminTourForm({
               />
             ) : null}
             {hasSelectedImages ? (
-              <div className="space-y-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700 dark:bg-slate-800/70 dark:text-slate-200">
+              <div className="space-y-3 rounded-[1.25rem] border border-[#efe4d4] bg-[#faf4ea] px-4 py-3 text-sm text-slate-700 dark:border-white/10 dark:bg-slate-800/70 dark:text-slate-200">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <span className="font-semibold">
                     {getTourImageText(language, "selectedImages")}: {imageFileNames.length}
@@ -360,7 +377,7 @@ export default function AdminTourForm({
                   {imagePreviewUrls.map((image, index) => (
                     <div
                       key={`${image}-${index}`}
-                      className="overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900"
+                      className="overflow-hidden rounded-[1.25rem] border border-[#efe4d4] bg-white dark:border-slate-700 dark:bg-slate-900"
                     >
                       <TravelImage
                         image={image}
@@ -435,7 +452,7 @@ export default function AdminTourForm({
         <button
           type="submit"
           disabled={saving}
-          className="inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
+          className="inline-flex rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_-18px_rgba(15,23,42,0.9)] transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
         >
           {saving
             ? t("admin.saving")
@@ -461,13 +478,13 @@ function ImagePreviewGrid({
   onMakeCover,
 }) {
   return (
-    <div className="space-y-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700 dark:bg-slate-800/70 dark:text-slate-200">
+    <div className="space-y-3 rounded-[1.25rem] border border-[#efe4d4] bg-[#faf4ea] px-4 py-3 text-sm text-slate-700 dark:border-white/10 dark:bg-slate-800/70 dark:text-slate-200">
       <p className="font-semibold">{title}</p>
       <div className="grid gap-3 sm:grid-cols-2">
         {images.map((image, index) => (
           <div
             key={`${image}-${index}`}
-            className="overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900"
+            className="overflow-hidden rounded-[1.25rem] border border-[#efe4d4] bg-white dark:border-slate-700 dark:bg-slate-900"
           >
             <div className="relative">
               <TravelImage
@@ -489,7 +506,7 @@ function ImagePreviewGrid({
                   type="button"
                   onClick={() => onMakeCover(image)}
                   disabled={saving}
-                  className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-emerald-500/10 dark:text-emerald-200 dark:hover:bg-emerald-500/20"
+                  className="rounded-full bg-[#fff8ed] px-3 py-1.5 text-xs font-semibold text-[#9a5435] transition hover:bg-[#f4e6d3] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-orange-200/10 dark:text-orange-100 dark:hover:bg-orange-200/20"
                 >
                   {makeCoverLabel}
                 </button>
@@ -526,7 +543,7 @@ function LocalizedItemsEditor({
   const exampleItems = Array.isArray(examples) ? examples : [];
 
   return (
-    <section className="space-y-4 rounded-[1.6rem] bg-slate-50 p-4 dark:bg-slate-800/70">
+    <section className="space-y-4 rounded-[1.6rem] border border-[#efe4d4] bg-[#faf4ea] p-4 dark:border-white/10 dark:bg-slate-800/70">
       <div>
         <h4 className="[font-family:var(--font-display)] text-xl font-semibold text-slate-950 dark:text-white">
           {title}
@@ -542,7 +559,7 @@ function LocalizedItemsEditor({
         {visibleRows.map((row, index) => (
           <div
             key={`${section}-${index}`}
-            className="rounded-[1.25rem] border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900"
+            className="rounded-[1.25rem] border border-[#efe4d4] bg-white p-3 dark:border-slate-700 dark:bg-slate-900"
           >
             <div className="grid gap-3 md:grid-cols-2">
               <label className="space-y-2">

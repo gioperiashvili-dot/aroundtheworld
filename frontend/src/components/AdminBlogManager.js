@@ -15,7 +15,7 @@ import { formatCalendarDate, getFriendlyApiError } from "../lib/formatters";
 const IMAGE_UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_UPLOAD_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const inputClassName =
-  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20";
+  "w-full rounded-[1.15rem] border border-[#eadfcc] bg-[#fffdf8] px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#c26b45] focus:ring-4 focus:ring-[#c26b45]/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-200 dark:focus:ring-orange-200/20";
 
 function createEmptyBlogForm() {
   return {
@@ -335,8 +335,8 @@ export default function AdminBlogManager({ token, onUnauthorized }) {
 
   return (
     <section className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-        <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
+      <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
+        <div className="overflow-hidden rounded-[2.4rem] border border-white/80 bg-[#fffdf8]/92 shadow-[0_30px_100px_-72px_rgba(72,52,34,0.72)] dark:border-white/10 dark:bg-slate-900/88">
           <TravelImage
             image={imagePreviewUrl || form.image}
             title={previewTitle}
@@ -348,11 +348,11 @@ export default function AdminBlogManager({ token, onUnauthorized }) {
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-5 rounded-[2rem] border border-white/70 bg-white/92 p-5 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]"
+          className="space-y-6 rounded-[2.4rem] border border-white/80 bg-[#fffdf8]/92 p-5 shadow-[0_30px_100px_-72px_rgba(72,52,34,0.72)] dark:border-white/10 dark:bg-slate-900/88 sm:p-6"
         >
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-700 dark:text-cyan-300">
+              <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#c26b45] dark:text-orange-200">
                 {editingId ? t("admin.editBlogPost") : t("admin.createBlogPost")}
               </p>
               <h3 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
@@ -364,7 +364,7 @@ export default function AdminBlogManager({ token, onUnauthorized }) {
               <button
                 type="button"
                 onClick={resetForm}
-                className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                className="rounded-full border border-[#eadfcc] bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-[#d9c8ae] hover:bg-[#fff8ed] dark:border-white/10 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
               >
                 {t("common.cancel")}
               </button>
@@ -504,7 +504,7 @@ export default function AdminBlogManager({ token, onUnauthorized }) {
               <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                 {t("admin.uploadBlogImage")}
               </span>
-              <label className="flex cursor-pointer flex-col gap-2 rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-4 text-sm text-slate-700 transition hover:border-emerald-400 hover:bg-emerald-50/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-emerald-400 dark:hover:bg-emerald-500/10">
+              <label className="flex cursor-pointer flex-col gap-2 rounded-[1.25rem] border border-dashed border-[#d9c8ae] bg-white px-4 py-4 text-sm text-slate-700 transition hover:border-[#c26b45] hover:bg-[#fff8ed] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-orange-200 dark:hover:bg-orange-200/10">
                 <span className="font-semibold">{t("admin.chooseImage")}</span>
                 <span className="text-xs leading-6 text-slate-600 dark:text-slate-400">
                   {t("admin.imageUploadHelper")}
@@ -519,7 +519,7 @@ export default function AdminBlogManager({ token, onUnauthorized }) {
                 />
               </label>
               {imageFile?.name ? (
-                <div className="flex flex-col gap-2 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700 dark:bg-slate-800/70 dark:text-slate-200 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-2 rounded-[1.25rem] border border-[#efe4d4] bg-[#faf4ea] px-4 py-3 text-sm text-slate-700 dark:border-white/10 dark:bg-slate-800/70 dark:text-slate-200 sm:flex-row sm:items-center sm:justify-between">
                   <span>
                     <span className="font-semibold">{t("admin.selectedImage")}:</span>{" "}
                     {imageFile.name}
@@ -540,7 +540,7 @@ export default function AdminBlogManager({ token, onUnauthorized }) {
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
+            className="inline-flex rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_-18px_rgba(15,23,42,0.9)] transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
           >
             {saving
               ? t("admin.saving")
@@ -551,10 +551,10 @@ export default function AdminBlogManager({ token, onUnauthorized }) {
         </form>
       </div>
 
-      <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 p-5 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
+      <div className="overflow-hidden rounded-[2.4rem] border border-white/80 bg-[#fffdf8]/92 p-5 shadow-[0_30px_100px_-72px_rgba(72,52,34,0.72)] dark:border-white/10 dark:bg-slate-900/88 sm:p-6">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-700 dark:text-cyan-300">
+            <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#c26b45] dark:text-orange-200">
               {t("admin.blogManagerLabel")}
             </p>
             <h3 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
@@ -580,7 +580,7 @@ export default function AdminBlogManager({ token, onUnauthorized }) {
                 return (
                   <article
                     key={blog.id}
-                    className="overflow-hidden rounded-[1.8rem] border border-slate-100 bg-slate-50 shadow-[0_22px_80px_-60px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-800/70 dark:shadow-[0_22px_80px_-60px_rgba(2,6,23,0.85)]"
+                    className="overflow-hidden rounded-[1.9rem] border border-[#efe4d4] bg-white shadow-[0_22px_80px_-62px_rgba(72,52,34,0.72)] dark:border-white/10 dark:bg-slate-800/70"
                   >
                     <TravelImage
                       image={blog.image}
@@ -686,7 +686,7 @@ function LocalizedBlogFields({
   title,
 }) {
   return (
-    <div className="space-y-4 rounded-[1.6rem] bg-slate-50 p-4 dark:bg-slate-800/70">
+    <div className="space-y-4 rounded-[1.6rem] border border-[#efe4d4] bg-[#faf4ea] p-4 dark:border-white/10 dark:bg-slate-800/70">
       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
         {title}
       </p>
@@ -739,7 +739,7 @@ function LocalizedBlogFields({
 
 function BlogMeta({ label, value }) {
   return (
-    <div className="rounded-[1.1rem] bg-white p-3 dark:bg-slate-900">
+    <div className="rounded-[1.1rem] bg-[#faf4ea] p-3 dark:bg-slate-900">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
         {label}
       </p>
