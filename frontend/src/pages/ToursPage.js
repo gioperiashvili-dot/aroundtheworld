@@ -10,6 +10,7 @@ import backgroundTwo from "../assets/background/background-2.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 import { fetchTours } from "../lib/api";
 import { getFriendlyApiError } from "../lib/formatters";
+import { getTourPublicPath } from "../lib/tourSlugs";
 
 function normalize(value) {
   return String(value || "").trim().toLowerCase();
@@ -177,7 +178,7 @@ export default function ToursPage() {
                     label={t("tours.searchLabel")}
                     value={searchInput}
                     onChange={setSearchInput}
-                    onSelect={(suggestion) => navigate(`/tours/${suggestion.tour.id}`)}
+                    onSelect={(suggestion) => navigate(getTourPublicPath(suggestion.tour))}
                     suggestions={suggestions}
                     placeholder={t("tours.searchPlaceholder")}
                     noSuggestionsText={t("common.noSuggestions")}

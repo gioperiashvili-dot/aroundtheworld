@@ -34,8 +34,24 @@ const TOUR_IMAGE_TEXT = {
   },
 };
 
+const TOUR_SLUG_TEXT = {
+  ka: {
+    label: "Slug",
+    helper:
+      "URL \u10DB\u10D8\u10E1\u10D0\u10DB\u10D0\u10E0\u10D7\u10D8, \u10DB\u10D0\u10D2\u10D0\u10DA\u10D8\u10D7\u10D0\u10D3: kutaisi-antalya",
+  },
+  en: {
+    label: "Slug",
+    helper: "URL address, for example: kutaisi-antalya",
+  },
+};
+
 function getTourImageText(language, key) {
   return TOUR_IMAGE_TEXT[language]?.[key] || TOUR_IMAGE_TEXT.en[key] || key;
+}
+
+function getTourSlugText(language, key) {
+  return TOUR_SLUG_TEXT[language]?.[key] || TOUR_SLUG_TEXT.en[key] || key;
 }
 
 export default function AdminTourForm({
@@ -300,6 +316,22 @@ export default function AdminTourForm({
               onChange={onChange}
               className={inputClassName}
             />
+          </label>
+
+          <label className="space-y-2">
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              {getTourSlugText(language, "label")}
+            </span>
+            <input
+              name="slug"
+              value={form.slug}
+              onChange={onChange}
+              placeholder="kutaisi-antalya"
+              className={inputClassName}
+            />
+            <span className="block text-xs leading-6 text-slate-600 dark:text-slate-400">
+              {getTourSlugText(language, "helper")}
+            </span>
           </label>
 
           <label className="space-y-2">

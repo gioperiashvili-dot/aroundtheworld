@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { getTourById, getTours } = require("../services/tours");
+const { getTourByIdOrSlug, getTours } = require("../services/tours");
 const {
   MAX_BOOKING_REQUEST_BYTES,
   sendTourBookingRequestEmail,
@@ -126,14 +126,14 @@ router.post("/booking-request", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:idOrSlug", async (req, res) => {
   try {
-    const tour = await getTourById(req.params.id);
+    const tour = await getTourByIdOrSlug(req.params.idOrSlug);
 
     if (!tour) {
       return res.status(404).json({
         error: "Tour not found",
-        details: "We could not find a tour with that id.",
+        details: "We could not find a tour with that id or slug.",
       });
     }
 

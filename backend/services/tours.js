@@ -1,6 +1,7 @@
 const fs = require("fs/promises");
 const path = require("path");
 const { randomUUID } = require("crypto");
+const { createTourSlug, normalizeTourSlug } = require("./tourSlugs");
 
 const toursFilePath = path.resolve(__dirname, "../data/tours.json");
 const MAX_TOUR_IMAGES = 10;
@@ -156,11 +157,72 @@ function normalizeLocalizedListField(value) {
   };
 }
 
+function getTourSlugSource(record) {
+  const title = normalizeLocalizedField(record?.title);
+  const destination = normalizeLocalizedField(record?.destination);
+
+  return (
+    title.ka ||
+    title.en ||
+    destination.ka ||
+    destination.en ||
+    record?.id ||
+    "tour"
+  );
+}
+
+function createUniqueTourSlug(baseSlug, tours, currentId = "") {
+  const fallbackSource =
+    tours.find((tour) => tour.id === String(currentId)) || null;
+  const base =
+    normalizeTourSlug(baseSlug) ||
+    createTourSlug(getTourSlugSource(fallbackSource), "tour");
+  const usedSlugs = new Set(
+    tours
+      .filter((tour) => !currentId || tour.id !== String(currentId))
+      .map((tour) => normalizeTourSlug(tour.slug))
+      .filter(Boolean)
+  );
+  let nextSlug = base;
+  let suffix = 2;
+
+  while (usedSlugs.has(nextSlug)) {
+    nextSlug = `${base}-${suffix}`;
+    suffix += 1;
+  }
+
+  return nextSlug;
+}
+
+function ensureUniqueTourSlugs(tours) {
+  const usedSlugs = new Set();
+
+  return tours.map((tour) => {
+    const base = normalizeTourSlug(tour.slug) || createTourSlug(getTourSlugSource(tour));
+    let nextSlug = base;
+    let suffix = 2;
+
+    while (usedSlugs.has(nextSlug)) {
+      nextSlug = `${base}-${suffix}`;
+      suffix += 1;
+    }
+
+    usedSlugs.add(nextSlug);
+
+    return {
+      ...tour,
+      slug: nextSlug,
+    };
+  });
+}
+
 function normalizeTourRecord(record) {
   const tourImages = getTourImages(record);
+  const slug = normalizeTourSlug(record?.slug) || createTourSlug(getTourSlugSource(record));
 
   return {
     id: String(record?.id || ""),
+    slug,
     title: normalizeLocalizedField(record?.title),
     destination: normalizeLocalizedField(record?.destination),
     description: normalizeLocalizedField(record?.description),
@@ -238,7 +300,8 @@ async function readToursFile() {
 
   try {
     const parsed = JSON.parse(fileContents);
-    return Array.isArray(parsed) ? parsed.map(normalizeTourRecord) : [];
+    const tours = Array.isArray(parsed) ? parsed.map(normalizeTourRecord) : [];
+    return ensureUniqueTourSlugs(tours);
   } catch (_error) {
     throw createToursError(
       500,
@@ -268,6 +331,18 @@ async function getTourById(id) {
   return tours.find((tour) => tour.id === String(id)) || null;
 }
 
+async function getTourByIdOrSlug(idOrSlug) {
+  const tours = await readToursFile();
+  const lookup = String(idOrSlug || "");
+  const slug = normalizeTourSlug(lookup);
+
+  return (
+    tours.find((tour) => tour.id === lookup) ||
+    tours.find((tour) => slug && tour.slug === slug) ||
+    null
+  );
+}
+
 async function createTour(input) {
   const nextTour = validateTourInput(input);
 
@@ -277,6 +352,7 @@ async function createTour(input) {
     const createdTour = {
       ...nextTour,
       id: randomUUID(),
+      slug: createUniqueTourSlug(nextTour.slug, tours),
       createdAt: timestamp,
       updatedAt: timestamp,
     };
@@ -299,10 +375,16 @@ async function updateTour(id, input) {
     }
 
     const existingTour = tours[existingIndex];
+    const inputHasSlug =
+      typeof input?.slug === "string" && input.slug.trim().length > 0;
+    const slugSource = inputHasSlug
+      ? nextTour.slug
+      : existingTour.slug || nextTour.slug;
     const updatedTour = {
       ...existingTour,
       ...nextTour,
       id: existingTour.id,
+      slug: createUniqueTourSlug(slugSource, tours, existingTour.id),
       createdAt: existingTour.createdAt,
       updatedAt: new Date().toISOString(),
     };
@@ -333,6 +415,7 @@ module.exports = {
   createTour,
   deleteTour,
   getTourById,
+  getTourByIdOrSlug,
   getTours,
   updateTour,
 };

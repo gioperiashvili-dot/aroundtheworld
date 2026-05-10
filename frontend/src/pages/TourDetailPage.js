@@ -120,7 +120,7 @@ function mergeBookingPrefill(previousForm, user, profile) {
 }
 
 export default function TourDetailPage() {
-  const { id } = useParams();
+  const { idOrSlug } = useParams();
   const { language, t } = useLanguage();
   const { currentUser } = useFirebaseAuth();
   const [tour, setTour] = useState(null);
@@ -145,7 +145,7 @@ export default function TourDetailPage() {
       setError("");
 
       try {
-        const response = await fetchTourById(id);
+        const response = await fetchTourById(idOrSlug);
         setTour(response?.tour || null);
       } catch (requestError) {
         setTour(null);
@@ -155,10 +155,10 @@ export default function TourDetailPage() {
       }
     };
 
-    if (id) {
+    if (idOrSlug) {
       void loadTour();
     }
-  }, [id, t]);
+  }, [idOrSlug, t]);
 
   useEffect(() => {
     let isMounted = true;
@@ -217,7 +217,9 @@ export default function TourDetailPage() {
   const dates = formatTourDates(tour?.dates, 12, language);
   const includedItems = getLocalizedList(tour?.included, language);
   const notIncludedItems = getLocalizedList(tour?.notIncluded, language);
-  const canonical = buildCanonicalUrl(`/tours/${encodeURIComponent(id || "")}`);
+  const canonical = buildCanonicalUrl(
+    `/tours/${encodeURIComponent(tour?.slug || idOrSlug || "")}`
+  );
   const seoTitle = title
     ? language === "ka"
       ? `${title} | ტურები საქართველოდან | Around The World`

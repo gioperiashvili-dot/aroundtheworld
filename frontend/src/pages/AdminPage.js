@@ -41,6 +41,11 @@ import {
   getTourImageSources,
   normalizeTourImageSources,
 } from "../lib/tourImages";
+import {
+  createTourSlug,
+  isValidTourSlug,
+  normalizeTourSlug,
+} from "../lib/tourSlugs";
 
 const TOKEN_STORAGE_KEY = "around-the-world-admin-token";
 const EXPIRY_STORAGE_KEY = "around-the-world-admin-expiry";
@@ -173,6 +178,7 @@ function createEmptyForm() {
     durationEn: "",
     dates: "",
     category: "",
+    slug: "",
     image: "",
     images: [],
     included: [createEmptyLocalizedItem()],
@@ -224,6 +230,7 @@ function toFormValues(tour) {
     durationEn: tour?.duration?.en || "",
     dates: Array.isArray(tour?.dates) ? tour.dates.join(", ") : "",
     category: tour?.category || "",
+    slug: tour?.slug || "",
     image: coverImage,
     images: galleryImages.filter((image) => image !== coverImage),
     included: toLocalizedItemRows(tour?.included),
@@ -277,6 +284,38 @@ function getTourImageTypeMessage(language) {
   }
 
   return georgianMessage;
+}
+
+function getTourSlugRequiredMessage(language) {
+  const georgianMessage =
+    "URL \u10DB\u10D8\u10E1\u10D0\u10DB\u10D0\u10E0\u10D7\u10D8 \u10D0\u10E3\u10EA\u10D8\u10DA\u10D4\u10D1\u10D4\u10DA\u10D8\u10D0.";
+
+  if (language === "en") {
+    return `${georgianMessage} URL slug is required.`;
+  }
+
+  return georgianMessage;
+}
+
+function getTourSlugFormatMessage(language) {
+  const georgianMessage =
+    "URL slug \u10D0\u10E0\u10D0\u10E1\u10EC\u10DD\u10E0\u10D8\u10D0. \u10D2\u10D0\u10DB\u10DD\u10D8\u10E7\u10D4\u10DC\u10D4\u10D7 a-z, 0-9 \u10D3\u10D0 \u10D3\u10D4\u10E4\u10D8\u10E1\u10D8.";
+
+  if (language === "en") {
+    return `${georgianMessage} Use only a-z, 0-9, and hyphens.`;
+  }
+
+  return georgianMessage;
+}
+
+function getTourSlugSourceFromForm(form) {
+  return (
+    form.titleKa ||
+    form.titleEn ||
+    form.destinationKa ||
+    form.destinationEn ||
+    ""
+  );
 }
 
 function toLocalizedItemRows(value) {
@@ -379,6 +418,7 @@ export default function AdminPage() {
   const [bookingRequestActionId, setBookingRequestActionId] = useState("");
   const [bookingActionId, setBookingActionId] = useState("");
   const [activeAdminTab, setActiveAdminTab] = useState(ADMIN_TAB_IDS.dashboard);
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState([]);
   const [imageInputKey, setImageInputKey] = useState(0);
@@ -556,6 +596,7 @@ export default function AdminPage() {
     setPassword("");
     setEditingId("");
     setActiveAdminTab(ADMIN_TAB_IDS.dashboard);
+    setSlugManuallyEdited(false);
     setForm(createEmptyForm());
     setImageFiles([]);
     setImageInputKey((currentKey) => currentKey + 1);
@@ -688,6 +729,7 @@ export default function AdminPage() {
   const resetForm = () => {
     setEditingId("");
     setForm(createEmptyForm());
+    setSlugManuallyEdited(false);
     setImageFiles([]);
     setImageInputKey((currentKey) => currentKey + 1);
   };
@@ -734,6 +776,14 @@ export default function AdminPage() {
       return t("admin.errors.priceInvalid");
     }
 
+    if (!form.slug.trim()) {
+      return getTourSlugRequiredMessage(language);
+    }
+
+    if (!isValidTourSlug(form.slug)) {
+      return getTourSlugFormatMessage(language);
+    }
+
     if (invalidDate) {
       return replaceToken(t("admin.errors.invalidDateFormat"), {
         date: invalidDate,
@@ -772,6 +822,7 @@ export default function AdminPage() {
       included: toLocalizedListPayload(form.included),
       notIncluded: toLocalizedListPayload(form.notIncluded),
       category: form.category.trim(),
+      slug: normalizeTourSlug(form.slug),
       image: galleryImages[0] || "",
       images: galleryImages,
     };
@@ -926,6 +977,36 @@ export default function AdminPage() {
         ...previousForm,
         [section]: nextRows.length > 0 ? nextRows : [createEmptyLocalizedItem()],
       };
+    });
+  };
+
+  const handleTourFormChange = (event) => {
+    const { name, value } = event.target;
+
+    if (name === "slug") {
+      setSlugManuallyEdited(true);
+      setForm((previousForm) => ({
+        ...previousForm,
+        slug: normalizeTourSlug(value),
+      }));
+      return;
+    }
+
+    setForm((previousForm) => {
+      const nextForm = {
+        ...previousForm,
+        [name]: value,
+      };
+      const shouldAutoGenerateSlug =
+        (name === "titleKa" || name === "titleEn") &&
+        !slugManuallyEdited &&
+        (!editingId || !previousForm.slug.trim());
+
+      if (shouldAutoGenerateSlug) {
+        nextForm.slug = createTourSlug(getTourSlugSourceFromForm(nextForm), "");
+      }
+
+      return nextForm;
     });
   };
 
@@ -1454,13 +1535,7 @@ export default function AdminPage() {
               imageFileNames={imageFiles.map((imageFile) => imageFile.name)}
               imagePreviewUrls={imagePreviewUrls}
               imageInputKey={imageInputKey}
-              onFormChange={(event) => {
-                const { name, value } = event.target;
-                setForm((previousForm) => ({
-                  ...previousForm,
-                  [name]: value,
-                }));
-              }}
+              onFormChange={handleTourFormChange}
               onImageFileChange={handleImageFileChange}
               onClearImageFile={clearSelectedImageFile}
               onRemoveGalleryImage={handleRemoveGalleryImage}
@@ -1474,6 +1549,7 @@ export default function AdminPage() {
               onEditTour={(tour) => {
                 setEditingId(tour.id);
                 setForm(toFormValues(tour));
+                setSlugManuallyEdited(Boolean(tour.slug));
                 clearSelectedImageFile();
                 setError("");
                 setSuccess("");

@@ -107,8 +107,10 @@ export async function fetchTours() {
   return response.data;
 }
 
-export async function fetchTourById(id) {
-  const response = await apiClient.get(`/api/tours/${id}`);
+export async function fetchTourById(idOrSlug) {
+  const response = await apiClient.get(
+    `/api/tours/${encodeURIComponent(idOrSlug)}`
+  );
   return response.data;
 }
 

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 import { fetchTours } from "../lib/api";
+import { getTourPublicPath } from "../lib/tourSlugs";
 
 function normalize(value) {
   return String(value || "").trim().toLowerCase();
@@ -156,7 +157,7 @@ export default function TourSearchModal({ isOpen, onClose }) {
                 <button
                   key={tour.id}
                   type="button"
-                  onClick={() => closeAndNavigate(`/tours/${tour.id}`)}
+                  onClick={() => closeAndNavigate(getTourPublicPath(tour))}
                   className="group flex items-center justify-between gap-4 rounded-[1.5rem] bg-slate-50 p-4 text-left transition hover:bg-slate-950 hover:text-white dark:bg-slate-900 dark:hover:bg-white dark:hover:text-slate-950"
                 >
                   <span className="min-w-0">

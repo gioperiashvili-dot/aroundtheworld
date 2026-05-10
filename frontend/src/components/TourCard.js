@@ -4,6 +4,7 @@ import TravelImage from "./TravelImage";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 import { formatCurrencyValue, formatTourDates } from "../lib/formatters";
 import { getTourCoverImage } from "../lib/tourImages";
+import { getTourPublicPath } from "../lib/tourSlugs";
 
 export default function TourCard({ tour }) {
   const { language, t } = useLanguage();
@@ -77,7 +78,7 @@ export default function TourCard({ tour }) {
         ) : null}
 
         <Link
-          to={`/tours/${tour.id}`}
+          to={getTourPublicPath(tour)}
           className="inline-flex rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
         >
           {t("tours.openDetails")}
