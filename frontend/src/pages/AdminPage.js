@@ -23,7 +23,7 @@ import {
   fetchAdminReviews,
   fetchAdminTours,
   uploadAdminBookingFile,
-  uploadAdminTourImage,
+  uploadAdminTourImages,
   updateAdminBooking,
   updateAdminBookingRequest,
   updateAdminTour,
@@ -34,6 +34,12 @@ import {
   getFriendlyApiError,
   parseDatesInput,
 } from "../lib/formatters";
+import {
+  MAX_TOUR_IMAGES,
+  getTourCoverImage,
+  getTourImageSources,
+  normalizeTourImageSources,
+} from "../lib/tourImages";
 
 const TOKEN_STORAGE_KEY = "around-the-world-admin-token";
 const EXPIRY_STORAGE_KEY = "around-the-world-admin-expiry";
@@ -167,6 +173,7 @@ function createEmptyForm() {
     dates: "",
     category: "",
     image: "",
+    images: [],
     included: [createEmptyLocalizedItem()],
     notIncluded: [createEmptyLocalizedItem()],
   };
@@ -201,6 +208,9 @@ function getBookingFileDownloadName(file) {
 }
 
 function toFormValues(tour) {
+  const galleryImages = getTourImageSources(tour);
+  const coverImage = galleryImages[0] || tour?.image || "";
+
   return {
     titleKa: tour?.title?.ka || "",
     titleEn: tour?.title?.en || "",
@@ -213,10 +223,59 @@ function toFormValues(tour) {
     durationEn: tour?.duration?.en || "",
     dates: Array.isArray(tour?.dates) ? tour.dates.join(", ") : "",
     category: tour?.category || "",
-    image: tour?.image || "",
+    image: coverImage,
+    images: galleryImages.filter((image) => image !== coverImage),
     included: toLocalizedItemRows(tour?.included),
     notIncluded: toLocalizedItemRows(tour?.notIncluded),
   };
+}
+
+function getFormGalleryImages(form) {
+  return normalizeTourImageSources([
+    form?.image,
+    ...(Array.isArray(form?.images) ? form.images : []),
+  ]);
+}
+
+function toGalleryFormValues(images = []) {
+  const galleryImages = normalizeTourImageSources(images);
+
+  return {
+    image: galleryImages[0] || "",
+    images: galleryImages.slice(1),
+  };
+}
+
+function getTourImageLimitMessage(language) {
+  const georgianMessage = `\u10E2\u10E3\u10E0\u10D6\u10D4 \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10E3\u10DB ${MAX_TOUR_IMAGES} \u10E4\u10DD\u10E2\u10DD\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0 \u10E8\u10D4\u10D8\u10EB\u10DA\u10D4\u10D1\u10D0. \u10EC\u10D0\u10E8\u10D0\u10DA\u10D4\u10D7 \u10E0\u10DD\u10DB\u10D4\u10DA\u10D8\u10DB\u10D4 \u10E4\u10DD\u10E2\u10DD \u10D0\u10DC \u10D0\u10D8\u10E0\u10E9\u10D8\u10D4\u10D7 \u10DC\u10D0\u10D9\u10DA\u10D4\u10D1\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D8.`;
+
+  if (language === "en") {
+    return `${georgianMessage} A tour can have at most ${MAX_TOUR_IMAGES} images.`;
+  }
+
+  return georgianMessage;
+}
+
+function getTourImageFieldMessage(language) {
+  const georgianMessage =
+    '\u10E2\u10E3\u10E0\u10D8\u10E1 \u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D8\u10E1 \u10D5\u10D4\u10DA\u10D8 \u10E3\u10DC\u10D3\u10D0 \u10D8\u10E7\u10DD\u10E1 "images".';
+
+  if (language === "en") {
+    return `${georgianMessage} Use the "images" field for tour photos.`;
+  }
+
+  return georgianMessage;
+}
+
+function getTourImageTypeMessage(language) {
+  const georgianMessage =
+    "\u10E1\u10E3\u10E0\u10D0\u10D7\u10D8\u10E1 \u10E2\u10D8\u10DE\u10D8 \u10D0\u10E0\u10D0\u10E1\u10EC\u10DD\u10E0\u10D8\u10D0. \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D4\u10D7 JPG, PNG \u10D0\u10DC WebP \u10E4\u10D0\u10D8\u10DA\u10D8.";
+
+  if (language === "en") {
+    return `${georgianMessage} Upload a JPG, PNG, or WebP image.`;
+  }
+
+  return georgianMessage;
 }
 
 function toLocalizedItemRows(value) {
@@ -261,8 +320,8 @@ export default function AdminPage() {
   const [reviewActionId, setReviewActionId] = useState("");
   const [bookingRequestActionId, setBookingRequestActionId] = useState("");
   const [bookingActionId, setBookingActionId] = useState("");
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
+  const [imageFiles, setImageFiles] = useState([]);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState([]);
   const [imageInputKey, setImageInputKey] = useState(0);
   const [error, setError] = useState("");
   const [bookingRequestsError, setBookingRequestsError] = useState("");
@@ -277,18 +336,18 @@ export default function AdminPage() {
   );
 
   useEffect(() => {
-    if (!imageFile) {
-      setImagePreviewUrl("");
+    if (imageFiles.length === 0) {
+      setImagePreviewUrls([]);
       return undefined;
     }
 
-    const objectUrl = URL.createObjectURL(imageFile);
-    setImagePreviewUrl(objectUrl);
+    const objectUrls = imageFiles.map((imageFile) => URL.createObjectURL(imageFile));
+    setImagePreviewUrls(objectUrls);
 
     return () => {
-      URL.revokeObjectURL(objectUrl);
+      objectUrls.forEach((objectUrl) => URL.revokeObjectURL(objectUrl));
     };
-  }, [imageFile]);
+  }, [imageFiles]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -326,7 +385,7 @@ export default function AdminPage() {
     setPassword("");
     setEditingId("");
     setForm(createEmptyForm());
-    setImageFile(null);
+    setImageFiles([]);
     setImageInputKey((currentKey) => currentKey + 1);
 
     if (typeof window !== "undefined") {
@@ -457,7 +516,7 @@ export default function AdminPage() {
   const resetForm = () => {
     setEditingId("");
     setForm(createEmptyForm());
-    setImageFile(null);
+    setImageFiles([]);
     setImageInputKey((currentKey) => currentKey + 1);
   };
 
@@ -465,6 +524,7 @@ export default function AdminPage() {
     const dates = parseDatesInput(form.dates);
     const invalidDate = dates.find((date) => !/^\d{4}-\d{2}-\d{2}$/.test(date));
     const priceValue = Number(form.price);
+    const galleryImageCount = getFormGalleryImages(form).length + imageFiles.length;
 
     if (!form.titleKa.trim()) {
       return t("admin.errors.titleKaRequired");
@@ -508,48 +568,66 @@ export default function AdminPage() {
       });
     }
 
+    if (galleryImageCount > MAX_TOUR_IMAGES) {
+      return getTourImageLimitMessage(language);
+    }
+
     return null;
   };
 
-  const buildPayload = (imageValue = form.image.trim()) => ({
-    title: {
-      ka: form.titleKa.trim(),
-      en: form.titleEn.trim(),
-    },
-    destination: {
-      ka: form.destinationKa.trim(),
-      en: form.destinationEn.trim(),
-    },
-    description: {
-      ka: form.descriptionKa.trim(),
-      en: form.descriptionEn.trim(),
-    },
-    price: Number(form.price),
-    duration: {
-      ka: form.durationKa.trim(),
-      en: form.durationEn.trim(),
-    },
-    dates: parseDatesInput(form.dates),
-    included: toLocalizedListPayload(form.included),
-    notIncluded: toLocalizedListPayload(form.notIncluded),
-    category: form.category.trim(),
-    image: imageValue.trim(),
-  });
+  const buildPayload = (imageValues = getFormGalleryImages(form)) => {
+    const galleryImages = normalizeTourImageSources(imageValues);
+
+    return {
+      title: {
+        ka: form.titleKa.trim(),
+        en: form.titleEn.trim(),
+      },
+      destination: {
+        ka: form.destinationKa.trim(),
+        en: form.destinationEn.trim(),
+      },
+      description: {
+        ka: form.descriptionKa.trim(),
+        en: form.descriptionEn.trim(),
+      },
+      price: Number(form.price),
+      duration: {
+        ka: form.durationKa.trim(),
+        en: form.durationEn.trim(),
+      },
+      dates: parseDatesInput(form.dates),
+      included: toLocalizedListPayload(form.included),
+      notIncluded: toLocalizedListPayload(form.notIncluded),
+      category: form.category.trim(),
+      image: galleryImages[0] || "",
+      images: galleryImages,
+    };
+  };
 
   const getUploadErrorMessage = (requestError) => {
     const statusCode = requestError.response?.status;
     const apiCode = requestError.response?.data?.code;
+    const apiDetails = requestError.response?.data?.details;
 
     if (statusCode === 401) {
       return t("admin.errors.loginFailed");
     }
 
     if (apiCode === "INVALID_FILE_TYPE") {
-      return t("admin.errors.invalidFileType");
+      return apiDetails || getTourImageTypeMessage(language);
     }
 
     if (apiCode === "FILE_TOO_LARGE" || statusCode === 413) {
       return t("admin.errors.fileTooLarge");
+    }
+
+    if (apiCode === "TOO_MANY_TOUR_IMAGES") {
+      return apiDetails || getTourImageLimitMessage(language);
+    }
+
+    if (apiCode === "INVALID_TOUR_IMAGE_FIELD" || apiCode === "LIMIT_UNEXPECTED_FILE") {
+      return apiDetails || getTourImageFieldMessage(language);
     }
 
     if (apiCode === "IMAGE_OPTIMIZATION_FAILED") {
@@ -560,35 +638,79 @@ export default function AdminPage() {
   };
 
   const clearSelectedImageFile = () => {
-    setImageFile(null);
+    setImageFiles([]);
     setImageInputKey((currentKey) => currentKey + 1);
   };
 
   const handleImageFileChange = (event) => {
-    const nextFile = event.target.files?.[0] || null;
+    const nextFiles = Array.from(event.target.files || []);
 
-    if (!nextFile) {
+    if (nextFiles.length === 0) {
       clearSelectedImageFile();
       return;
     }
 
-    if (!ALLOWED_IMAGE_UPLOAD_TYPES.has(nextFile.type)) {
-      setError(t("admin.errors.invalidFileType"));
+    const galleryImageCount = getFormGalleryImages(form).length;
+
+    if (galleryImageCount + nextFiles.length > MAX_TOUR_IMAGES) {
+      setError(getTourImageLimitMessage(language));
       setSuccess("");
       clearSelectedImageFile();
       return;
     }
 
-    if (nextFile.size > IMAGE_UPLOAD_MAX_BYTES) {
+    if (nextFiles.some((nextFile) => !ALLOWED_IMAGE_UPLOAD_TYPES.has(nextFile.type))) {
+      setError(getTourImageTypeMessage(language));
+      setSuccess("");
+      clearSelectedImageFile();
+      return;
+    }
+
+    if (nextFiles.some((nextFile) => nextFile.size > IMAGE_UPLOAD_MAX_BYTES)) {
       setError(t("admin.errors.fileTooLarge"));
       setSuccess("");
       clearSelectedImageFile();
       return;
     }
 
-    setImageFile(nextFile);
+    setImageFiles(nextFiles);
     setError("");
     setSuccess("");
+  };
+
+  const handleRemoveGalleryImage = (imageUrl) => {
+    setForm((previousForm) => {
+      const nextImages = getFormGalleryImages(previousForm).filter(
+        (image) => image !== imageUrl
+      );
+
+      return {
+        ...previousForm,
+        ...toGalleryFormValues(nextImages),
+      };
+    });
+  };
+
+  const handleMakeCoverImage = (imageUrl) => {
+    setForm((previousForm) => {
+      const currentImages = getFormGalleryImages(previousForm);
+      const nextImages = normalizeTourImageSources([
+        imageUrl,
+        ...currentImages.filter((image) => image !== imageUrl),
+      ]);
+
+      return {
+        ...previousForm,
+        ...toGalleryFormValues(nextImages),
+      };
+    });
+  };
+
+  const handleRemovePendingImage = (imageIndex) => {
+    setImageFiles((previousFiles) =>
+      previousFiles.filter((_imageFile, index) => index !== imageIndex)
+    );
+    setImageInputKey((currentKey) => currentKey + 1);
   };
 
   const handleLocalizedItemChange = (section, index, locale, value) => {
@@ -681,20 +803,33 @@ export default function AdminPage() {
     let requestPhase = "save";
 
     try {
-      let imageUrl = form.image.trim();
+      let galleryImages = getFormGalleryImages(form);
 
-      if (imageFile) {
+      if (imageFiles.length > 0) {
         requestPhase = "upload";
-        const uploadResponse = await uploadAdminTourImage(token, imageFile);
-        imageUrl = uploadResponse?.imageUrl || "";
+        const uploadResponse = await uploadAdminTourImages(token, imageFiles);
+        const uploadedImageUrls = Array.isArray(uploadResponse?.imageUrls)
+          ? uploadResponse.imageUrls
+          : [uploadResponse?.imageUrl].filter(Boolean);
+
+        galleryImages = normalizeTourImageSources([
+          ...galleryImages,
+          ...uploadedImageUrls,
+        ]);
         requestPhase = "save";
       }
 
+      if (galleryImages.length > MAX_TOUR_IMAGES) {
+        setError(getTourImageLimitMessage(language));
+        setSaving(false);
+        return;
+      }
+
       if (editingId) {
-        await updateAdminTour(token, editingId, buildPayload(imageUrl));
+        await updateAdminTour(token, editingId, buildPayload(galleryImages));
         setSuccess(t("admin.success.updated"));
       } else {
-        await createAdminTour(token, buildPayload(imageUrl));
+        await createAdminTour(token, buildPayload(galleryImages));
         setSuccess(t("admin.success.created"));
       }
 
@@ -1112,8 +1247,9 @@ export default function AdminPage() {
             form={form}
             editing={Boolean(editingId)}
             saving={saving}
-            imageFileName={imageFile?.name || ""}
-            imagePreviewUrl={imagePreviewUrl}
+            galleryImages={getFormGalleryImages(form)}
+            imageFileNames={imageFiles.map((imageFile) => imageFile.name)}
+            imagePreviewUrls={imagePreviewUrls}
             imageInputKey={imageInputKey}
             onChange={(event) => {
               const { name, value } = event.target;
@@ -1124,6 +1260,9 @@ export default function AdminPage() {
             }}
             onImageFileChange={handleImageFileChange}
             onClearImageFile={clearSelectedImageFile}
+            onRemoveGalleryImage={handleRemoveGalleryImage}
+            onMakeCoverImage={handleMakeCoverImage}
+            onRemovePendingImage={handleRemovePendingImage}
             onLocalizedItemChange={handleLocalizedItemChange}
             onAddLocalizedItem={addLocalizedItem}
             onRemoveLocalizedItem={removeLocalizedItem}
@@ -1193,7 +1332,7 @@ export default function AdminPage() {
                         className="overflow-hidden rounded-[1.8rem] border border-slate-100 bg-slate-50 shadow-[0_22px_80px_-60px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-800/70 dark:shadow-[0_22px_80px_-60px_rgba(2,6,23,0.85)]"
                       >
                         <TravelImage
-                          image={tour.image}
+                          image={getTourCoverImage(tour)}
                           title={tourTitle}
                           subtitle={tourDestination}
                           variant="tour"

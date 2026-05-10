@@ -330,7 +330,23 @@ export async function downloadUserBookingFile(idToken, bookingId, fileId) {
 
 export async function uploadAdminTourImage(token, imageFile) {
   const formData = new FormData();
-  formData.append("image", imageFile);
+  formData.append("images", imageFile);
+
+  const response = await apiClient.post(
+    "/api/admin/uploads/tours",
+    formData,
+    getAdminConfig(token)
+  );
+
+  return response.data;
+}
+
+export async function uploadAdminTourImages(token, imageFiles = []) {
+  const formData = new FormData();
+
+  imageFiles.forEach((imageFile) => {
+    formData.append("images", imageFile);
+  });
 
   const response = await apiClient.post(
     "/api/admin/uploads/tours",

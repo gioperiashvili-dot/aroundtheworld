@@ -3,6 +3,7 @@ import TourDescription from "./TourDescription";
 import TravelImage from "./TravelImage";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 import { formatCurrencyValue, formatTourDates } from "../lib/formatters";
+import { getTourCoverImage } from "../lib/tourImages";
 
 export default function TourCard({ tour }) {
   const { language, t } = useLanguage();
@@ -16,7 +17,7 @@ export default function TourCard({ tour }) {
     <article className="group overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] transition duration-300 hover:-translate-y-1 dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
       <div className="relative">
         <TravelImage
-          image={tour.image}
+          image={getTourCoverImage(tour)}
           title={title}
           subtitle={destination}
           variant="tour"

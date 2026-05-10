@@ -3,6 +3,7 @@ const path = require("path");
 const { randomUUID } = require("crypto");
 
 const toursFilePath = path.resolve(__dirname, "../data/tours.json");
+const MAX_TOUR_IMAGES = 10;
 let writeQueue = Promise.resolve();
 
 function createToursError(statusCode, error, details) {
@@ -44,6 +45,48 @@ function normalizeImage(value) {
   } catch (_error) {
     return null;
   }
+}
+
+function normalizeImages(value) {
+  const values = Array.isArray(value) ? value : [];
+  const seen = new Set();
+
+  return values
+    .map(normalizeImage)
+    .filter(Boolean)
+    .filter((image) => {
+      if (seen.has(image)) {
+        return false;
+      }
+
+      seen.add(image);
+      return true;
+    });
+}
+
+function getSingleImageFallback(record) {
+  return (
+    normalizeImage(record?.image) ||
+    normalizeImage(record?.imageUrl) ||
+    normalizeImage(record?.coverImage)
+  );
+}
+
+function getTourImages(record) {
+  const galleryImages = normalizeImages(record?.images);
+  const singleImage = getSingleImageFallback(record);
+  const images = normalizeImages([...galleryImages, singleImage]);
+
+  return {
+    coverImage: galleryImages[0] || singleImage || images[0] || null,
+    images,
+  };
+}
+
+function countImageEntries(value) {
+  return Array.isArray(value)
+    ? value.filter((entry) => String(entry || "").trim()).length
+    : 0;
 }
 
 function normalizeDates(value) {
@@ -114,6 +157,8 @@ function normalizeLocalizedListField(value) {
 }
 
 function normalizeTourRecord(record) {
+  const tourImages = getTourImages(record);
+
   return {
     id: String(record?.id || ""),
     title: normalizeLocalizedField(record?.title),
@@ -126,7 +171,8 @@ function normalizeTourRecord(record) {
     included: normalizeLocalizedListField(record?.included),
     notIncluded: normalizeLocalizedListField(record?.notIncluded),
     category: String(record?.category || "").trim(),
-    image: normalizeImage(record?.image),
+    image: tourImages.coverImage,
+    images: tourImages.images,
     createdAt: record?.createdAt || null,
     updatedAt: record?.updatedAt || null,
   };
@@ -134,6 +180,14 @@ function normalizeTourRecord(record) {
 
 function validateTourInput(input) {
   const normalizedTour = normalizeTourRecord(input);
+
+  if (countImageEntries(input?.images) > MAX_TOUR_IMAGES) {
+    throw createToursError(
+      400,
+      "Invalid tour",
+      `A tour can have at most ${MAX_TOUR_IMAGES} images.`
+    );
+  }
 
   if (!normalizedTour.title.ka) {
     throw createToursError(400, "Invalid tour", "title.ka is required.");
@@ -275,6 +329,7 @@ async function deleteTour(id) {
 }
 
 module.exports = {
+  MAX_TOUR_IMAGES,
   createTour,
   deleteTour,
   getTourById,

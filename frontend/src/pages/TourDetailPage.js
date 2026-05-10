@@ -27,6 +27,7 @@ import {
   formatTourDates,
   getFriendlyApiError,
 } from "../lib/formatters";
+import { getTourImageSources } from "../lib/tourImages";
 
 function getLocalizedList(value, language = "ka") {
   if (Array.isArray(value)) {
@@ -136,6 +137,7 @@ export default function TourDetailPage() {
     customerMessage: "",
   });
   const [userProfile, setUserProfile] = useState(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   useEffect(() => {
     const loadTour = async () => {
@@ -196,6 +198,18 @@ export default function TourDetailPage() {
     };
   }, [currentUser]);
 
+  const tourImages = getTourImageSources(tour);
+
+  useEffect(() => {
+    setActiveImageIndex(0);
+  }, [tour?.id]);
+
+  useEffect(() => {
+    setActiveImageIndex((currentIndex) =>
+      Math.min(currentIndex, Math.max(tourImages.length - 1, 0))
+    );
+  }, [tourImages.length]);
+
   const title = getLocalized(tour?.title, language);
   const destination = getLocalized(tour?.destination, language);
   const description = getLocalized(tour?.description, language);
@@ -215,7 +229,7 @@ export default function TourDetailPage() {
     duration,
     language,
   });
-  const seoImage = tour?.image ? toAbsoluteUrl(tour.image) : undefined;
+  const seoImage = tourImages[0] ? toAbsoluteUrl(tourImages[0]) : undefined;
 
   const closeBookingModal = useCallback(() => {
     setIsBookingModalOpen(false);
@@ -398,12 +412,12 @@ export default function TourDetailPage() {
       {!loading && !error && tour ? (
         <section className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
           <article className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
-            <TravelImage
-              image={tour.image}
+            <TourImageGallery
+              images={tourImages}
+              activeIndex={activeImageIndex}
               title={title}
               subtitle={destination}
-              variant="tour"
-              className="h-[22rem] md:h-[28rem]"
+              onChange={setActiveImageIndex}
             />
 
             <div className="space-y-6 bg-white p-6 dark:bg-[#071426] md:p-8">
@@ -531,6 +545,77 @@ function StatCard({ label, value }) {
       </p>
       <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">{value}</p>
     </div>
+  );
+}
+
+function TourImageGallery({ images, activeIndex, title, subtitle, onChange }) {
+  const hasMultipleImages = images.length > 1;
+  const activeImage = images[activeIndex] || images[0] || "";
+
+  const goToPrevious = () => {
+    onChange((currentIndex) =>
+      currentIndex === 0 ? images.length - 1 : currentIndex - 1
+    );
+  };
+
+  const goToNext = () => {
+    onChange((currentIndex) =>
+      currentIndex >= images.length - 1 ? 0 : currentIndex + 1
+    );
+  };
+
+  return (
+    <div className="relative">
+      <TravelImage
+        image={activeImage}
+        title={title}
+        subtitle={subtitle}
+        variant="tour"
+        className="h-[22rem] md:h-[28rem]"
+      />
+
+      {hasMultipleImages ? (
+        <>
+          <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-3">
+            <GalleryButton label="Previous image" onClick={goToPrevious}>
+              <ChevronLeftIcon />
+            </GalleryButton>
+            <GalleryButton label="Next image" onClick={goToNext}>
+              <ChevronRightIcon />
+            </GalleryButton>
+          </div>
+
+          <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2 rounded-full bg-slate-950/45 px-3 py-2 backdrop-blur">
+            {images.map((image, index) => (
+              <button
+                key={`${image}-${index}`}
+                type="button"
+                aria-label={`Show image ${index + 1}`}
+                onClick={() => onChange(index)}
+                className={`h-2.5 w-2.5 rounded-full transition ${
+                  activeIndex === index
+                    ? "bg-white"
+                    : "bg-white/45 hover:bg-white/75"
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+function GalleryButton({ label, onClick, children }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      className="flex h-11 w-11 items-center justify-center rounded-full bg-white/88 text-slate-950 shadow-lg shadow-slate-950/20 transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/40 dark:bg-slate-950/82 dark:text-white dark:hover:bg-slate-950"
+    >
+      {children}
+    </button>
   );
 }
 
@@ -900,6 +985,40 @@ function MinusIcon() {
       strokeLinejoin="round"
     >
       <path d="M6 12h12" />
+    </svg>
+  );
+}
+
+function ChevronLeftIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m9 18 6-6-6-6" />
     </svg>
   );
 }

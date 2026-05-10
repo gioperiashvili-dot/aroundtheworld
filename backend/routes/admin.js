@@ -30,6 +30,7 @@ const {
   uploadBookingFile,
 } = require("../services/bookings");
 const {
+  MAX_TOUR_IMAGES,
   createTour,
   deleteTour,
   getTourById,
@@ -41,6 +42,14 @@ const {
   deleteReview,
   getReviews,
 } = require("../services/reviews");
+
+const TOUR_IMAGE_FIELD_NAMES = new Set(["images", "image", "images[]"]);
+const TOUR_IMAGE_TYPE_DETAILS =
+  "\u10E1\u10E3\u10E0\u10D0\u10D7\u10D8\u10E1 \u10E2\u10D8\u10DE\u10D8 \u10D0\u10E0\u10D0\u10E1\u10EC\u10DD\u10E0\u10D8\u10D0. \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D4\u10D7 JPG, PNG \u10D0\u10DC WebP \u10E4\u10D0\u10D8\u10DA\u10D8.";
+const TOUR_IMAGE_LIMIT_DETAILS =
+  `\u10E2\u10E3\u10E0\u10D6\u10D4 \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10E3\u10DB ${MAX_TOUR_IMAGES} \u10E4\u10DD\u10E2\u10DD\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0 \u10E8\u10D4\u10D8\u10EB\u10DA\u10D4\u10D1\u10D0.`;
+const TOUR_IMAGE_FIELD_DETAILS =
+  '\u10E2\u10E3\u10E0\u10D8\u10E1 \u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D8\u10E1 \u10D5\u10D4\u10DA\u10D8 \u10E3\u10DC\u10D3\u10D0 \u10D8\u10E7\u10DD\u10E1 "images".';
 
 function getBodySize(body) {
   try {
@@ -63,26 +72,92 @@ function rejectLargeBlogPayload(req, res) {
   return true;
 }
 
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: MAX_UPLOAD_BYTES,
-    files: 1,
-  },
-  fileFilter(_req, file, callback) {
-    if (!ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype)) {
-      return callback(
-        Object.assign(new Error("Invalid file type"), {
-          statusCode: 400,
-          code: "INVALID_FILE_TYPE",
-          details: "Only JPEG, PNG, and WebP image uploads are allowed.",
-        })
-      );
-    }
+function imageFileFilter(_req, file, callback) {
+  if (!ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype)) {
+    return callback(
+      Object.assign(new Error("Invalid file type"), {
+        statusCode: 400,
+        code: "INVALID_FILE_TYPE",
+        details: "Only JPEG, PNG, and WebP image uploads are allowed.",
+      })
+    );
+  }
 
-    return callback(null, true);
-  },
-});
+  return callback(null, true);
+}
+
+function createImageUpload(maxFiles) {
+  return multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: MAX_UPLOAD_BYTES,
+      files: maxFiles,
+    },
+    fileFilter: imageFileFilter,
+  });
+}
+
+const upload = createImageUpload(1);
+const tourImagesUpload = createImageUpload(MAX_TOUR_IMAGES);
+
+function sendImageUploadError(uploadError, res, options = {}) {
+  const isTooLarge =
+    uploadError instanceof multer.MulterError &&
+    uploadError.code === "LIMIT_FILE_SIZE";
+  const isTooMany =
+    uploadError instanceof multer.MulterError &&
+    uploadError.code === "LIMIT_FILE_COUNT";
+  const isUnexpected =
+    uploadError instanceof multer.MulterError &&
+    uploadError.code === "LIMIT_UNEXPECTED_FILE";
+  const isInvalidType = uploadError.code === "INVALID_FILE_TYPE";
+  const statusCode = isTooLarge ? 413 : uploadError.statusCode || 400;
+
+  return res.status(statusCode).json({
+    ok: false,
+    code: isTooLarge
+      ? "FILE_TOO_LARGE"
+      : isTooMany
+        ? options.tooManyCode || uploadError.code || "UPLOAD_FAILED"
+        : isUnexpected
+          ? options.unexpectedCode || uploadError.code || "UPLOAD_FAILED"
+        : uploadError.code || "UPLOAD_FAILED",
+    error: isTooLarge
+      ? "File too large"
+      : isTooMany
+        ? options.tooManyError || uploadError.message || "Upload failed"
+        : isUnexpected
+          ? options.unexpectedError || "Invalid upload field"
+        : uploadError.message || "Upload failed",
+    details: isTooLarge
+      ? "The selected image must be 5MB or smaller."
+      : isTooMany
+        ? options.tooManyDetails || "Choose a valid JPEG, PNG, or WebP image."
+        : isUnexpected
+          ? options.unexpectedDetails || "Use the expected image upload field."
+          : isInvalidType && options.invalidTypeDetails
+            ? options.invalidTypeDetails
+            : uploadError.details || options.details || "Choose a valid JPEG, PNG, or WebP image.",
+  });
+}
+
+function getTourUploadFiles(req) {
+  const files = Array.isArray(req.files) ? req.files : [];
+
+  return files.filter((file) => TOUR_IMAGE_FIELD_NAMES.has(file.fieldname));
+}
+
+function getUnexpectedTourUploadFields(req) {
+  const files = Array.isArray(req.files) ? req.files : [];
+
+  return [
+    ...new Set(
+      files
+        .map((file) => String(file.fieldname || "").trim())
+        .filter((fieldName) => fieldName && !TOUR_IMAGE_FIELD_NAMES.has(fieldName))
+    ),
+  ];
+}
 
 const bookingPdfUpload = multer({
   storage: multer.memoryStorage(),
@@ -164,29 +239,59 @@ router.delete("/session", (_req, res) => {
 router.use(requireAdmin);
 
 router.post("/uploads/tours", (req, res) => {
-  upload.single("image")(req, res, async (uploadError) => {
+  tourImagesUpload.any()(req, res, async (uploadError) => {
     if (uploadError) {
-      const isTooLarge =
-        uploadError instanceof multer.MulterError &&
-        uploadError.code === "LIMIT_FILE_SIZE";
-      const statusCode = isTooLarge ? 413 : uploadError.statusCode || 400;
-
-      return res.status(statusCode).json({
-        ok: false,
-        code: isTooLarge ? "FILE_TOO_LARGE" : uploadError.code || "UPLOAD_FAILED",
-        error: isTooLarge ? "File too large" : uploadError.message || "Upload failed",
-        details: isTooLarge
-          ? "The selected image must be 5MB or smaller."
-          : uploadError.details || "Choose a valid JPEG, PNG, or WebP image.",
+      return sendImageUploadError(uploadError, res, {
+        tooManyCode: "TOO_MANY_TOUR_IMAGES",
+        tooManyError: "Too many images",
+        tooManyDetails: TOUR_IMAGE_LIMIT_DETAILS,
+        unexpectedCode: "INVALID_TOUR_IMAGE_FIELD",
+        unexpectedError: "Invalid tour image field",
+        unexpectedDetails: TOUR_IMAGE_FIELD_DETAILS,
+        invalidTypeDetails: TOUR_IMAGE_TYPE_DETAILS,
       });
     }
 
     try {
-      const optimizedImage = await optimizeTourImage(req.file);
+      const unexpectedFields = getUnexpectedTourUploadFields(req);
+
+      if (unexpectedFields.length > 0) {
+        return res.status(400).json({
+          ok: false,
+          code: "INVALID_TOUR_IMAGE_FIELD",
+          error: "Invalid tour image field",
+          details: TOUR_IMAGE_FIELD_DETAILS,
+          fields: unexpectedFields,
+        });
+      }
+
+      const files = getTourUploadFiles(req);
+
+      if (!files.length) {
+        return res.status(400).json({
+          ok: false,
+          code: "IMAGE_REQUIRED",
+          error: "Image file required",
+          details: "Choose at least one JPEG, PNG, or WebP image.",
+        });
+      }
+
+      if (files.length > MAX_TOUR_IMAGES) {
+        return res.status(400).json({
+          ok: false,
+          code: "TOO_MANY_TOUR_IMAGES",
+          error: "Too many images",
+          details: TOUR_IMAGE_LIMIT_DETAILS,
+        });
+      }
+
+      const optimizedImages = await Promise.all(files.map(optimizeTourImage));
+      const imageUrls = optimizedImages.map((image) => image.imageUrl);
 
       return res.status(201).json({
         ok: true,
-        imageUrl: optimizedImage.imageUrl,
+        imageUrl: imageUrls[0] || "",
+        imageUrls,
       });
     } catch (error) {
       return res.status(error.statusCode || 500).json({
@@ -202,18 +307,8 @@ router.post("/uploads/tours", (req, res) => {
 router.post("/uploads/blogs", (req, res) => {
   upload.single("image")(req, res, async (uploadError) => {
     if (uploadError) {
-      const isTooLarge =
-        uploadError instanceof multer.MulterError &&
-        uploadError.code === "LIMIT_FILE_SIZE";
-      const statusCode = isTooLarge ? 413 : uploadError.statusCode || 400;
-
-      return res.status(statusCode).json({
-        ok: false,
-        code: isTooLarge ? "FILE_TOO_LARGE" : uploadError.code || "UPLOAD_FAILED",
-        error: isTooLarge ? "File too large" : uploadError.message || "Upload failed",
-        details: isTooLarge
-          ? "The selected image must be 5MB or smaller."
-          : uploadError.details || "Choose a valid JPEG, PNG, or WebP image.",
+      return sendImageUploadError(uploadError, res, {
+        details: "Choose a valid JPEG, PNG, or WebP image.",
       });
     }
 

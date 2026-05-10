@@ -1,19 +1,57 @@
 import TravelImage from "./TravelImage";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
+import { MAX_TOUR_IMAGES, RECOMMENDED_TOUR_IMAGES } from "../lib/tourImages";
 
 const inputClassName =
   "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20";
+
+const TOUR_IMAGE_TEXT = {
+  ka: {
+    tourImages: "\u10E2\u10E3\u10E0\u10D8\u10E1 \u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8",
+    chooseImages: "\u10D0\u10D8\u10E0\u10E9\u10D8\u10D4\u10D7 \u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8",
+    uploadHelper:
+      "\u10E0\u10D4\u10D9\u10DD\u10DB\u10D4\u10DC\u10D3\u10D4\u10D1\u10E3\u10DA\u10D8\u10D0 \u10DB\u10D8\u10DC\u10D8\u10DB\u10E3\u10DB 5 \u10E4\u10DD\u10E2\u10DD. \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10E3\u10DB 10. JPG, PNG \u10D0\u10DC WebP, \u10D7\u10D8\u10D7\u10DD\u10D4\u10E3\u10DA\u10D8 5MB-\u10DB\u10D3\u10D4.",
+    selectedImages: "\u10D0\u10E0\u10E9\u10D4\u10E3\u10DA\u10D8 \u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8",
+    galleryImages: "\u10D2\u10D0\u10DA\u10D4\u10E0\u10D4\u10D8\u10E1 \u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8",
+    removeImage: "\u10E4\u10DD\u10E2\u10DD\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0",
+    makeCover: "\u10DB\u10D7\u10D0\u10D5\u10D0\u10E0 \u10E4\u10DD\u10E2\u10DD\u10D3 \u10D3\u10D0\u10E7\u10D4\u10DC\u10D4\u10D1\u10D0",
+    coverImage: "\u10DB\u10D7\u10D0\u10D5\u10D0\u10E0\u10D8 \u10E4\u10DD\u10E2\u10DD",
+    recommendedLabel: "\u10E0\u10D4\u10D9\u10DD\u10DB\u10D4\u10DC\u10D3\u10D4\u10D1\u10E3\u10DA\u10D8",
+    maximumLabel: "\u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10E3\u10DB\u10D8",
+  },
+  en: {
+    tourImages: "Tour images",
+    chooseImages: "Choose images",
+    uploadHelper:
+      "Recommended minimum 5 images. Maximum 10. JPG, PNG, or WebP, each up to 5MB.",
+    selectedImages: "Selected images",
+    galleryImages: "Gallery images",
+    removeImage: "Remove image",
+    makeCover: "Make cover",
+    coverImage: "Cover image",
+    recommendedLabel: "Recommended",
+    maximumLabel: "Maximum",
+  },
+};
+
+function getTourImageText(language, key) {
+  return TOUR_IMAGE_TEXT[language]?.[key] || TOUR_IMAGE_TEXT.en[key] || key;
+}
 
 export default function AdminTourForm({
   form,
   editing,
   saving,
-  imageFileName,
-  imagePreviewUrl,
+  galleryImages = [],
+  imageFileNames = [],
+  imagePreviewUrls = [],
   imageInputKey,
   onChange,
   onImageFileChange,
   onClearImageFile,
+  onRemoveGalleryImage,
+  onMakeCoverImage,
+  onRemovePendingImage,
   onLocalizedItemChange,
   onAddLocalizedItem,
   onRemoveLocalizedItem,
@@ -37,17 +75,39 @@ export default function AdminTourForm({
       },
       language
     ) || t("admin.previewSubtitle");
+  const previewImages = [...galleryImages, ...imagePreviewUrls];
+  const previewImage = previewImages[0] || form.image;
+  const hasSelectedImages = imagePreviewUrls.length > 0;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
       <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
         <TravelImage
-          image={imagePreviewUrl || form.image}
+          image={previewImage}
           title={previewTitle}
           subtitle={previewSubtitle}
           variant="tour"
           className="h-72"
         />
+
+        {previewImages.length > 1 ? (
+          <div className="grid grid-cols-5 gap-2 bg-white p-3 dark:bg-slate-900">
+            {previewImages.slice(0, MAX_TOUR_IMAGES).map((image, index) => (
+              <div
+                key={`${image}-${index}`}
+                className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700"
+              >
+                <TravelImage
+                  image={image}
+                  title={previewTitle}
+                  subtitle={previewSubtitle}
+                  variant="tour"
+                  className="h-16"
+                />
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <form
@@ -243,36 +303,88 @@ export default function AdminTourForm({
 
           <div className="space-y-2">
             <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-              {t("admin.imageUpload")}
+              {getTourImageText(language, "tourImages")}
             </span>
             <label className="flex cursor-pointer flex-col gap-2 rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-4 text-sm text-slate-700 transition hover:border-emerald-400 hover:bg-emerald-50/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-emerald-400 dark:hover:bg-emerald-500/10">
-              <span className="font-semibold">{t("admin.chooseImage")}</span>
+              <span className="font-semibold">
+                {getTourImageText(language, "chooseImages")}
+              </span>
               <span className="text-xs leading-6 text-slate-600 dark:text-slate-400">
-                {t("admin.imageUploadHelper")}
+                {getTourImageText(language, "uploadHelper")}
               </span>
               <input
                 key={imageInputKey}
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
+                multiple
                 onChange={onImageFileChange}
                 disabled={saving}
                 className="sr-only"
               />
             </label>
-            {imageFileName ? (
-              <div className="flex flex-col gap-2 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700 dark:bg-slate-800/70 dark:text-slate-200 sm:flex-row sm:items-center sm:justify-between">
-                <span>
-                  <span className="font-semibold">{t("admin.selectedImage")}:</span>{" "}
-                  {imageFileName}
-                </span>
-                <button
-                  type="button"
-                  onClick={onClearImageFile}
-                  disabled={saving}
-                  className="self-start rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-950 sm:self-auto"
-                >
-                  {t("admin.clearSelectedImage")}
-                </button>
+            <span className="block text-xs leading-6 text-slate-600 dark:text-slate-400">
+              {getTourImageText(language, "recommendedLabel")}:{" "}
+              {RECOMMENDED_TOUR_IMAGES}. {getTourImageText(language, "maximumLabel")}:{" "}
+              {MAX_TOUR_IMAGES}.
+            </span>
+            {galleryImages.length > 0 ? (
+              <ImagePreviewGrid
+                title={getTourImageText(language, "galleryImages")}
+                images={galleryImages}
+                titleFallback={previewTitle}
+                subtitleFallback={previewSubtitle}
+                saving={saving}
+                coverLabel={getTourImageText(language, "coverImage")}
+                removeLabel={getTourImageText(language, "removeImage")}
+                makeCoverLabel={getTourImageText(language, "makeCover")}
+                onRemove={onRemoveGalleryImage}
+                onMakeCover={onMakeCoverImage}
+              />
+            ) : null}
+            {hasSelectedImages ? (
+              <div className="space-y-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700 dark:bg-slate-800/70 dark:text-slate-200">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="font-semibold">
+                    {getTourImageText(language, "selectedImages")}: {imageFileNames.length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={onClearImageFile}
+                    disabled={saving}
+                    className="self-start rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-950 sm:self-auto"
+                  >
+                    {t("admin.clearSelectedImage")}
+                  </button>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {imagePreviewUrls.map((image, index) => (
+                    <div
+                      key={`${image}-${index}`}
+                      className="overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900"
+                    >
+                      <TravelImage
+                        image={image}
+                        title={previewTitle}
+                        subtitle={previewSubtitle}
+                        variant="tour"
+                        className="h-28"
+                      />
+                      <div className="space-y-2 p-3">
+                        <p className="truncate text-xs font-semibold text-slate-600 dark:text-slate-300">
+                          {imageFileNames[index] || getTourImageText(language, "selectedImages")}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => onRemovePendingImage(index)}
+                          disabled={saving}
+                          className="rounded-full bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-rose-500/10 dark:text-rose-200 dark:hover:bg-rose-500/20"
+                        >
+                          {getTourImageText(language, "removeImage")}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : null}
           </div>
@@ -332,6 +444,68 @@ export default function AdminTourForm({
               : t("admin.saveCreate")}
         </button>
       </form>
+    </div>
+  );
+}
+
+function ImagePreviewGrid({
+  title,
+  images,
+  titleFallback,
+  subtitleFallback,
+  saving,
+  coverLabel,
+  removeLabel,
+  makeCoverLabel,
+  onRemove,
+  onMakeCover,
+}) {
+  return (
+    <div className="space-y-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700 dark:bg-slate-800/70 dark:text-slate-200">
+      <p className="font-semibold">{title}</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {images.map((image, index) => (
+          <div
+            key={`${image}-${index}`}
+            className="overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900"
+          >
+            <div className="relative">
+              <TravelImage
+                image={image}
+                title={titleFallback}
+                subtitle={subtitleFallback}
+                variant="tour"
+                className="h-28"
+              />
+              {index === 0 ? (
+                <span className="absolute left-3 top-3 rounded-full bg-slate-950/75 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+                  {coverLabel}
+                </span>
+              ) : null}
+            </div>
+            <div className="flex flex-wrap gap-2 p-3">
+              {index > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => onMakeCover(image)}
+                  disabled={saving}
+                  className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-emerald-500/10 dark:text-emerald-200 dark:hover:bg-emerald-500/20"
+                >
+                  {makeCoverLabel}
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => onRemove(image)}
+                disabled={saving}
+                className="rounded-full bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-rose-500/10 dark:text-rose-200 dark:hover:bg-rose-500/20"
+              >
+                {removeLabel}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
