@@ -9,7 +9,6 @@ import SEO, {
   PAGE_SEO,
   buildCanonicalUrl,
   buildTourSeoDescription,
-  toAbsoluteUrl,
 } from "../components/SEO";
 import TourDescription from "../components/TourDescription";
 import TravelImage from "../components/TravelImage";
@@ -27,6 +26,10 @@ import {
   formatTourDates,
   getFriendlyApiError,
 } from "../lib/formatters";
+import {
+  buildBreadcrumbStructuredData,
+  buildTourProductStructuredData,
+} from "../lib/structuredData";
 import { getTourImageSources } from "../lib/tourImages";
 
 function getLocalizedList(value, language = "ka") {
@@ -212,6 +215,7 @@ export default function TourDetailPage() {
 
   const title = getLocalized(tour?.title, language);
   const destination = getLocalized(tour?.destination, language);
+  const shortDescription = getLocalized(tour?.shortDescription, language);
   const description = getLocalized(tour?.description, language);
   const duration = getLocalized(tour?.duration, language);
   const dates = formatTourDates(tour?.dates, 12, language);
@@ -220,18 +224,30 @@ export default function TourDetailPage() {
   const canonical = buildCanonicalUrl(
     `/tours/${encodeURIComponent(tour?.slug || idOrSlug || "")}`
   );
-  const seoTitle = title
-    ? language === "ka"
-      ? `${title} | ტურები საქართველოდან | Around The World`
-      : `${title} | Tours from Georgia | Around The World`
-    : PAGE_SEO.tours.title;
+  const seoTitle = title ? `${title} | Around The World` : PAGE_SEO.tours.title;
   const seoDescription = buildTourSeoDescription({
+    shortDescription,
     description,
-    destination,
-    duration,
-    language,
   });
-  const seoImage = tourImages[0] ? toAbsoluteUrl(tourImages[0]) : undefined;
+  const seoImage = tourImages[0] || undefined;
+  const tourStructuredData =
+    tour && title
+      ? [
+          buildBreadcrumbStructuredData([
+            { name: "Around The World", url: "/" },
+            { name: "ტურები", url: "/tours" },
+            { name: title, url: canonical },
+          ]),
+          buildTourProductStructuredData({
+            title,
+            description: seoDescription,
+            images: tourImages,
+            canonical,
+            price: tour.price,
+            currency: tour.currency,
+          }),
+        ]
+      : undefined;
 
   const closeBookingModal = useCallback(() => {
     setIsBookingModalOpen(false);
@@ -401,9 +417,9 @@ export default function TourDetailPage() {
         title={seoTitle}
         description={seoDescription}
         canonical={canonical}
-        ogUrl={canonical}
-        ogType="article"
-        ogImage={seoImage}
+        type="article"
+        image={seoImage}
+        structuredData={tourStructuredData}
       />
       {loading ? <LoadingSkeleton count={1} className="xl:grid-cols-1" /> : null}
 

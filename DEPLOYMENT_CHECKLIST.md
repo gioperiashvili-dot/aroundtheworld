@@ -55,9 +55,14 @@ Never commit SMTP passwords, Firebase private keys, service account JSON, or any
 ```bash
 npm install
 npm --prefix frontend install
+npm run generate:sitemap
 npm --prefix frontend run build
 node backend/server.js
 ```
+
+`npm --prefix frontend run build` also regenerates `frontend/public/sitemap.xml`
+through the frontend `prebuild` script. Keep `npm run generate:sitemap` in the
+manual deploy flow so sitemap changes are visible before the build starts.
 
 For PM2:
 
@@ -66,6 +71,26 @@ pm2 restart aroundtheworld-api --update-env
 ```
 
 After `git pull`, run `npm install` again if `package.json` or any lockfile changed.
+
+## SEO files
+
+Before each production frontend build, regenerate the sitemap:
+
+```bash
+npm run generate:sitemap
+```
+
+After deploy, verify:
+
+- `https://aroundworld.ge/sitemap.xml`
+- `https://aroundworld.ge/robots.txt`
+
+Confirm sitemap tour detail URLs use slugs, not UUIDs, and that private routes
+such as `/AdminPanel`, `/login`, `/register`, `/profile`, `/api/*`, and booking
+PDF download URLs are not present.
+
+Submit or resubmit `https://aroundworld.ge/sitemap.xml` in Google Search Console
+after deploying sitemap changes.
 
 ## Uploads
 

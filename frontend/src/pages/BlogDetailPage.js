@@ -1,12 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import EmptyState from "../components/EmptyState";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, {
-  SITE_NAME,
   buildCanonicalUrl,
-  toAbsoluteUrl,
   truncateSeoText,
 } from "../components/SEO";
 import TravelImage from "../components/TravelImage";
@@ -14,6 +12,10 @@ import backgroundFour from "../assets/background/background-4.webp";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 import { fetchBlogBySlug } from "../lib/api";
 import { formatCalendarDate, getFriendlyApiError } from "../lib/formatters";
+import {
+  buildBlogPostingStructuredData,
+  buildBreadcrumbStructuredData,
+} from "../lib/structuredData";
 
 function buildDescription(excerpt, content) {
   return truncateSeoText(excerpt || content || "", 160);
@@ -57,31 +59,25 @@ export default function BlogDetailPage() {
   const category = getLocalized(blog?.category, language);
   const canonical = buildCanonicalUrl(`/blog/${encodeURIComponent(blog?.slug || slug || "")}`);
   const seoDescription = buildDescription(excerpt, content);
-  const seoImage = blog?.image ? toAbsoluteUrl(blog.image) : undefined;
-  const jsonLd = useMemo(() => {
-    if (!blog || !title) {
-      return null;
-    }
-
-    return {
-      "@context": "https://schema.org",
-      "@type": "BlogPosting",
-      headline: title,
-      description: seoDescription,
-      image: seoImage ? [seoImage] : undefined,
-      datePublished: blog.createdAt || undefined,
-      dateModified: blog.updatedAt || blog.createdAt || undefined,
-      author: {
-        "@type": "Organization",
-        name: SITE_NAME,
-      },
-      publisher: {
-        "@type": "Organization",
-        name: SITE_NAME,
-      },
-      mainEntityOfPage: canonical,
-    };
-  }, [blog, canonical, seoDescription, seoImage, title]);
+  const seoImage = blog?.image || undefined;
+  const blogStructuredData =
+    blog && title
+      ? [
+          buildBreadcrumbStructuredData([
+            { name: "Around The World", url: "/" },
+            { name: "ბლოგი", url: "/blog" },
+            { name: title, url: canonical },
+          ]),
+          buildBlogPostingStructuredData({
+            title,
+            description: seoDescription,
+            image: seoImage,
+            canonical,
+            datePublished: blog.createdAt,
+            dateModified: blog.updatedAt,
+          }),
+        ]
+      : undefined;
 
   return (
     <PublicPageShell
@@ -95,10 +91,9 @@ export default function BlogDetailPage() {
         title={title ? `${title} | Around The World` : t("blog.notFoundTitle")}
         description={seoDescription || t("blog.heroDescription")}
         canonical={canonical}
-        ogUrl={canonical}
-        ogType="article"
-        ogImage={seoImage}
-        jsonLd={jsonLd}
+        type="article"
+        image={seoImage}
+        structuredData={blogStructuredData}
       />
 
       {loading ? <LoadingSkeleton count={1} className="xl:grid-cols-1" /> : null}

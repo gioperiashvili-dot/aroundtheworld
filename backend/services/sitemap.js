@@ -1,18 +1,21 @@
 const { getTours } = require("./tours");
 const { getPublishedBlogs } = require("./blogs");
+const { createTourSlug, normalizeTourSlug } = require("./tourSlugs");
 
 const SITE_URL = "https://aroundworld.ge";
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const STATIC_ROUTES = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
   { path: "/tours", changefreq: "weekly", priority: "0.9" },
-  { path: "/flights", changefreq: "weekly", priority: "0.8" },
-  { path: "/hotels", changefreq: "weekly", priority: "0.8" },
-  { path: "/restaurants", changefreq: "weekly", priority: "0.8" },
-  { path: "/visa-services", changefreq: "monthly", priority: "0.8" },
-  { path: "/blog", changefreq: "weekly", priority: "0.8" },
-  { path: "/about", changefreq: "monthly", priority: "0.7" },
-  { path: "/contact", changefreq: "monthly", priority: "0.7" },
+  { path: "/flights", changefreq: "weekly", priority: "0.7" },
+  { path: "/hotels", changefreq: "weekly", priority: "0.7" },
+  { path: "/restaurants", changefreq: "weekly", priority: "0.7" },
+  { path: "/visa-services", changefreq: "monthly", priority: "0.7" },
+  { path: "/blog", changefreq: "weekly", priority: "0.7" },
+  { path: "/about", changefreq: "monthly", priority: "0.5" },
+  { path: "/contact", changefreq: "monthly", priority: "0.5" },
 ];
 
 function escapeXml(value) {
@@ -26,6 +29,36 @@ function escapeXml(value) {
 
 function buildAbsoluteUrl(path) {
   return `${SITE_URL}${path === "/" ? "/" : path}`;
+}
+
+function getLocalizedText(value) {
+  if (typeof value === "string") {
+    return value.trim();
+  }
+
+  if (!value || typeof value !== "object") {
+    return "";
+  }
+
+  return String(value.ka || value.en || "").trim();
+}
+
+function getTourSitemapSlug(tour) {
+  const existingSlug = normalizeTourSlug(tour?.slug);
+
+  if (existingSlug && !UUID_PATTERN.test(existingSlug)) {
+    return existingSlug;
+  }
+
+  const fallbackSource =
+    getLocalizedText(tour?.title) || getLocalizedText(tour?.destination);
+  const generatedSlug = createTourSlug(fallbackSource, "");
+
+  if (generatedSlug && !UUID_PATTERN.test(generatedSlug)) {
+    return generatedSlug;
+  }
+
+  return "";
 }
 
 function formatLastmod(value) {
@@ -64,13 +97,17 @@ async function buildSitemapXml() {
     })
   );
   const tourEntries = tours
-    .filter((tour) => tour?.id)
-    .map((tour) =>
+    .map((tour) => ({
+      tour,
+      slug: getTourSitemapSlug(tour),
+    }))
+    .filter(({ slug }) => slug)
+    .map(({ tour, slug }) =>
       buildUrlXml({
-        loc: buildAbsoluteUrl(`/tours/${encodeURIComponent(tour.id)}`),
+        loc: buildAbsoluteUrl(`/tours/${encodeURIComponent(slug)}`),
         lastmod: formatLastmod(tour.updatedAt || tour.createdAt),
         changefreq: "weekly",
-        priority: "0.7",
+        priority: "0.8",
       })
     );
   const blogEntries = blogs

@@ -18,6 +18,7 @@ import {
   formatTimeLabel,
   getFriendlyApiError,
 } from "../lib/formatters";
+import { buildWebPageStructuredData } from "../lib/structuredData";
 
 const RESULT_TAB_KEYS = ["recommended", "nonstop", "fastest", "earliest", "cheapest"];
 const FALLBACK_TEXT = "\u2014";
@@ -534,6 +535,7 @@ export default function FlightsPage() {
     () => getDisplayFlights(results, activeResultTab),
     [results, activeResultTab]
   );
+  const webPageStructuredData = buildWebPageStructuredData(PAGE_SEO.flights);
 
   return (
     <PublicPageShell
@@ -544,7 +546,7 @@ export default function FlightsPage() {
       highlights={Array.isArray(heroContent.highlights) ? heroContent.highlights : []}
       compactHero
     >
-      <SEO {...PAGE_SEO.flights} />
+      <SEO {...PAGE_SEO.flights} structuredData={webPageStructuredData} />
       <section className="space-y-6">
         <FlightSearchPanel
           searchParams={searchParams}

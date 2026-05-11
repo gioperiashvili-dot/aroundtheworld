@@ -5,9 +5,13 @@ import HomeHeroSlider from "../components/HomeHeroSlider";
 import Navbar from "../components/Navbar";
 import PublicFooter from "../components/PublicFooter";
 import ReviewsSection from "../components/ReviewsSection";
-import SEO, { PAGE_SEO, TRAVEL_AGENCY_JSON_LD } from "../components/SEO";
+import SEO, { PAGE_SEO } from "../components/SEO";
 import { useLanguage } from "../i18n/LanguageContext";
 import { PUBLIC_BACKGROUND_SLIDES } from "../lib/publicBackgrounds";
+import {
+  buildOrganizationStructuredData,
+  buildWebsiteStructuredData,
+} from "../lib/structuredData";
 
 const SLIDER_INTERVAL_MS = 5600;
 
@@ -21,6 +25,10 @@ export default function HomePage({ seoPage = "home" }) {
   const homeTitle = t("home.title");
   const homeDescription = t("home.description");
   const seoMetadata = PAGE_SEO[seoPage] || PAGE_SEO.home;
+  const structuredData =
+    seoPage === "home"
+      ? [buildOrganizationStructuredData(), buildWebsiteStructuredData()]
+      : undefined;
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -45,10 +53,7 @@ export default function HomePage({ seoPage = "home" }) {
 
   return (
     <div className="relative isolate min-h-screen overflow-hidden bg-slate-950 text-slate-900 transition-colors dark:text-slate-100">
-      <SEO
-        {...seoMetadata}
-        jsonLd={seoPage === "home" ? TRAVEL_AGENCY_JSON_LD : undefined}
-      />
+      <SEO {...seoMetadata} structuredData={structuredData} />
         <HomeHeroSlider
           slides={HERO_SLIDES}
           activeIndex={activeSlide}

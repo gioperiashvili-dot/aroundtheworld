@@ -17,6 +17,7 @@ import {
 import { useLanguage } from "../i18n/LanguageContext";
 import { fetchHotels } from "../lib/api";
 import { getFriendlyApiError } from "../lib/formatters";
+import { buildWebPageStructuredData } from "../lib/structuredData";
 
 function toLocationSuggestion(location, language) {
   return {
@@ -158,6 +159,7 @@ export default function HotelsPage() {
   };
 
   const heroContent = t("app.pages.hotels");
+  const webPageStructuredData = buildWebPageStructuredData(PAGE_SEO.hotels);
 
   return (
     <PublicPageShell
@@ -168,7 +170,7 @@ export default function HotelsPage() {
       highlights={Array.isArray(heroContent.highlights) ? heroContent.highlights : []}
       compactHero
     >
-      <SEO {...PAGE_SEO.hotels} />
+      <SEO {...PAGE_SEO.hotels} structuredData={webPageStructuredData} />
       <section className="space-y-6">
         <div className="overflow-visible rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
           <div className="space-y-6 p-6 lg:p-8">

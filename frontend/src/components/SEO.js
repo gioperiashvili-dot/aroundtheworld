@@ -1,79 +1,97 @@
 import { Helmet } from "react-helmet-async";
+import defaultOgImage from "../assets/AroundTheWorld_Logo_Main.png";
 
 export const SITE_URL = "https://aroundworld.ge";
 export const SITE_NAME = "Around The World";
-export const DEFAULT_OG_IMAGE = `${SITE_URL}/favicon.ico`;
+export const PRODUCTION_API_URL = "https://api.aroundworld.ge";
+export const DEFAULT_TITLE = "Around The World | ტურისტული სააგენტო";
+export const DEFAULT_DESCRIPTION =
+  "ტურისტული სააგენტო Around The World გთავაზობთ ტურებს, ავიაბილეთებს, სასტუმროებს, ტრანსფერებს და ინდივიდუალურ სამოგზაურო მომსახურებას.";
+export const DEFAULT_OG_IMAGE = defaultOgImage;
+export const TOUR_DETAIL_FALLBACK_DESCRIPTION =
+  "დეტალური ინფორმაცია ტურის შესახებ, ფასები, თარიღები და ჯავშნის მოთხოვნა Around The World-ზე.";
 
 export const PAGE_SEO = {
   home: {
-    title: "ტურები და ტურისტული სააგენტო საქართველოში | Around The World",
+    title: "Around The World | ტურისტული სააგენტო საქართველოში",
     description:
-      "Around The World არის ტურისტული სააგენტო და ტურისტული კომპანია, რომელიც გთავაზობთ ტურებს, ავიაბილეთებს, ფრენების ძიებას, სასტუმროებს და სავიზო მომსახურებას.",
+      "ტურისტული სააგენტო Around The World დაგეხმარებათ ტურების, ავიაბილეთების, სასტუმროების, ტრანსფერებისა და ინდივიდუალური მოგზაურობის დაგეგმვაში.",
     canonical: `${SITE_URL}/`,
   },
   tours: {
-    title: "ტურები საქართველოდან | ტურისტული კომპანია Around The World",
+    title: "ტურები | Around The World",
     description:
-      "დაათვალიერეთ ტურები საქართველოდან, შეარჩიეთ სასურველი მიმართულება და გააგზავნეთ ტურის დაჯავშნის მოთხოვნა Around The World-ის დახმარებით.",
+      "აღმოაჩინეთ ტურები და სამოგზაურო პაკეტები Around The World-თან ერთად. შეარჩიეთ მიმართულება და გაგზავნეთ ჯავშნის მოთხოვნა მარტივად.",
     canonical: `${SITE_URL}/tours`,
   },
   flights: {
-    title: "ავიაბილეთები და ფრენები | Around The World",
+    title: "ავიაბილეთები | Around The World",
     description:
-      "მოძებნეთ ავიაბილეთები და ფრენები სასურველ მიმართულებაზე, შეარჩიეთ რეისი და გააგზავნეთ დაჯავშნის მოთხოვნა Around The World-ის ვებგვერდიდან.",
+      "მოძებნეთ ავიაბილეთები Around The World-ის დახმარებით და დაგეგმეთ თქვენი მოგზაურობა მარტივად.",
     canonical: `${SITE_URL}/flights`,
   },
   hotels: {
-    title: "სასტუმროების ძიება | Around The World",
+    title: "სასტუმროები | Around The World",
     description:
-      "მოძებნეთ სასტუმროები ქალაქის, ბიუჯეტის და მოგზაურობის სტილის მიხედვით.",
+      "მოძებნეთ სასტუმროები და საცხოვრებელი ვარიანტები Around The World-ის დახმარებით.",
     canonical: `${SITE_URL}/hotels`,
   },
   restaurants: {
-    title: "რესტორნების ძიება | Around The World",
+    title: "რესტორნები | Around The World",
     description:
-      "აღმოაჩინეთ პოპულარული რესტორნები და შეარჩიეთ ადგილი სასიამოვნო გამოცდილებისთვის.",
+      "აღმოაჩინეთ რესტორნები და ადგილები Around The World-ის სამოგზაურო სერვისებთან ერთად.",
     canonical: `${SITE_URL}/restaurants`,
   },
   visaServices: {
-    title: "სავიზო მომსახურება ტურისტული სააგენტოსგან | Around The World",
+    title: "სავიზო მომსახურება | Around The World",
     description:
-      "მიიღეთ სავიზო მომსახურება და კონსულტაცია Around The World-ისგან. მოამზადეთ მოგზაურობისთვის საჭირო დოკუმენტები მარტივად და კომფორტულად.",
+      "მიიღეთ სავიზო კონსულტაცია და სამოგზაურო დოკუმენტებთან დაკავშირებული დახმარება Around The World-ისგან.",
     canonical: `${SITE_URL}/visa-services`,
   },
   blog: {
-    title: "ბლოგი და შეფასებები | Around The World",
+    title: "ბლოგი | Around The World",
     description:
-      "წაიკითხეთ Around The World-ის ბლოგი, მოგზაურობის რჩევები და მომხმარებლების შეფასებები ტურებზე, ავიაბილეთებსა და სამოგზაურო სერვისებზე.",
+      "წაიკითხეთ Around The World-ის ბლოგი, სამოგზაურო რჩევები, სიახლეები და მომხმარებლების შეფასებები.",
     canonical: `${SITE_URL}/blog`,
   },
   about: {
-    title: "ტურისტული სააგენტო Around The World | ჩვენს შესახებ",
+    title: "ჩვენ შესახებ | Around The World",
     description:
-      "Around The World არის ტურისტული სააგენტო საქართველოში, რომელიც მომხმარებლებს სთავაზობს ტურებს, ავიაბილეთებს, სასტუმროებს, რესტორნებს და სავიზო მომსახურებას.",
+      "გაიგეთ მეტი ტურისტული სააგენტო Around The World-ის შესახებ და ნახეთ, როგორ გეხმარებით მოგზაურობის დაგეგმვაში.",
     canonical: `${SITE_URL}/about`,
   },
   contact: {
-    title: "კონტაქტი | ტურისტული სააგენტო Around The World",
+    title: "კონტაქტი | Around The World",
     description:
-      "დაუკავშირდით Around The World-ს ტურების, ავიაბილეთების, ფრენების, სასტუმროების და სავიზო მომსახურების შესახებ.",
+      "დაუკავშირდით Around The World-ს ტურების, ავიაბილეთების, სასტუმროების, ტრანსფერებისა და სხვა სამოგზაურო სერვისების შესახებ.",
     canonical: `${SITE_URL}/contact`,
   },
 };
 
-export const TRAVEL_AGENCY_JSON_LD = {
-  "@context": "https://schema.org",
-  "@type": "TravelAgency",
-  name: SITE_NAME,
-  url: SITE_URL,
-  email: "info@aroundworld.ge",
-  telephone: "+995595475533",
-  address: {
-    "@type": "PostalAddress",
-    addressLocality: "თბილისი",
-    addressCountry: "GE",
-  },
-};
+function normalizePathname(pathname) {
+  const path = String(pathname || "/").trim() || "/";
+
+  if (path === "/") {
+    return "/";
+  }
+
+  return `/${path.replace(/^\/+/, "").replace(/\/+$/, "")}`;
+}
+
+function cleanSeoText(value) {
+  return String(value || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/https?:\/\/\S+/gi, " ")
+    .replace(/www\.\S+/gi, " ")
+    .replace(/\bSee less\b/gi, " ")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function hasMojibake(value) {
+  return /(?:áƒ|ðŸ|âœ|â€|ï»¿)/.test(String(value || ""));
+}
 
 export function toAbsoluteUrl(value, baseUrl = SITE_URL) {
   const source = String(value || "").trim();
@@ -82,25 +100,68 @@ export function toAbsoluteUrl(value, baseUrl = SITE_URL) {
     return "";
   }
 
-  if (/^[a-z][a-z\d+.-]*:/i.test(source)) {
-    return source;
-  }
+  try {
+    const parsedUrl = new URL(source, `${String(baseUrl).replace(/\/+$/, "")}/`);
 
-  if (source.startsWith("//")) {
-    return `https:${source}`;
-  }
+    if (parsedUrl.hostname === "aroundworld.ge") {
+      parsedUrl.protocol = "https:";
+    }
 
-  return new URL(source, `${baseUrl}/`).href;
+    return parsedUrl.href;
+  } catch (_error) {
+    return "";
+  }
 }
 
-export function buildCanonicalUrl(path) {
-  return toAbsoluteUrl(path);
+export function toAbsoluteImageUrl(value) {
+  const source = String(value || DEFAULT_OG_IMAGE).trim();
+
+  if (!source) {
+    return "";
+  }
+
+  try {
+    const parsedUrl = new URL(source, `${SITE_URL}/`);
+    const isUpload = parsedUrl.pathname.startsWith("/uploads/");
+    const isLocalApiHost =
+      parsedUrl.hostname === "localhost" || parsedUrl.hostname === "127.0.0.1";
+
+    if (
+      isUpload &&
+      (source.startsWith("/uploads/") ||
+        isLocalApiHost ||
+        parsedUrl.hostname === "api.aroundworld.ge")
+    ) {
+      return `${PRODUCTION_API_URL}${parsedUrl.pathname}${parsedUrl.search}`;
+    }
+
+    if (parsedUrl.hostname === "aroundworld.ge") {
+      parsedUrl.protocol = "https:";
+    }
+
+    if (parsedUrl.hostname === "api.aroundworld.ge") {
+      parsedUrl.protocol = "https:";
+    }
+
+    return parsedUrl.href;
+  } catch (_error) {
+    return "";
+  }
+}
+
+export function buildCanonicalUrl(path = "/") {
+  const source = String(path || "/").trim() || "/";
+
+  try {
+    const parsedUrl = new URL(source, `${SITE_URL}/`);
+    return `${SITE_URL}${normalizePathname(parsedUrl.pathname)}`;
+  } catch (_error) {
+    return `${SITE_URL}/`;
+  }
 }
 
 export function truncateSeoText(value, maxLength = 160) {
-  const text = String(value || "")
-    .replace(/\s+/g, " ")
-    .trim();
+  const text = cleanSeoText(value);
 
   if (text.length <= maxLength) {
     return text;
@@ -109,106 +170,99 @@ export function truncateSeoText(value, maxLength = 160) {
   return `${text.slice(0, maxLength - 3).trim()}...`;
 }
 
-function cleanTourDescriptionForSeo(value) {
-  return String(value || "")
-    .replace(/https?:\/\/\S+/gi, "")
-    .replace(/www\.\S+/gi, "")
-    .replace(/\bSee less\b/gi, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function isUsefulTourDescriptionForSeo(value) {
-  const text = cleanTourDescriptionForSeo(value);
-
-  return (
-    text.length >= 50 &&
-    text.length <= 155 &&
-    !/[{}<>]/.test(text) &&
-    !/https?:|www\.|@\w+/i.test(value || "")
-  );
-}
-
 export function buildTourSeoDescription({
+  shortDescription,
   description,
-  destination,
-  duration,
-  language = "ka",
-}) {
-  const cleanedDescription = cleanTourDescriptionForSeo(description);
+  maxLength = 160,
+} = {}) {
+  const cleanedShortDescription = cleanSeoText(shortDescription);
 
-  if (isUsefulTourDescriptionForSeo(description)) {
-    return truncateSeoText(cleanedDescription);
+  if (cleanedShortDescription && !hasMojibake(cleanedShortDescription)) {
+    return truncateSeoText(cleanedShortDescription, maxLength);
   }
 
-  if (language === "ka") {
-    return truncateSeoText(
-      destination
-        ? `შეარჩიეთ ${destination}-ის ტური Around The World-თან ერთად. ნახეთ ტურის დეტალები, ღირებულება და გააგზავნეთ დაჯავშნის მოთხოვნა.`
-        : "შეარჩიეთ ტური Around The World-თან ერთად. ნახეთ ტურის დეტალები, ღირებულება და გააგზავნეთ დაჯავშნის მოთხოვნა."
-    );
+  const cleanedDescription = cleanSeoText(description);
+
+  if (
+    cleanedDescription &&
+    cleanedDescription.length >= 40 &&
+    !hasMojibake(cleanedDescription)
+  ) {
+    return truncateSeoText(cleanedDescription, maxLength);
   }
 
-  const descriptionText = truncateSeoText(cleanedDescription);
+  return TOUR_DETAIL_FALLBACK_DESCRIPTION;
+}
 
-  return truncateSeoText(
-    descriptionText ||
-      [destination, duration].filter(Boolean).join(" | ") ||
-      "View tour details, pricing, and booking request options with Around The World."
+function getStructuredDataItems(structuredData) {
+  const values = Array.isArray(structuredData) ? structuredData : [structuredData];
+
+  return values.filter(
+    (item) =>
+      item &&
+      typeof item === "object" &&
+      !Array.isArray(item) &&
+      Object.keys(item).length > 0
   );
+}
+
+function serializeStructuredData(structuredData) {
+  return JSON.stringify(structuredData).replace(/</g, "\\u003c");
 }
 
 export default function SEO({
   title,
   description,
-  canonical,
+  canonical = "/",
+  image,
+  type,
+  noindex = false,
+  locale = "ka_GE",
   ogTitle,
   ogDescription,
   ogUrl,
-  ogType = "website",
-  ogImage = DEFAULT_OG_IMAGE,
+  ogType,
+  ogImage,
   twitterCard = "summary_large_image",
   robots,
-  jsonLd,
+  structuredData,
 }) {
-  const metaTitle = title || SITE_NAME;
-  const metaDescription = description || "";
-  const openGraphDescription = ogDescription || metaDescription;
-  const canonicalUrl = canonical ? toAbsoluteUrl(canonical) : "";
-  const openGraphUrl = toAbsoluteUrl(ogUrl || canonicalUrl || SITE_URL);
-  const openGraphImage = toAbsoluteUrl(ogImage || DEFAULT_OG_IMAGE);
-  const structuredDataItems = Array.isArray(jsonLd)
-    ? jsonLd.filter(Boolean)
-    : jsonLd
-      ? [jsonLd]
-      : [];
+  const metaTitle = cleanSeoText(title) || DEFAULT_TITLE;
+  const metaDescription =
+    truncateSeoText(description || DEFAULT_DESCRIPTION, 220) || DEFAULT_DESCRIPTION;
+  const canonicalUrl = buildCanonicalUrl(canonical);
+  const openGraphTitle = cleanSeoText(ogTitle) || metaTitle;
+  const openGraphDescription =
+    truncateSeoText(ogDescription || metaDescription, 220) || metaDescription;
+  const openGraphUrl = buildCanonicalUrl(ogUrl || canonicalUrl);
+  const openGraphType = type || ogType || "website";
+  const openGraphImage = toAbsoluteImageUrl(image || ogImage || DEFAULT_OG_IMAGE);
+  const robotsContent = noindex ? "noindex,nofollow" : robots;
+  const structuredDataItems = getStructuredDataItems(structuredData);
 
   return (
     <Helmet prioritizeSeoTags>
       <title>{metaTitle}</title>
-      {metaDescription ? <meta name="description" content={metaDescription} /> : null}
-      {robots ? <meta name="robots" content={robots} /> : null}
-      {canonicalUrl ? <link rel="canonical" href={canonicalUrl} /> : null}
+      <meta name="description" content={metaDescription} />
+      {robotsContent ? <meta name="robots" content={robotsContent} /> : null}
+      <link rel="canonical" href={canonicalUrl} />
 
-      <meta property="og:site_name" content={SITE_NAME} />
-      <meta property="og:title" content={ogTitle || metaTitle} />
-      {openGraphDescription ? (
-        <meta property="og:description" content={openGraphDescription} />
-      ) : null}
+      <meta property="og:title" content={openGraphTitle} />
+      <meta property="og:description" content={openGraphDescription} />
+      <meta property="og:type" content={openGraphType} />
       <meta property="og:url" content={openGraphUrl} />
-      <meta property="og:type" content={ogType} />
-      <meta property="og:image" content={openGraphImage} />
+      {openGraphImage ? <meta property="og:image" content={openGraphImage} /> : null}
+      <meta property="og:site_name" content={SITE_NAME} />
+      <meta property="og:locale" content={locale} />
 
       <meta name="twitter:card" content={twitterCard} />
-      <meta name="twitter:title" content={ogTitle || metaTitle} />
-      {openGraphDescription ? (
-        <meta name="twitter:description" content={openGraphDescription} />
-      ) : null}
-      <meta name="twitter:image" content={openGraphImage} />
+      <meta name="twitter:title" content={openGraphTitle} />
+      <meta name="twitter:description" content={openGraphDescription} />
+      {openGraphImage ? <meta name="twitter:image" content={openGraphImage} /> : null}
 
-      {structuredDataItems.map((structuredData, index) => (
-        <script key={`json-ld-${index}`} type="application/ld+json">
-          {JSON.stringify(structuredData)}
+      {structuredDataItems.map((item, index) => (
+        <script key={`structured-data-${index}`} type="application/ld+json">
+          {serializeStructuredData(item)}
         </script>
       ))}
     </Helmet>
