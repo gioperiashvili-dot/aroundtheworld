@@ -30,7 +30,7 @@ function renderLinkedText(text, keyPrefix) {
           href={getHref(cleanUrl)}
           target="_blank"
           rel="noopener noreferrer"
-          className="break-all text-sky-600 underline underline-offset-2 transition hover:text-sky-700 dark:text-sky-300 dark:hover:text-sky-200"
+          className="break-all text-[var(--aw-accent)] underline underline-offset-2 transition hover:text-[var(--aw-accent-hover)]"
         >
           {cleanUrl}
         </a>
@@ -64,8 +64,8 @@ export default function TourDescription({ description, compact = false, classNam
 
   return (
     <div
-      className={`space-y-3 text-sm leading-7 text-slate-700 dark:text-slate-300 ${
-        compact ? "max-h-44 overflow-hidden" : "text-base leading-8"
+      className={`space-y-3 text-sm leading-7 text-white/72 ${
+        compact ? "max-h-56 overflow-hidden" : "text-base leading-8"
       } ${className}`}
     >
       {paragraphs.map((paragraph, paragraphIndex) => {

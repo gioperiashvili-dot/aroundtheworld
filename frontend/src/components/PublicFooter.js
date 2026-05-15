@@ -42,7 +42,7 @@ export default function PublicFooter() {
 
   return (
     <footer className="relative z-10 mx-auto w-full max-w-[1500px] px-4 pb-10 sm:px-6 lg:px-8">
-      <div className="overflow-hidden rounded-t-[2.25rem] bg-[#071426] text-white shadow-[0_34px_120px_-56px_rgba(2,6,23,0.9)]">
+      <div className="overflow-hidden rounded-t-[2.25rem] border border-white/10 bg-[var(--aw-panel)] text-white shadow-[0_34px_120px_-56px_rgba(0,0,0,0.95)]">
         <div className="grid gap-10 border-b border-white/10 px-6 py-10 sm:px-8 lg:grid-cols-[1.2fr_0.8fr_0.9fr_1.15fr] lg:px-10">
           <div>
             <h2 className="[font-family:var(--font-display)] text-2xl font-semibold">

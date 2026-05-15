@@ -5,9 +5,20 @@
 :root {
   --font-body: "Manrope", "Segoe UI", Arial, sans-serif;
   --font-display: "Space Grotesk", "Segoe UI", Arial, sans-serif;
-  --text-primary: #0f172a;
-  --text-muted: #475569;
-  --surface-page: #f8f3eb;
+  --aw-bg: #111111;
+  --aw-bg-deep: #0f1111;
+  --aw-panel: #1c1f1f;
+  --aw-panel-soft: #202020;
+  --aw-input: #f2f3f0;
+  --aw-text: #f7f7f7;
+  --aw-muted: #b8b8b8;
+  --aw-accent: #f5b800;
+  --aw-accent-hover: #ffd447;
+  --aw-border: rgba(255, 255, 255, 0.12);
+  --aw-shadow: 0 30px 90px -58px rgba(0, 0, 0, 0.95);
+  --text-primary: var(--aw-text);
+  --text-muted: var(--aw-muted);
+  --surface-page: var(--aw-bg);
 }
 
 html[data-language="ka"] {
@@ -30,8 +41,7 @@ html.dark {
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.65), transparent 42%),
-    linear-gradient(180deg, #f7f2e9 0%, #f8f3eb 100%);
+  background: var(--aw-bg);
   color: var(--text-primary);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
@@ -40,10 +50,8 @@ body {
 }
 
 .dark body {
-  background:
-    radial-gradient(circle at top, rgba(56, 189, 248, 0.1), transparent 34%),
-    linear-gradient(180deg, #020617 0%, #020817 100%);
-  color: #e2e8f0;
+  background: var(--aw-bg-deep);
+  color: var(--aw-text);
 }
 
 #root {
@@ -51,35 +59,35 @@ body {
 }
 
 .homepage-feature-card {
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.97);
-  box-shadow: 0 24px 90px -60px rgba(15, 23, 42, 0.62);
+  border: 1px solid var(--aw-border);
+  background: var(--aw-panel-soft);
+  box-shadow: var(--aw-shadow);
 }
 
 .homepage-feature-card:hover {
   transform: translateY(-0.25rem);
-  border-color: rgba(255, 255, 255, 1);
-  background: rgba(255, 255, 255, 1);
+  border-color: rgba(255, 255, 255, 0.18);
+  background: #262626;
 }
 
 .homepage-feature-card__label {
-  color: #e64d53;
+  color: var(--aw-accent);
 }
 
 .homepage-feature-card:hover .homepage-feature-card__label {
-  color: #d83f45;
+  color: var(--aw-accent-hover);
 }
 
 .homepage-feature-card__title {
-  color: #0f172a;
+  color: var(--aw-text);
 }
 
 .homepage-feature-card__description {
-  color: #334155;
+  color: rgba(247, 247, 247, 0.68);
 }
 
 .homepage-feature-card:hover .homepage-feature-card__description {
-  color: #1e293b;
+  color: rgba(247, 247, 247, 0.84);
 }
 
 html.dark .homepage-feature-card {
@@ -132,13 +140,13 @@ img {
 }
 
 ::selection {
-  background: rgba(16, 185, 129, 0.18);
-  color: #0f172a;
+  background: rgba(245, 184, 0, 0.28);
+  color: var(--aw-text);
 }
 
 .dark ::selection {
-  background: rgba(45, 212, 191, 0.32);
-  color: #f8fafc;
+  background: rgba(245, 184, 0, 0.34);
+  color: var(--aw-text);
 }
 
 code {
@@ -156,4 +164,122 @@ code {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+.booking-search-tabs input,
+.booking-search-tabs select {
+  color: #101010 !important;
+}
+
+.booking-search-tabs input::placeholder {
+  color: #6a6a6a !important;
+}
+
+.flight-search-panel--booking button[aria-expanded] span {
+  color: #101010;
+}
+
+.flight-search-panel--booking .dark\:text-white {
+  color: #101010;
+}
+
+.flight-search-panel--booking .dark\:text-slate-400 {
+  color: #6a6a6a;
+}
+
+.flight-search-panel--booking .dark\:bg-slate-900\/90 {
+  background: #f1f5f9;
+}
+
+.flight-result-card .text-slate-950,
+.flight-result-card .text-slate-900,
+.flight-result-card .text-slate-800,
+.flight-result-card .text-slate-700,
+.flight-result-card .dark\:text-white,
+.flight-result-card .dark\:text-slate-100,
+.flight-result-card .dark\:text-slate-200 {
+  color: #f8fafc;
+}
+
+.flight-result-card .text-slate-600,
+.flight-result-card .text-slate-500,
+.flight-result-card .dark\:text-slate-300,
+.flight-result-card .dark\:text-slate-400 {
+  color: rgba(248, 250, 252, 0.64);
+}
+
+.flight-result-card div.bg-white,
+.flight-result-card .bg-slate-50,
+.flight-result-card .dark\:bg-slate-950\/70 {
+  background: var(--aw-panel);
+}
+
+.flight-result-card .border-slate-100,
+.flight-result-card .border-slate-200,
+.flight-result-card .border-slate-800,
+.flight-result-card .dark\:border-slate-800 {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.flight-result-card .h-px {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.premium-service-card > div:last-child {
+  background: var(--aw-panel-soft);
+}
+
+.premium-service-card .text-slate-950,
+.premium-service-card .text-slate-900,
+.premium-service-card .text-slate-800,
+.premium-service-card .dark\:text-white {
+  color: #f8fafc;
+}
+
+.premium-service-card .text-slate-700,
+.premium-service-card .text-slate-600,
+.premium-service-card .dark\:text-slate-300,
+.premium-service-card .dark\:text-slate-400 {
+  color: rgba(248, 250, 252, 0.66);
+}
+
+.premium-service-card .bg-slate-50,
+.premium-service-card .dark\:bg-slate-800\/80 {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.premium-service-card a {
+  background: var(--aw-accent);
+  color: #101010;
+  font-weight: 800;
+}
+
+.premium-service-card a:hover {
+  background: var(--aw-accent-hover);
+}
+
+.homepage-feature-card {
+  border-color: var(--aw-border);
+  background: var(--aw-panel-soft);
+  box-shadow: var(--aw-shadow);
+}
+
+.homepage-feature-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: #262626;
+}
+
+.homepage-feature-card__label,
+html.dark .homepage-feature-card__label {
+  color: var(--aw-accent);
+}
+
+.homepage-feature-card__title,
+html.dark .homepage-feature-card__title {
+  color: var(--aw-text);
+}
+
+.homepage-feature-card__description,
+html.dark .homepage-feature-card__description {
+  color: rgba(247, 247, 247, 0.68);
 }

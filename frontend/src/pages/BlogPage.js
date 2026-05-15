@@ -103,18 +103,18 @@ export default function BlogPage() {
       <SEO {...PAGE_SEO.blog} />
 
       <section className="space-y-10">
-        <div className="rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)] lg:p-8">
+        <div className="rounded-[1rem] border border-white/10 bg-[#202020] p-6 text-white shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)] lg:p-8">
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-700 dark:text-cyan-300">
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
                 {t("blog.sectionTitle")}
               </p>
-              <h2 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
+              <h2 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-white">
                 {t("blog.sectionTitle")}
               </h2>
             </div>
             {!blogsLoading ? (
-              <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+              <p className="text-sm font-semibold text-white/70">
                 {blogs.length}
               </p>
             ) : null}
@@ -136,8 +136,8 @@ export default function BlogPage() {
             ) : null}
 
             {!blogsLoading && !blogsError && blogs.length === 0 ? (
-              <div className="rounded-[1.5rem] bg-slate-50 p-6 dark:bg-slate-800/70">
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              <div className="rounded-[1rem] border border-white/10 bg-[#171717] p-6">
+                <p className="text-sm font-semibold text-white/72">
                   {t("blog.emptyBlogs")}
                 </p>
               </div>
@@ -145,18 +145,18 @@ export default function BlogPage() {
           </div>
         </div>
 
-        <div className="rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)] lg:p-8">
+        <div className="rounded-[1rem] border border-white/10 bg-[#202020] p-6 text-white shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)] lg:p-8">
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#d83f45] dark:text-[#ff8c90]">
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
                 {t("blog.reviewsTitle")}
               </p>
-              <h2 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
+              <h2 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-white">
                 {t("blog.reviewsTitle")}
               </h2>
             </div>
             {!reviewsLoading ? (
-              <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+              <p className="text-sm font-semibold text-white/70">
                 {reviews.length}
               </p>
             ) : null}
@@ -168,7 +168,7 @@ export default function BlogPage() {
                 {[0, 1, 2].map((item) => (
                   <div
                     key={item}
-                    className="h-56 animate-pulse rounded-[1.5rem] bg-slate-100 dark:bg-slate-800"
+                    className="h-56 animate-pulse rounded-[1rem] bg-white/8"
                   />
                 ))}
               </div>
@@ -193,8 +193,8 @@ export default function BlogPage() {
             ) : null}
 
             {!reviewsLoading && !reviewsError && reviews.length === 0 ? (
-              <div className="rounded-[1.5rem] bg-slate-50 p-6 dark:bg-slate-800/70">
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              <div className="rounded-[1rem] border border-white/10 bg-[#171717] p-6">
+                <p className="text-sm font-semibold text-white/72">
                   {t("blog.emptyReviews")}
                 </p>
               </div>
@@ -212,7 +212,7 @@ function BlogCard({ blog, language, t }) {
   const category = getLocalized(blog.category, language);
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-[1.7rem] border border-slate-100 bg-slate-50 shadow-[0_24px_80px_-62px_rgba(15,23,42,0.7)] transition hover:-translate-y-1 hover:shadow-[0_28px_90px_-62px_rgba(15,23,42,0.9)] dark:border-white/10 dark:bg-slate-800/70">
+    <article className="group flex h-full flex-col overflow-hidden rounded-[1rem] border border-white/10 bg-[#171717] shadow-[0_24px_80px_-62px_rgba(0,0,0,0.9)] transition hover:-translate-y-1 hover:border-white/18">
       <TravelImage
         image={blog.image}
         title={title}
@@ -224,29 +224,29 @@ function BlogCard({ blog, language, t }) {
       <div className="flex flex-1 flex-col p-5">
         <div className="flex flex-wrap items-center gap-2">
           {category ? (
-            <span className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-800 dark:bg-cyan-500/10 dark:text-cyan-100">
+            <span className="rounded-full bg-[rgba(245,184,0,0.14)] px-3 py-1 text-xs font-semibold text-[var(--aw-accent)]">
               {category}
             </span>
           ) : null}
           {blog.createdAt ? (
-            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-white/50">
               {formatCalendarDate(blog.createdAt, language)}
             </span>
           ) : null}
         </div>
 
-        <h3 className="[font-family:var(--font-display)] mt-4 text-2xl font-semibold leading-tight text-slate-950 dark:text-white">
+        <h3 className="[font-family:var(--font-display)] mt-4 text-2xl font-semibold leading-tight text-white">
           {title}
         </h3>
         {excerpt ? (
-          <p className="mt-3 line-clamp-4 text-sm leading-7 text-slate-600 dark:text-slate-300">
+          <p className="mt-3 line-clamp-4 text-sm leading-7 text-white/68">
             {excerpt}
           </p>
         ) : null}
 
         <Link
           to={`/blog/${blog.slug}`}
-          className="mt-auto inline-flex self-start rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
+          className="mt-auto inline-flex self-start rounded-full bg-[var(--aw-accent)] px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-[var(--aw-accent-hover)]"
         >
           {t("blog.readMore")}
         </Link>
@@ -262,7 +262,7 @@ function PublicReviewCard({ review, tour, language, t }) {
     .join(" / ");
 
   return (
-    <article className="h-full rounded-[1.5rem] border border-slate-100 bg-slate-50 p-5 dark:border-white/10 dark:bg-slate-800/70">
+    <article className="h-full rounded-[1rem] border border-white/10 bg-[#171717] p-5">
       <div className="flex items-start gap-3">
         {review.photoURL ? (
           <img
@@ -273,13 +273,13 @@ function PublicReviewCard({ review, tour, language, t }) {
             referrerPolicy="no-referrer"
           />
         ) : (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold text-white dark:bg-white dark:text-slate-950">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--aw-accent)] text-sm font-black text-slate-950">
             {getInitials(review.name)}
           </div>
         )}
 
         <div className="min-w-0 flex-1">
-          <h3 className="break-words font-semibold text-slate-950 dark:text-white">
+          <h3 className="break-words font-semibold text-white">
             {review.name}
           </h3>
           <div className="mt-2 flex text-amber-400" aria-hidden="true">
@@ -290,11 +290,11 @@ function PublicReviewCard({ review, tour, language, t }) {
         </div>
       </div>
 
-      <p className="mt-4 text-sm leading-7 text-slate-700 dark:text-slate-300">
+      <p className="mt-4 text-sm leading-7 text-white/70">
         {review.comment}
       </p>
 
-      <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+      <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/46">
         {relatedText ? <span>{relatedText}</span> : null}
         {review.createdAt ? (
           <span>{formatDateTimeLabel(review.createdAt, language)}</span>

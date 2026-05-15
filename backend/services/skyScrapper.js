@@ -5,14 +5,18 @@ const { logProviderDiagnostic } = require("../utils/providerDiagnostics");
 const AIRPORT_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const FLIGHT_CACHE_TTL_MS = 15 * 60 * 1000;
 const FLIGHT_NEGATIVE_CACHE_TTL_MS = 2 * 60 * 1000;
+const PRICE_CALENDAR_CACHE_TTL_MS = 60 * 60 * 1000;
 const RETRY_DELAY_MIN_MS = 2000;
 const RETRY_DELAY_MAX_MS = 3000;
 const PROVIDER_LIMITED_CODE = "PROVIDER_LIMITED";
+const PRICE_CALENDAR_PATH = "/api/v1/flights/getPriceCalendar";
 
 const airportCache = new Map();
 const flightCache = new Map();
 const flightNegativeCache = new Map();
 const inFlightFlightRequests = new Map();
+const priceCalendarCache = new Map();
+const inFlightPriceCalendarRequests = new Map();
 const KNOWN_SKY_SCRAPPER_CODES = new Set([
   PROVIDER_LIMITED_CODE,
   "BLOCKED_OR_CAPTCHA",
@@ -28,6 +32,15 @@ function createSkyScrapperError(statusCode, error, details, code) {
   requestError.details = details;
   requestError.code = code;
   return requestError;
+}
+
+function attachProviderDiagnostics(error, diagnostics) {
+  if (error && diagnostics) {
+    error.providerDiagnostics = diagnostics;
+    error.providerDebug = diagnostics;
+  }
+
+  return error;
 }
 
 function createValidationError(error, details) {
@@ -100,6 +113,134 @@ function stringifyProviderValue(value) {
   } catch (_error) {
     return String(value);
   }
+}
+
+function redactProviderDiagnostics(value, depth = 0) {
+  if (value === null || value === undefined) {
+    return value;
+  }
+
+  if (depth > 4) {
+    return "[Truncated]";
+  }
+
+  if (Array.isArray(value)) {
+    return value.slice(0, 20).map((item) => redactProviderDiagnostics(item, depth + 1));
+  }
+
+  if (typeof value === "object") {
+    return Object.entries(value).reduce((accumulator, [key, nestedValue]) => {
+      if (/key|token|secret|authorization|rapidapi/i.test(key)) {
+        accumulator[key] = "[Redacted]";
+        return accumulator;
+      }
+
+      accumulator[key] = redactProviderDiagnostics(nestedValue, depth + 1);
+      return accumulator;
+    }, {});
+  }
+
+  if (typeof value === "string") {
+    return value.length > 1200 ? `${value.slice(0, 1200)}...[Truncated]` : value;
+  }
+
+  return value;
+}
+
+function limitProviderDiagnosticBody(value) {
+  const redactedValue = redactProviderDiagnostics(value);
+
+  if (redactedValue === undefined || redactedValue === null) {
+    return redactedValue;
+  }
+
+  try {
+    const serializedValue =
+      typeof redactedValue === "string"
+        ? redactedValue
+        : JSON.stringify(redactedValue);
+
+    if (serializedValue.length <= 6000) {
+      return redactedValue;
+    }
+
+    return {
+      truncated: true,
+      preview: serializedValue.slice(0, 6000),
+    };
+  } catch (_error) {
+    return "[Unserializable provider body]";
+  }
+}
+
+function getProviderMessage(value) {
+  if (!value) {
+    return "";
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return (
+    value.message ||
+    value.error ||
+    value.errorMessage ||
+    value.code ||
+    ""
+  );
+}
+
+function buildProviderDiagnostics({
+  path,
+  params,
+  payload,
+  error,
+  attempt,
+  blocked = false,
+  transient = false,
+  malformed = false,
+  html = false,
+}) {
+  const responseData = error?.response?.data;
+  const diagnosticPayload = payload ?? responseData;
+  const networkCode = error?.code || "";
+  const networkMessage = error?.message || "";
+  const errorName = error?.name || "";
+  const errorMessage = error?.message || "";
+
+  return {
+    endpoint: path,
+    host: SKY_SCRAPPER_HOST,
+    url: `https://${SKY_SCRAPPER_HOST}${path}`,
+    query: redactProviderDiagnostics(params || {}),
+    attempt,
+    providerStatus: error?.response?.status ?? payload?.status ?? null,
+    providerStatusText: error?.response?.statusText || null,
+    providerCode:
+      payload?.code ||
+      payload?.errorCode ||
+      responseData?.code ||
+      responseData?.errorCode ||
+      error?.code ||
+      null,
+    providerMessage:
+      getProviderMessage(payload) ||
+      getProviderMessage(responseData) ||
+      error?.message ||
+      null,
+    providerBody: limitProviderDiagnosticBody(diagnosticPayload),
+    networkCode: networkCode || null,
+    networkMessage: networkMessage || null,
+    errorName: errorName || null,
+    errorMessage: errorMessage || null,
+    flags: {
+      blocked,
+      transient,
+      malformed,
+      html,
+    },
+  };
 }
 
 function looksLikeHtmlPayload(value) {
@@ -280,6 +421,26 @@ function createFlightSearchCacheKey({
     `infants=${normalizeCacheSegment(infants || 0)}`,
     `cabin=${normalizeCacheSegment(cabinClass || "economy")}`,
     `sort=${normalizeCacheSegment(sortBy || "best")}`,
+    `currency=${normalizeCacheSegment(currency || "USD")}`,
+    `country=${normalizeCacheSegment(countryCode || "US")}`,
+    `market=${normalizeCacheSegment(market || "en-US")}`,
+    `locale=${normalizeCacheSegment(locale || "en-US")}`,
+  ].join("|");
+}
+
+function createPriceCalendarCacheKey({
+  originSkyId,
+  destinationSkyId,
+  fromDate,
+  currency,
+  market,
+  countryCode,
+  locale,
+}) {
+  return [
+    normalizeCacheSegment(originSkyId),
+    normalizeCacheSegment(destinationSkyId),
+    normalizeCacheSegment(fromDate),
     `currency=${normalizeCacheSegment(currency || "USD")}`,
     `country=${normalizeCacheSegment(countryCode || "US")}`,
     `market=${normalizeCacheSegment(market || "en-US")}`,
@@ -1124,6 +1285,293 @@ async function fetchFlightsWithRetry(params) {
   throw createProviderUnavailableError();
 }
 
+async function fetchPriceCalendarWithRetry(params) {
+  const requestParams = removeEmptyRequestParams(params);
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      logSkyScrapperDiagnostic(
+        "getPriceCalendar request",
+        {
+          endpoint: PRICE_CALENDAR_PATH,
+          host: SKY_SCRAPPER_HOST,
+          url: `https://${SKY_SCRAPPER_HOST}${PRICE_CALENDAR_PATH}`,
+          params: requestParams,
+          attempt: attempt + 1,
+        },
+        "info"
+      );
+
+      const payload = await rapidApiGet({
+        host: SKY_SCRAPPER_HOST,
+        path: PRICE_CALENDAR_PATH,
+        params: requestParams,
+        timeout: 30000,
+      });
+
+      const blocked = isBlockedPayload(payload);
+      const transient = isTransientPayload(payload);
+      const html = isHtmlPayload(payload);
+      const malformed =
+        !payload || typeof payload !== "object" || Array.isArray(payload);
+
+      logSkyScrapperDiagnostic(
+        "getPriceCalendar response",
+        {
+          endpoint: PRICE_CALENDAR_PATH,
+          host: SKY_SCRAPPER_HOST,
+          params: requestParams,
+          attempt: attempt + 1,
+          status: payload?.status,
+          blocked,
+          transient,
+          html,
+          malformed,
+          message: payload?.message,
+          error: payload?.error,
+          body: limitProviderDiagnosticBody(payload),
+        },
+        payload?.status === false ? "warn" : "info"
+      );
+
+      if (blocked) {
+        throw attachProviderDiagnostics(
+          createBlockedError(formatSkyScrapperDetails(payload?.message || payload)),
+          buildProviderDiagnostics({
+            path: PRICE_CALENDAR_PATH,
+            params: requestParams,
+            payload,
+            attempt: attempt + 1,
+            blocked,
+            transient,
+            malformed,
+            html,
+          })
+        );
+      }
+
+      if (html || malformed) {
+        throw attachProviderDiagnostics(
+          createUnknownProviderError(
+            html
+              ? "Flight provider returned HTML instead of JSON."
+              : "Flight provider returned malformed price calendar data."
+          ),
+          buildProviderDiagnostics({
+            path: PRICE_CALENDAR_PATH,
+            params: requestParams,
+            payload,
+            attempt: attempt + 1,
+            blocked,
+            transient,
+            malformed,
+            html,
+          })
+        );
+      }
+
+      if (payload?.status === false) {
+        const providerDiagnostics = buildProviderDiagnostics({
+          path: PRICE_CALENDAR_PATH,
+          params: requestParams,
+          payload,
+          attempt: attempt + 1,
+          blocked,
+          transient,
+          malformed,
+          html,
+        });
+
+        if (transient) {
+          if (attempt === 0) {
+            await waitBeforeRetry("getPriceCalendar", attempt, "transient payload");
+            continue;
+          }
+
+          throw attachProviderDiagnostics(
+            createProviderUnavailableError(
+              formatSkyScrapperDetails(payload?.message || payload?.error)
+            ),
+            providerDiagnostics
+          );
+        }
+
+        throw attachProviderDiagnostics(
+          createProviderUnavailableError(
+            formatSkyScrapperDetails(payload?.message || payload?.error)
+          ),
+          providerDiagnostics
+        );
+      }
+
+      return payload;
+    } catch (error) {
+      const blocked = isBlockedError(error);
+      const transient = isTransientError(error);
+      const existingDiagnostics = error?.providerDiagnostics;
+      const providerDiagnostics =
+        existingDiagnostics ||
+        buildProviderDiagnostics({
+          path: PRICE_CALENDAR_PATH,
+          params: requestParams,
+          error,
+          attempt: attempt + 1,
+          blocked,
+          transient,
+        });
+
+      logSkyScrapperDiagnostic(
+        "getPriceCalendar error",
+        {
+          endpoint: PRICE_CALENDAR_PATH,
+          host: SKY_SCRAPPER_HOST,
+          url: `https://${SKY_SCRAPPER_HOST}${PRICE_CALENDAR_PATH}`,
+          params: requestParams,
+          attempt: attempt + 1,
+          providerStatus:
+            error?.response?.status ?? providerDiagnostics.providerStatus,
+          providerStatusText:
+            error?.response?.statusText ?? providerDiagnostics.providerStatusText,
+          blocked,
+          transient,
+          message:
+            error?.response?.data?.message ||
+            providerDiagnostics.providerMessage ||
+            error?.message,
+          error: error?.response?.data?.error,
+          body:
+            limitProviderDiagnosticBody(error?.response?.data) ||
+            providerDiagnostics.providerBody,
+          networkCode: providerDiagnostics.networkCode,
+          networkMessage: providerDiagnostics.networkMessage,
+          errorName: providerDiagnostics.errorName,
+          errorMessage: providerDiagnostics.errorMessage,
+        },
+        "error"
+      );
+
+      if (KNOWN_SKY_SCRAPPER_CODES.has(error?.code)) {
+        throw attachProviderDiagnostics(error, providerDiagnostics);
+      }
+
+      if (blocked) {
+        throw attachProviderDiagnostics(
+          createBlockedError(
+            formatSkyScrapperDetails(error?.response?.data?.message || error?.message)
+          ),
+          providerDiagnostics
+        );
+      }
+
+      if (transient) {
+        if (attempt === 0) {
+          await waitBeforeRetry("getPriceCalendar", attempt, "transient error");
+          continue;
+        }
+
+        throw attachProviderDiagnostics(
+          createProviderUnavailableError(
+            formatSkyScrapperDetails(error?.response?.data?.message || error?.message)
+          ),
+          providerDiagnostics
+        );
+      }
+
+      throw attachProviderDiagnostics(
+        createUnknownProviderError(
+          formatSkyScrapperDetails(error?.response?.data?.message || error?.message)
+        ),
+        providerDiagnostics
+      );
+    }
+  }
+
+  throw createProviderUnavailableError();
+}
+
+async function fetchPriceCalendar({
+  originSkyId,
+  destinationSkyId,
+  fromDate,
+  currency = "USD",
+  countryCode = "US",
+  market = "en-US",
+  locale = "en-US",
+}) {
+  const cacheKey = createPriceCalendarCacheKey({
+    originSkyId,
+    destinationSkyId,
+    fromDate,
+    currency,
+    countryCode,
+    market,
+    locale,
+  });
+  const cachedResult = getCachedValue(priceCalendarCache, cacheKey);
+
+  if (cachedResult) {
+    logSkyScrapperDiagnostic(
+      "price calendar cache hit",
+      {
+        searchKey: cacheKey,
+      },
+      "info"
+    );
+
+    return {
+      ...cachedResult,
+      meta: {
+        ...cachedResult.meta,
+        cached: true,
+      },
+    };
+  }
+
+  const existingRequest = inFlightPriceCalendarRequests.get(cacheKey);
+
+  if (existingRequest) {
+    logSkyScrapperDiagnostic(
+      "price calendar request deduped",
+      {
+        searchKey: cacheKey,
+      },
+      "info"
+    );
+
+    return existingRequest;
+  }
+
+  const priceCalendarPromise = (async () => {
+    const payload = await fetchPriceCalendarWithRetry({
+      originSkyId,
+      destinationSkyId,
+      fromDate,
+      currency,
+      countryCode,
+      market,
+      locale,
+    });
+    const result = {
+      payload,
+      meta: {
+        cached: false,
+      },
+    };
+
+    setCachedValue(priceCalendarCache, cacheKey, result, PRICE_CALENDAR_CACHE_TTL_MS);
+
+    return result;
+  })();
+
+  inFlightPriceCalendarRequests.set(cacheKey, priceCalendarPromise);
+
+  try {
+    return await priceCalendarPromise;
+  } finally {
+    inFlightPriceCalendarRequests.delete(cacheKey);
+  }
+}
+
 async function searchFlights({
   from,
   to,
@@ -1300,7 +1748,9 @@ async function searchFlights({
 }
 
 module.exports = {
+  fetchPriceCalendar,
   formatSkyScrapperDetails,
   normalizeFlights,
+  PRICE_CALENDAR_PATH,
   searchFlights,
 };

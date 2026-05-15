@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import BookingSearchTabs from "../components/BookingSearchTabs";
 import EmptyState from "../components/EmptyState";
-import FlightSearchPanel from "../components/FlightSearchPanel";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
@@ -20,8 +20,19 @@ import {
 } from "../lib/formatters";
 import { buildWebPageStructuredData } from "../lib/structuredData";
 
-const RESULT_TAB_KEYS = ["recommended", "nonstop", "fastest", "earliest", "cheapest"];
+const SORT_OPTIONS = ["recommended", "cheapest", "fastest", "earliest"];
+const ARRIVAL_TIME_FILTERS = ["morning", "afternoon", "evening", "night"];
+const STOP_FILTERS = ["nonstop", "oneStop", "twoPlusStops"];
 const FALLBACK_TEXT = "\u2014";
+
+const DEFAULT_FLIGHT_FILTERS = {
+  sortBy: "recommended",
+  arrivalTimes: [],
+  stops: [],
+  airlines: [],
+  minPrice: "",
+  maxPrice: "",
+};
 
 function getSafeText(value, fallback = FALLBACK_TEXT) {
   const text = String(value ?? "").trim();
@@ -106,13 +117,128 @@ function getFlightDurationMinutes(flight) {
   return Math.max(Math.round((arrivalTime - departureTime) / 60000), 0);
 }
 
+function parseNumericValue(value) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  const source = String(value ?? "").trim();
+
+  if (!source) {
+    return null;
+  }
+
+  const match = source.match(/\d[\d\s.,]*/);
+
+  if (!match) {
+    return null;
+  }
+
+  let numericText = match[0].replace(/\s/g, "");
+  const lastCommaIndex = numericText.lastIndexOf(",");
+  const lastDotIndex = numericText.lastIndexOf(".");
+
+  if (lastCommaIndex > -1 && lastDotIndex > -1) {
+    const decimalIndex = Math.max(lastCommaIndex, lastDotIndex);
+    const integerPart = numericText.slice(0, decimalIndex).replace(/[,.]/g, "");
+    const decimalPart = numericText.slice(decimalIndex + 1).replace(/[,.]/g, "");
+    numericText = decimalPart ? `${integerPart}.${decimalPart}` : integerPart;
+  } else if (lastCommaIndex > -1) {
+    const parts = numericText.split(",");
+    const decimalPart = parts[parts.length - 1];
+    numericText =
+      parts.length === 2 && decimalPart.length <= 2
+        ? `${parts[0]}.${decimalPart}`
+        : numericText.replace(/,/g, "");
+  } else if (lastDotIndex > -1) {
+    const parts = numericText.split(".");
+    const decimalPart = parts[parts.length - 1];
+    numericText =
+      parts.length === 2 && decimalPart.length <= 2
+        ? numericText
+        : numericText.replace(/\./g, "");
+  }
+
+  const parsedValue = Number.parseFloat(numericText);
+  return Number.isFinite(parsedValue) ? parsedValue : null;
+}
+
 function getFlightPriceValue(flight) {
-  return typeof flight?.price === "number" ? flight.price : null;
+  return parseNumericValue(flight?.price ?? flight?.priceFormatted);
 }
 
 function getFlightDepartureTime(flight) {
   const timestamp = Date.parse(flight?.departure || "");
   return Number.isNaN(timestamp) ? null : timestamp;
+}
+
+function getFlightArrivalTime(flight) {
+  const segments = getFlightSegments(flight);
+  const lastSegment = segments[segments.length - 1];
+  const timestamp = Date.parse(lastSegment?.arrival || flight?.arrival || "");
+  return Number.isNaN(timestamp) ? null : timestamp;
+}
+
+function getFlightArrivalTimeKey(flight) {
+  const arrivalTime = getFlightArrivalTime(flight);
+
+  if (arrivalTime === null) {
+    return null;
+  }
+
+  const hour = new Date(arrivalTime).getHours();
+
+  if (hour >= 5 && hour < 12) {
+    return "morning";
+  }
+
+  if (hour >= 12 && hour < 17) {
+    return "afternoon";
+  }
+
+  if (hour >= 17 && hour < 22) {
+    return "evening";
+  }
+
+  return "night";
+}
+
+function getFlightStopCount(flight) {
+  if (typeof flight?.stops === "number") {
+    return flight.stops;
+  }
+
+  const segments = getFlightSegments(flight);
+
+  if (segments.length > 1) {
+    return segments.length - 1;
+  }
+
+  return null;
+}
+
+function getFlightStopFilterKey(flight) {
+  const stops = getFlightStopCount(flight);
+
+  if (stops === null) {
+    return null;
+  }
+
+  if (stops === 0) {
+    return "nonstop";
+  }
+
+  if (stops === 1) {
+    return "oneStop";
+  }
+
+  return "twoPlusStops";
+}
+
+function getFlightAirlineLabels(flight) {
+  return getFlightCarriers(flight)
+    .map((carrier) => carrier.label)
+    .filter(Boolean);
 }
 
 function sortByAvailableValue(flights, getValue) {
@@ -144,30 +270,128 @@ function sortByAvailableValue(flights, getValue) {
   });
 }
 
-function getDisplayFlights(results, activeResultTab) {
-  if (activeResultTab === "nonstop") {
-    const hasStopData = results.some((flight) => typeof flight?.stops === "number");
+function getSortedFlights(flights, sortBy) {
+  if (sortBy === "fastest") {
+    return sortByAvailableValue(flights, getFlightDurationMinutes);
+  }
 
-    if (!hasStopData) {
-      return results;
+  if (sortBy === "earliest") {
+    return sortByAvailableValue(flights, getFlightDepartureTime);
+  }
+
+  if (sortBy === "cheapest") {
+    return sortByAvailableValue(flights, getFlightPriceValue);
+  }
+
+  return flights;
+}
+
+function getFilteredFlights(results, filters) {
+  const hasArrivalFilter = filters.arrivalTimes.length > 0;
+  const hasStopFilter = filters.stops.length > 0;
+  const hasAirlineFilter = filters.airlines.length > 0;
+  const minPrice = parseNumericValue(filters.minPrice);
+  const maxPrice = parseNumericValue(filters.maxPrice);
+  const hasPriceFilter = minPrice !== null || maxPrice !== null;
+
+  const filteredFlights = results.filter((flight) => {
+    if (hasArrivalFilter) {
+      const arrivalKey = getFlightArrivalTimeKey(flight);
+
+      if (!arrivalKey || !filters.arrivalTimes.includes(arrivalKey)) {
+        return false;
+      }
     }
 
-    return results.filter((flight) => flight?.stops === 0);
-  }
+    if (hasStopFilter) {
+      const stopKey = getFlightStopFilterKey(flight);
 
-  if (activeResultTab === "fastest") {
-    return sortByAvailableValue(results, getFlightDurationMinutes);
-  }
+      if (!stopKey || !filters.stops.includes(stopKey)) {
+        return false;
+      }
+    }
 
-  if (activeResultTab === "earliest") {
-    return sortByAvailableValue(results, getFlightDepartureTime);
-  }
+    if (hasAirlineFilter) {
+      const airlineLabels = getFlightAirlineLabels(flight);
 
-  if (activeResultTab === "cheapest") {
-    return sortByAvailableValue(results, getFlightPriceValue);
-  }
+      if (!airlineLabels.some((airline) => filters.airlines.includes(airline))) {
+        return false;
+      }
+    }
 
-  return results;
+    if (hasPriceFilter) {
+      const price = getFlightPriceValue(flight);
+
+      if (price === null) {
+        return false;
+      }
+
+      if (minPrice !== null && price < minPrice) {
+        return false;
+      }
+
+      if (maxPrice !== null && price > maxPrice) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  return getSortedFlights(filteredFlights, filters.sortBy);
+}
+
+function getFlightFilterOptions(results) {
+  const airlineMap = new Map();
+  let hasArrivalTimes = false;
+  let hasStops = false;
+  let hasPrices = false;
+
+  results.forEach((flight) => {
+    getFlightAirlineLabels(flight).forEach((airline) => {
+      if (!airlineMap.has(airline)) {
+        airlineMap.set(airline, airline);
+      }
+    });
+
+    if (getFlightArrivalTimeKey(flight)) {
+      hasArrivalTimes = true;
+    }
+
+    if (getFlightStopFilterKey(flight)) {
+      hasStops = true;
+    }
+
+    if (getFlightPriceValue(flight) !== null) {
+      hasPrices = true;
+    }
+  });
+
+  return {
+    airlines: Array.from(airlineMap.values()).sort((firstAirline, secondAirline) =>
+      firstAirline.localeCompare(secondAirline)
+    ),
+    hasArrivalTimes,
+    hasStops,
+    hasPrices,
+  };
+}
+
+function toggleFilterValue(values, value) {
+  return values.includes(value)
+    ? values.filter((currentValue) => currentValue !== value)
+    : [...values, value];
+}
+
+function hasActiveFlightFilters(filters) {
+  return (
+    filters.sortBy !== DEFAULT_FLIGHT_FILTERS.sortBy ||
+    filters.arrivalTimes.length > 0 ||
+    filters.stops.length > 0 ||
+    filters.airlines.length > 0 ||
+    String(filters.minPrice || "").trim() ||
+    String(filters.maxPrice || "").trim()
+  );
 }
 
 function formatCarrierLabel(carrier = {}) {
@@ -359,7 +583,8 @@ export default function FlightsPage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [lastSearch, setLastSearch] = useState(null);
   const [meta, setMeta] = useState(null);
-  const [activeResultTab, setActiveResultTab] = useState("recommended");
+  const [flightFilters, setFlightFilters] = useState(DEFAULT_FLIGHT_FILTERS);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [bookingFlight, setBookingFlight] = useState(null);
   const [bookingForm, setBookingForm] = useState({
     customerName: "",
@@ -384,6 +609,7 @@ export default function FlightsPage() {
         tripType: snapshot.tripType,
         cabin: snapshot.cabin,
         travelers: snapshot.travelers,
+        currencyCode: snapshot.currencyCode,
       });
 
       try {
@@ -397,6 +623,10 @@ export default function FlightsPage() {
           children: snapshot.travelers.children,
           infants: snapshot.travelers.infants,
         };
+
+        if (snapshot.currencyCode) {
+          requestParams.currencyCode = snapshot.currencyCode;
+        }
 
         if (snapshot.tripType === "roundTrip" && snapshot.returnDate) {
           requestParams.returnDate = snapshot.returnDate;
@@ -412,6 +642,8 @@ export default function FlightsPage() {
               : []
         );
         setMeta(response?.meta || null);
+        setFlightFilters(DEFAULT_FLIGHT_FILTERS);
+        setIsMobileFiltersOpen(false);
       } catch (requestError) {
         setResults([]);
         setMeta(null);
@@ -531,10 +763,15 @@ export default function FlightsPage() {
   };
 
   const heroContent = t("app.pages.flights");
+  const bookingTab =
+    searchParams.get("tripType") === "roundTrip" || searchParams.get("returnDate")
+      ? "roundTrip"
+      : "oneWay";
   const displayedResults = useMemo(
-    () => getDisplayFlights(results, activeResultTab),
-    [results, activeResultTab]
+    () => getFilteredFlights(results, flightFilters),
+    [flightFilters, results]
   );
+  const filterOptions = useMemo(() => getFlightFilterOptions(results), [results]);
   const webPageStructuredData = buildWebPageStructuredData(PAGE_SEO.flights);
 
   return (
@@ -548,12 +785,13 @@ export default function FlightsPage() {
     >
       <SEO {...PAGE_SEO.flights} structuredData={webPageStructuredData} />
       <section className="space-y-6">
-        <FlightSearchPanel
-          searchParams={searchParams}
-          loading={loading}
-          externalError={error}
-          onSearch={handleFlightSearch}
-          onFormInteraction={() => setError("")}
+        <BookingSearchTabs
+          defaultTab={bookingTab}
+          flightSearchParams={searchParams}
+          flightLoading={loading}
+          flightError={error}
+          onFlightSearch={handleFlightSearch}
+          onFlightFormInteraction={() => setError("")}
         />
 
         {(lastSearch || meta?.cached) && !loading ? (
@@ -586,50 +824,74 @@ export default function FlightsPage() {
 
         {!loading && results.length > 0 ? (
           <section className="space-y-4">
-            <div className="rounded-[2rem] border border-white/70 bg-white/92 p-5 shadow-[0_26px_86px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-950/86 dark:shadow-[0_26px_86px_-58px_rgba(2,6,23,0.9)]">
+            <div className="premium-results-toolbar rounded-[1rem] border border-white/10 bg-[#242424] p-5 text-white shadow-[0_26px_86px_-58px_rgba(0,0,0,0.92)]">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
+                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/56">
                     {t("flights.resultsLabel")}
                   </p>
-                  <h2 className="[font-family:var(--font-display)] mt-2 text-2xl font-semibold text-slate-950 dark:text-white">
+                  <h2 className="[font-family:var(--font-display)] mt-2 text-2xl font-semibold text-white">
                     {t("flights.resultsHeading")}
                   </h2>
-                  <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  <p className="mt-2 text-sm leading-6 text-white/66">
                     {t("flights.resultsNote")}
                   </p>
                 </div>
-                <span className="inline-flex w-fit rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                  {displayedResults.length}
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex w-fit rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white">
+                    {displayedResults.length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileFiltersOpen(true)}
+                    className="inline-flex rounded-full border border-white/12 bg-white/8 px-4 py-2 text-sm font-semibold text-white/78 transition hover:border-[var(--aw-accent)] hover:text-white lg:hidden"
+                  >
+                    {t("flights.filters.open")}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+              <div className="grid gap-4">
+                {displayedResults.length > 0 ? (
+                  displayedResults.map((flight, index) => (
+                    <FlightResultCard
+                      key={`${flight.flightNumber || flight.airline || "flight"}-${index}`}
+                      flight={flight}
+                      index={index}
+                      lastSearch={lastSearch}
+                      language={language}
+                      t={t}
+                      onBookingRequest={openBookingModal}
+                    />
+                  ))
+                ) : (
+                  <div className="rounded-[1rem] border border-white/10 bg-[#242424] p-6 text-sm font-medium text-white/72 shadow-[0_24px_80px_-58px_rgba(0,0,0,0.9)]">
+                    {t("flights.noCategoryResults")}
+                  </div>
+                )}
               </div>
 
-              <ResultTabs
-                activeTab={activeResultTab}
-                onChange={setActiveResultTab}
-                t={t}
-              />
+              <aside className="hidden lg:block">
+                <FlightFiltersPanel
+                  filters={flightFilters}
+                  options={filterOptions}
+                  t={t}
+                  onChange={setFlightFilters}
+                />
+              </aside>
             </div>
 
-            <div className="grid gap-4">
-              {displayedResults.length > 0 ? (
-                displayedResults.map((flight, index) => (
-                <FlightResultCard
-                  key={`${flight.flightNumber || flight.airline || "flight"}-${index}`}
-                  flight={flight}
-                  index={index}
-                  lastSearch={lastSearch}
-                  language={language}
-                  t={t}
-                  onBookingRequest={openBookingModal}
-                />
-                ))
-              ) : (
-                <div className="rounded-[2rem] border border-white/70 bg-white/90 p-6 text-sm font-medium text-slate-600 shadow-[0_24px_80px_-58px_rgba(15,23,42,0.5)] dark:border-white/10 dark:bg-transparent dark:text-slate-300 dark:text-white">
-                  {t("flights.noCategoryResults")}
-                </div>
-              )}
-            </div>
+            {isMobileFiltersOpen ? (
+              <FlightFiltersDrawer
+                filters={flightFilters}
+                options={filterOptions}
+                t={t}
+                onChange={setFlightFilters}
+                onClose={() => setIsMobileFiltersOpen(false)}
+              />
+            ) : null}
           </section>
         ) : null}
 
@@ -664,37 +926,6 @@ export default function FlightsPage() {
   );
 }
 
-function ResultTabs({ activeTab, onChange, t }) {
-  return (
-    <div
-      role="tablist"
-      aria-label={t("flights.resultCategoriesLabel")}
-      className="mt-5 flex gap-2 overflow-x-auto pb-1"
-    >
-      {RESULT_TAB_KEYS.map((tab) => {
-        const isSelected = activeTab === tab;
-
-        return (
-          <button
-            key={tab}
-            type="button"
-            role="tab"
-            aria-selected={isSelected}
-            onClick={() => onChange(tab)}
-            className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-              isSelected
-                ? "border-slate-950 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950"
-                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-950 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:text-white"
-            }`}
-          >
-            {t(`flights.resultTabs.${tab}`)}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 function getFlightDetailItems(flight, t) {
   const airports = Array.isArray(flight.airports)
     ? flight.airports.filter(Boolean).join(" - ")
@@ -715,6 +946,244 @@ function getFlightDetailItems(flight, t) {
     },
     { label: t("flights.details.providerNotes"), value: providerNotes },
   ].filter((item) => String(item.value || "").trim());
+}
+
+function FlightFiltersDrawer({ filters, options, t, onChange, onClose }) {
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    const originalOverflow = document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 lg:hidden">
+      <button
+        type="button"
+        aria-label={t("flights.filters.close")}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/68 backdrop-blur-sm"
+      />
+      <div className="absolute bottom-0 left-0 right-0 max-h-[88vh] overflow-y-auto rounded-t-[1.2rem] border border-white/10 bg-[#171717] p-4 text-white shadow-[0_24px_90px_-34px_rgba(0,0,0,0.95)]">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h3 className="[font-family:var(--font-display)] text-xl font-semibold">
+            {t("flights.filters.label")}
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/12 text-white/70 transition hover:border-[var(--aw-accent)] hover:text-white"
+            aria-label={t("flights.filters.close")}
+          >
+            x
+          </button>
+        </div>
+        <FlightFiltersPanel
+          filters={filters}
+          options={options}
+          t={t}
+          onChange={onChange}
+          compact
+        />
+      </div>
+    </div>
+  );
+}
+
+function FlightFiltersPanel({ filters, options, t, onChange, compact = false }) {
+  const isActive = hasActiveFlightFilters(filters);
+
+  const updateFilter = (patch) => {
+    onChange((currentFilters) => ({
+      ...currentFilters,
+      ...patch,
+    }));
+  };
+
+  return (
+    <div
+      className={`rounded-[1rem] border border-white/10 bg-[#202020] p-4 text-white shadow-[0_26px_86px_-58px_rgba(0,0,0,0.92)] ${
+        compact ? "" : "sticky top-28"
+      }`}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="[font-family:var(--font-display)] text-lg font-semibold">
+          {t("flights.filters.label")}
+        </h3>
+        {isActive ? (
+          <button
+            type="button"
+            onClick={() => onChange(DEFAULT_FLIGHT_FILTERS)}
+            className="text-xs font-semibold text-[var(--aw-accent)] transition hover:text-[var(--aw-accent-hover)]"
+          >
+            {t("flights.filters.clear")}
+          </button>
+        ) : null}
+      </div>
+
+      <div className="mt-5 space-y-5">
+        <FilterSection title={t("flights.filters.sortBy")}>
+          <div className="grid gap-2">
+            {SORT_OPTIONS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => updateFilter({ sortBy: option })}
+                className={`rounded-[0.75rem] border px-3 py-2 text-left text-sm font-semibold transition ${
+                  filters.sortBy === option
+                    ? "border-[var(--aw-accent)] bg-[var(--aw-accent)] text-slate-950"
+                    : "border-white/10 bg-white/7 text-white/72 hover:border-white/18 hover:text-white"
+                }`}
+              >
+                {option === "cheapest"
+                  ? t("flights.filters.lowestPrice")
+                  : t(`flights.filters.${option}`)}
+              </button>
+            ))}
+          </div>
+        </FilterSection>
+
+        {options.hasArrivalTimes ? (
+          <FilterSection title={t("flights.filters.arrivalTime")}>
+            <div className="grid grid-cols-2 gap-2">
+              {ARRIVAL_TIME_FILTERS.map((option) => (
+                <FilterChip
+                  key={option}
+                  active={filters.arrivalTimes.includes(option)}
+                  label={t(`flights.filters.${option}`)}
+                  onClick={() =>
+                    updateFilter({
+                      arrivalTimes: toggleFilterValue(filters.arrivalTimes, option),
+                    })
+                  }
+                />
+              ))}
+            </div>
+          </FilterSection>
+        ) : null}
+
+        {options.hasStops ? (
+          <FilterSection title={t("flights.filters.stops")}>
+            <div className="grid gap-2">
+              {STOP_FILTERS.map((option) => (
+                <FilterChip
+                  key={option}
+                  active={filters.stops.includes(option)}
+                  label={t(`flights.filters.${option}`)}
+                  onClick={() =>
+                    updateFilter({
+                      stops: toggleFilterValue(filters.stops, option),
+                    })
+                  }
+                />
+              ))}
+            </div>
+          </FilterSection>
+        ) : null}
+
+        {options.airlines.length > 0 ? (
+          <FilterSection title={t("flights.filters.airlinesIncluded")}>
+            <div className="max-h-56 space-y-2 overflow-y-auto pr-1">
+              {options.airlines.map((airline) => (
+                <FilterCheckbox
+                  key={airline}
+                  checked={filters.airlines.includes(airline)}
+                  label={airline}
+                  onChange={() =>
+                    updateFilter({
+                      airlines: toggleFilterValue(filters.airlines, airline),
+                    })
+                  }
+                />
+              ))}
+            </div>
+          </FilterSection>
+        ) : null}
+
+        {options.hasPrices ? (
+          <FilterSection title={t("flights.filters.priceRange")}>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              <label className="grid gap-2">
+                <span className="text-xs font-semibold text-white/58">
+                  {t("flights.filters.minPrice")}
+                </span>
+                <input
+                  type="number"
+                  min="0"
+                  value={filters.minPrice}
+                  onChange={(event) => updateFilter({ minPrice: event.target.value })}
+                  className="min-h-10 rounded-[0.7rem] border border-white/10 bg-[var(--aw-input)] px-3 text-sm font-bold text-slate-950 outline-none transition focus:border-[var(--aw-accent)]"
+                />
+              </label>
+              <label className="grid gap-2">
+                <span className="text-xs font-semibold text-white/58">
+                  {t("flights.filters.maxPrice")}
+                </span>
+                <input
+                  type="number"
+                  min="0"
+                  value={filters.maxPrice}
+                  onChange={(event) => updateFilter({ maxPrice: event.target.value })}
+                  className="min-h-10 rounded-[0.7rem] border border-white/10 bg-[var(--aw-input)] px-3 text-sm font-bold text-slate-950 outline-none transition focus:border-[var(--aw-accent)]"
+                />
+              </label>
+            </div>
+          </FilterSection>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function FilterSection({ title, children }) {
+  return (
+    <section>
+      <h4 className="text-xs font-black uppercase tracking-[0.18em] text-white/52">
+        {title}
+      </h4>
+      <div className="mt-3">{children}</div>
+    </section>
+  );
+}
+
+function FilterChip({ active, label, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-[0.7rem] border px-3 py-2 text-left text-sm font-semibold transition ${
+        active
+          ? "border-[var(--aw-accent)] bg-[rgba(245,184,0,0.16)] text-[var(--aw-accent)]"
+          : "border-white/10 bg-white/7 text-white/72 hover:border-white/18 hover:text-white"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function FilterCheckbox({ checked, label, onChange }) {
+  return (
+    <label className="flex cursor-pointer items-center gap-3 rounded-[0.7rem] border border-white/10 bg-white/7 px-3 py-2 text-sm font-semibold text-white/72 transition hover:border-white/18 hover:text-white">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={onChange}
+        className="h-4 w-4 rounded border-white/20 bg-transparent text-[var(--aw-accent)] focus:ring-[var(--aw-accent)]"
+      />
+      <span className="min-w-0 truncate">{label}</span>
+    </label>
+  );
 }
 
 function FlightResultCard({
@@ -759,7 +1228,7 @@ function FlightResultCard({
   const detailItems = getFlightDetailItems(flight, t);
 
   return (
-    <article className="group overflow-hidden rounded-[2rem] border border-white/75 bg-white/95 p-4 shadow-[0_30px_90px_-60px_rgba(15,23,42,0.62)] transition hover:-translate-y-0.5 hover:shadow-[0_34px_96px_-58px_rgba(15,23,42,0.7)] dark:border-white/10 dark:bg-transparent dark:shadow-[0_30px_90px_-60px_rgba(2,6,23,0.92)] sm:p-5">
+    <article className="flight-result-card group overflow-hidden rounded-[1rem] border border-white/10 bg-[#242424] p-4 text-white shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)] transition hover:-translate-y-0.5 hover:border-white/18 hover:shadow-[0_34px_96px_-58px_rgba(0,0,0,0.95)] sm:p-5">
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_13rem] lg:items-center">
         <div className="min-w-0 space-y-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -788,7 +1257,7 @@ function FlightResultCard({
             </span>
           </div>
 
-          <div className="grid gap-4 rounded-[1.65rem] bg-slate-50 p-4 dark:bg-transparent sm:grid-cols-[minmax(0,1fr)_minmax(8rem,0.7fr)_minmax(0,1fr)] sm:items-center">
+          <div className="flight-route-panel grid gap-4 rounded-[0.9rem] bg-[#1c1c1c] p-4 sm:grid-cols-[minmax(0,1fr)_minmax(8rem,0.7fr)_minmax(0,1fr)] sm:items-center">
             <FlightTimeBlock
               align="left"
               code={originCode}
@@ -828,7 +1297,7 @@ function FlightResultCard({
           </div>
         </div>
 
-        <div className="rounded-[1.65rem] border border-slate-100 bg-white p-4 text-left dark:border-slate-800 dark:bg-transparent lg:text-right">
+        <div className="flight-price-panel rounded-[0.9rem] border border-white/10 bg-[#1c1c1c] p-4 text-left lg:text-right">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
             {t("common.price")}
           </p>
@@ -843,7 +1312,7 @@ function FlightResultCard({
             <button
               type="button"
               onClick={() => onBookingRequest?.(flight)}
-              className="inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+              className="inline-flex w-full items-center justify-center rounded-full bg-[#f6b80f] px-4 py-3 text-center text-sm font-black uppercase text-slate-950 transition hover:bg-[#ffca2b]"
             >
               {t("flights.contactToBook")}
             </button>
@@ -851,7 +1320,7 @@ function FlightResultCard({
             <button
               type="button"
               onClick={() => setDetailsOpen((currentValue) => !currentValue)}
-              className="inline-flex w-full items-center justify-center rounded-full border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-950 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-white"
+              className="inline-flex w-full items-center justify-center rounded-full border border-white/12 px-4 py-3 text-sm font-semibold text-white/76 transition hover:border-white/24 hover:text-white"
             >
               {detailsOpen ? t("flights.hideDetails") : t("flights.showDetails")}
             </button>
@@ -860,7 +1329,7 @@ function FlightResultCard({
       </div>
 
       {detailsOpen ? (
-        <div className="mt-5 rounded-[1.65rem] bg-slate-50 p-4 dark:bg-transparent">
+        <div className="flight-details-panel mt-5 rounded-[0.9rem] bg-[#1c1c1c] p-4">
           {segments.length > 0 ? (
             <>
               <FlightSegmentBreakdown
@@ -922,7 +1391,7 @@ function AirlineLogoStack({ carriers = [], fallbackLabel }) {
         />
       ))}
       {carriers.length > 3 ? (
-        <span className="-ml-2 flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-slate-100 text-xs font-bold text-slate-700 dark:border-slate-950 dark:bg-slate-800 dark:text-slate-100">
+        <span className="-ml-2 flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#242424] bg-white/10 text-xs font-bold text-white">
           +{carriers.length - 3}
         </span>
       ) : null}
@@ -940,10 +1409,18 @@ function AirlineAvatar({ carrier = {}, fallbackLabel, className = "" }) {
         src={logoUrl}
         alt={carrier.label || fallbackLabel}
         onError={() => setImageFailed(true)}
-        className={`h-12 w-12 rounded-2xl border-2 border-white bg-white object-contain p-1 shadow-sm dark:border-slate-950 dark:bg-slate-900 ${className}`}
+        className={`h-12 w-12 rounded-full border-2 border-[#242424] bg-white object-contain p-1 shadow-sm ${className}`}
       />
     );
   }
+
+  return (
+    <span
+      className={`flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#242424] bg-[#f6b80f] text-sm font-black text-slate-950 shadow-sm ${className}`}
+    >
+      {getAirlineInitials(fallbackLabel)}
+    </span>
+  );
 }
 
 function FlightSegmentBreakdown({ flight, segments, lastSearch, language, t }) {

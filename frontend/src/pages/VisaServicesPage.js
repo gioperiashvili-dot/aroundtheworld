@@ -22,22 +22,22 @@ export default function VisaServicesPage() {
     >
       <SEO {...PAGE_SEO.visaServices} />
       <section className="space-y-6">
-        <article className="grid gap-6 rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)] md:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
+        <article className="grid gap-6 rounded-[1rem] border border-white/10 bg-[#202020] p-6 text-white shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)] md:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className="max-w-4xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
               {t("visaServices.introLabel")}
             </p>
-            <h2 className="[font-family:var(--font-display)] mt-3 text-3xl font-semibold text-slate-950 dark:text-white">
+            <h2 className="[font-family:var(--font-display)] mt-3 text-3xl font-semibold text-white">
               {t("visaServices.introTitle")}
             </h2>
-            <p className="mt-4 text-sm leading-8 text-slate-700 dark:text-slate-300">
+            <p className="mt-4 text-sm leading-8 text-white/72">
               {t("visaServices.introText")}
             </p>
           </div>
 
           <Link
             to="/contact"
-            className="inline-flex items-center justify-center gap-2 rounded-[1.35rem] bg-slate-950 px-6 py-4 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+            className="inline-flex items-center justify-center gap-2 rounded-[0.85rem] bg-[var(--aw-accent)] px-6 py-4 text-sm font-black text-slate-950 transition hover:bg-[var(--aw-accent-hover)]"
           >
             {t("visaServices.cta")}
             <ArrowIcon />
@@ -48,14 +48,14 @@ export default function VisaServicesPage() {
           {sections.map((section, index) => (
             <article
               key={section.title}
-              className="rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_24px_80px_-56px_rgba(15,23,42,0.45)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_24px_80px_-56px_rgba(2,6,23,0.8)]"
+              className="rounded-[1rem] border border-white/10 bg-[#202020] p-6 text-white shadow-[0_24px_80px_-56px_rgba(0,0,0,0.9)]"
             >
               <div className="flex items-start gap-4">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-sm font-bold text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-200 dark:ring-emerald-400/20">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[rgba(245,184,0,0.16)] text-sm font-bold text-[var(--aw-accent)] ring-1 ring-[rgba(245,184,0,0.24)]">
                   {index + 1}
                 </span>
                 <div>
-                  <h3 className="[font-family:var(--font-display)] text-2xl font-semibold text-slate-950 dark:text-white">
+                  <h3 className="[font-family:var(--font-display)] text-2xl font-semibold text-white">
                     {section.title}
                   </h3>
                   <ul className="mt-4 space-y-3">
@@ -63,9 +63,9 @@ export default function VisaServicesPage() {
                       ? section.items.map((item) => (
                           <li
                             key={item}
-                            className="flex gap-3 text-sm leading-7 text-slate-700 dark:text-slate-300"
+                            className="flex gap-3 text-sm leading-7 text-white/72"
                           >
-                            <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#ff5a5f]" />
+                            <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[var(--aw-accent)]" />
                             <span>{item}</span>
                           </li>
                         ))
@@ -77,16 +77,16 @@ export default function VisaServicesPage() {
           ))}
         </div>
 
-        <article className="rounded-[2rem] border border-amber-200/80 bg-amber-50/95 p-6 shadow-[0_24px_80px_-56px_rgba(146,64,14,0.45)] dark:border-amber-300/20 dark:bg-amber-500/10 dark:shadow-[0_24px_80px_-56px_rgba(2,6,23,0.8)]">
+        <article className="rounded-[1rem] border border-amber-300/20 bg-amber-500/10 p-6 text-white shadow-[0_24px_80px_-56px_rgba(0,0,0,0.86)]">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-300/10 dark:text-amber-200 dark:ring-amber-200/20">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-300/10 text-amber-200 ring-1 ring-amber-200/20">
               <InfoIcon />
             </span>
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-amber-800 dark:text-amber-200">
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-amber-200">
                 {t("visaServices.disclaimerLabel")}
               </p>
-              <p className="mt-3 text-sm leading-8 text-amber-950 dark:text-amber-50">
+              <p className="mt-3 text-sm leading-8 text-amber-50">
                 {t("visaServices.disclaimer")}
               </p>
             </div>

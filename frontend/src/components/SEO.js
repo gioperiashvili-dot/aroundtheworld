@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet-async";
-import defaultOgImage from "../assets/AroundTheWorld_Logo_Main.png";
+import defaultOgImage from "../assets/AroundTheWorld.png";
 
 export const SITE_URL = "https://aroundworld.ge";
 export const SITE_NAME = "Around The World";

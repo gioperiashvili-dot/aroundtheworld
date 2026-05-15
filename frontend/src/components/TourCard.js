@@ -15,7 +15,7 @@ export default function TourCard({ tour }) {
   const duration = getLocalized(tour.duration, language);
 
   return (
-    <article className="group overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] transition duration-300 hover:-translate-y-1 dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
+    <article className="group overflow-hidden rounded-[1rem] border border-white/10 bg-[#242424] text-white shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)] transition duration-300 hover:-translate-y-1 hover:border-white/18 hover:shadow-[0_34px_96px_-58px_rgba(0,0,0,0.95)]">
       <div className="relative">
         <TravelImage
           image={getTourCoverImage(tour)}
@@ -26,50 +26,50 @@ export default function TourCard({ tour }) {
         />
 
         {tour.category ? (
-          <div className="absolute left-5 top-5 rounded-full bg-slate-950/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+          <div className="absolute left-5 top-5 rounded-full border border-white/12 bg-black/72 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
             {tour.category}
           </div>
         ) : null}
 
-        <div className="absolute bottom-5 right-5 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-slate-950/15">
+        <div className="absolute bottom-5 right-5 rounded-full bg-[var(--aw-accent)] px-4 py-2 text-sm font-black text-slate-950 shadow-lg shadow-slate-950/20">
           {formatCurrencyValue(tour.price, tour.currency, language)}
         </div>
       </div>
 
-      <div className="space-y-5 bg-white p-5 dark:bg-[#071426]">
+      <div className="space-y-5 bg-[#202020] p-5">
         <div>
-          <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">{destination}</p>
-          <h3 className="[font-family:var(--font-display)] mt-2 text-2xl font-semibold text-slate-950 dark:text-white">
+          <p className="text-sm font-semibold text-[var(--aw-accent)]">{destination}</p>
+          <h3 className="[font-family:var(--font-display)] mt-2 text-2xl font-semibold text-white">
             {title}
           </h3>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-[1.4rem] bg-slate-50 p-4 dark:bg-slate-800/80">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
+          <div className="rounded-[0.9rem] border border-white/10 bg-[#171717] p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/56">
               {t("common.duration")}
             </p>
-            <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">{duration}</p>
+            <p className="mt-2 text-lg font-semibold text-white">{duration}</p>
           </div>
 
-          <div className="rounded-[1.4rem] bg-slate-50 p-4 dark:bg-slate-800/80">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
+          <div className="rounded-[0.9rem] border border-white/10 bg-[#171717] p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/56">
               {t("common.price")}
             </p>
-            <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
+            <p className="mt-2 text-lg font-semibold text-white">
               {formatCurrencyValue(tour.price, tour.currency, language)}
             </p>
           </div>
         </div>
 
-        <TourDescription description={description} compact />
+        <TourDescription description={description} compact className="text-white/68" />
 
         {dates.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {dates.map((date) => (
               <span
                 key={date}
-                className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200"
+                className="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold text-white/72"
               >
                 {date}
               </span>
@@ -79,7 +79,7 @@ export default function TourCard({ tour }) {
 
         <Link
           to={getTourPublicPath(tour)}
-          className="inline-flex rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+          className="inline-flex rounded-full bg-[var(--aw-accent)] px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-[var(--aw-accent-hover)]"
         >
           {t("tours.openDetails")}
         </Link>

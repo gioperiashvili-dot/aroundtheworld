@@ -6,7 +6,7 @@ export default function HotelCard({ hotel }) {
   const { language, t } = useLanguage();
 
   return (
-    <article className="group overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] transition duration-300 hover:-translate-y-1 dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
+    <article className="premium-service-card group overflow-hidden rounded-[1rem] border border-white/10 bg-[#242424] shadow-[0_30px_90px_-58px_rgba(0,0,0,0.92)] transition duration-300 hover:-translate-y-1 hover:border-white/18">
       <div className="relative">
         <TravelImage
           image={hotel.image}

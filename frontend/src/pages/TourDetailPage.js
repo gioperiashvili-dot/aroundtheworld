@@ -383,15 +383,16 @@ export default function TourDetailPage() {
       eyebrow={t("tours.detailLabel")}
       title={title || t("tours.heading")}
       description={destination || t("tours.heroDescription")}
+      tightHero
       heroAside={
-        <div className="rounded-[2rem] border border-white/70 bg-white/90 p-5 text-slate-900 shadow-[0_24px_80px_-54px_rgba(15,23,42,0.55)] backdrop-blur dark:border-white/14 dark:bg-[#071426] dark:text-white dark:shadow-[0_24px_80px_-54px_rgba(15,23,42,0.88)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-white/58">
+        <div className="rounded-[1rem] border border-white/10 bg-[#202020]/92 p-5 text-white shadow-[0_24px_80px_-54px_rgba(0,0,0,0.9)] backdrop-blur">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
             {t("common.price")}
           </p>
           <p className="mt-3 [font-family:var(--font-display)] text-4xl font-semibold">
             {tour ? formatCurrencyValue(tour.price, tour.currency, language) : "--"}
           </p>
-          <p className="mt-4 text-sm leading-7 text-slate-700 dark:text-white/76">
+          <p className="mt-4 text-sm leading-7 text-white/72">
             {duration || t("common.duration")}
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:flex-col">
@@ -399,13 +400,13 @@ export default function TourDetailPage() {
               type="button"
               onClick={openBookingModal}
               disabled={!tour}
-              className="inline-flex items-center justify-center rounded-full bg-[#e64d53] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#d83f45] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700"
+              className="inline-flex items-center justify-center rounded-full bg-[var(--aw-accent)] px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-[var(--aw-accent-hover)] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
             >
               {t("tours.bookTour")}
             </button>
             <Link
               to="/tours"
-              className="inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
+              className="inline-flex items-center justify-center rounded-full border border-white/12 bg-white/8 px-4 py-2 text-sm font-semibold text-white/78 transition hover:border-[var(--aw-accent)] hover:text-white"
             >
               {t("tours.backToTours")}
             </Link>
@@ -428,8 +429,8 @@ export default function TourDetailPage() {
       ) : null}
 
       {!loading && !error && tour ? (
-        <section className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
-          <article className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
+        <section className="grid items-start gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+          <article className="overflow-hidden rounded-[1rem] border border-white/10 bg-[#242424] shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)]">
             <TourImageGallery
               images={tourImages}
               activeIndex={activeImageIndex}
@@ -438,7 +439,7 @@ export default function TourDetailPage() {
               onChange={setActiveImageIndex}
             />
 
-            <div className="space-y-6 bg-white p-6 dark:bg-[#071426] md:p-8">
+            <div className="space-y-6 bg-[#202020] p-6 md:p-8">
               <div className="grid gap-4 md:grid-cols-3">
                 <StatCard label={t("common.duration")} value={duration} />
                 <StatCard
@@ -456,10 +457,10 @@ export default function TourDetailPage() {
               </div>
 
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
                   {destination}
                 </p>
-                <h2 className="[font-family:var(--font-display)] mt-3 text-3xl font-semibold text-slate-950 dark:text-white">
+                <h2 className="[font-family:var(--font-display)] mt-3 text-3xl font-semibold text-white">
                   {title}
                 </h2>
                 <TourDescription description={description} className="mt-4" />
@@ -469,15 +470,15 @@ export default function TourDetailPage() {
 
           <aside className="space-y-6">
             {dates.length > 0 ? (
-              <div className="rounded-[2rem] bg-white border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
-                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
+              <div className="rounded-[1rem] border border-white/10 bg-[#202020] p-6 shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)]">
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
                   {t("tours.relatedDates")}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {dates.map((date) => (
                     <span
                       key={date}
-                      className="rounded-full bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200"
+                      className="rounded-full border border-white/10 bg-white/8 px-3 py-2 text-sm font-semibold text-white/76"
                     >
                       {date}
                     </span>
@@ -487,11 +488,11 @@ export default function TourDetailPage() {
             ) : null}
 
             {tour.category ? (
-              <div className="rounded-[2rem] bg-white border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
-                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
+              <div className="rounded-[1rem] border border-white/10 bg-[#202020] p-6 shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)]">
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
                   {t("common.category")}
                 </p>
-                <p className="mt-3 text-xl font-semibold text-slate-950 dark:text-white">
+                <p className="mt-3 text-xl font-semibold text-white">
                   {tour.category}
                 </p>
               </div>
@@ -557,11 +558,11 @@ export default function TourDetailPage() {
 
 function StatCard({ label, value }) {
   return (
-    <div className="rounded-[1.4rem] bg-slate-50 p-4 dark:bg-slate-800/80">
-      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
+    <div className="rounded-[0.9rem] border border-white/10 bg-[#171717] p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/56">
         {label}
       </p>
-      <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">{value}</p>
+      <p className="mt-2 text-lg font-semibold text-white">{value}</p>
     </div>
   );
 }
@@ -630,7 +631,7 @@ function GalleryButton({ label, onClick, children }) {
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="flex h-11 w-11 items-center justify-center rounded-full bg-white/88 text-slate-950 shadow-lg shadow-slate-950/20 transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/40 dark:bg-slate-950/82 dark:text-white dark:hover:bg-slate-950"
+      className="flex h-11 w-11 items-center justify-center rounded-full border border-white/12 bg-black/62 text-white shadow-lg shadow-slate-950/20 backdrop-blur transition hover:bg-[var(--aw-accent)] hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-white/30"
     >
       {children}
     </button>
@@ -641,21 +642,21 @@ function TourListSection({ title, items, variant }) {
   const isIncluded = variant === "included";
 
   return (
-    <div className="rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
-      <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
+    <div className="rounded-[1rem] border border-white/10 bg-[#202020] p-6 shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)]">
+      <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
         {title}
       </p>
       <ul className="mt-4 space-y-3">
         {items.map((item) => (
           <li
             key={item}
-            className="flex gap-3 text-sm leading-7 text-slate-700 dark:text-slate-300"
+            className="flex gap-3 text-sm leading-7 text-white/72"
           >
             <span
               className={`mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
                 isIncluded
-                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200"
-                  : "bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-200"
+                  ? "bg-[rgba(245,184,0,0.16)] text-[var(--aw-accent)]"
+                  : "bg-white/10 text-white/70"
               }`}
             >
               {isIncluded ? <CheckIcon /> : <MinusIcon />}
@@ -737,15 +738,15 @@ function TourBookingRequestModal({
         className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
       />
 
-      <div className="relative max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-[2rem] border border-white/70 bg-white p-5 shadow-[0_34px_120px_-48px_rgba(15,23,42,0.85)] dark:border-white/10 dark:bg-slate-950 dark:shadow-[0_34px_120px_-48px_rgba(2,6,23,0.95)] sm:p-6">
+      <div className="relative max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-[1rem] border border-white/10 bg-[#202020] p-5 text-white shadow-[0_34px_120px_-48px_rgba(0,0,0,0.95)] sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d83f45] dark:text-[#ff8c90]">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
               {t("tours.bookingRequest.eyebrow")}
             </p>
             <h2
               id="tour-booking-request-title"
-              className="[font-family:var(--font-display)] mt-2 text-2xl font-semibold text-slate-950 dark:text-white"
+              className="[font-family:var(--font-display)] mt-2 text-2xl font-semibold text-white"
             >
               {t("tours.bookingRequest.title")}
             </h2>
@@ -754,15 +755,15 @@ function TourBookingRequestModal({
             type="button"
             onClick={onClose}
             aria-label={t("common.close")}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 text-lg font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-950 dark:border-slate-800 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:text-white"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/12 text-lg font-semibold text-white/70 transition hover:border-[var(--aw-accent)] hover:text-white"
           >
             x
           </button>
         </div>
 
         <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-          <div className="rounded-[1.5rem] bg-slate-50 p-4 dark:bg-slate-900/70">
-            <h3 className="text-sm font-semibold text-slate-950 dark:text-white">
+          <div className="rounded-[1rem] border border-white/10 bg-[#171717] p-4">
+            <h3 className="text-sm font-semibold text-white">
               {t("tours.bookingRequest.selectedTour")}
             </h3>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
@@ -810,7 +811,7 @@ function TourBookingRequestModal({
               required
             />
             <label className="block">
-              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              <span className="text-sm font-semibold text-white/78">
                 {t("tours.bookingRequest.message")}
               </span>
               <textarea
@@ -818,11 +819,11 @@ function TourBookingRequestModal({
                 value={form.customerMessage}
                 onChange={onChange}
                 rows={4}
-                className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-[#e64d53]/60 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                className="mt-2 w-full rounded-[0.85rem] border border-white/10 bg-[var(--aw-input)] px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-[var(--aw-accent)]"
               />
             </label>
 
-            <p className="rounded-[1.1rem] bg-amber-50 px-4 py-3 text-sm font-medium leading-6 text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
+            <p className="rounded-[0.85rem] border border-amber-300/20 bg-amber-500/10 px-4 py-3 text-sm font-medium leading-6 text-amber-100">
               {t("tours.bookingRequest.priceWarning")}
             </p>
 
@@ -834,7 +835,7 @@ function TourBookingRequestModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex w-full items-center justify-center rounded-full bg-[#e64d53] px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_42px_-26px_rgba(216,63,69,0.9)] transition hover:bg-[#d83f45] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 disabled:shadow-none"
+              className="inline-flex w-full items-center justify-center rounded-full bg-[var(--aw-accent)] px-5 py-3 text-sm font-black text-slate-950 shadow-[0_18px_42px_-26px_rgba(245,184,0,0.9)] transition hover:bg-[var(--aw-accent-hover)] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300 disabled:shadow-none"
             >
               {isSubmitting
                 ? t("tours.bookingRequest.sending")
@@ -879,32 +880,32 @@ function TourBookingSuccessModal({ t, onClose }) {
         className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
       />
 
-      <div className="relative w-full max-w-lg rounded-[2rem] border border-white/70 bg-white p-6 text-center shadow-[0_34px_120px_-48px_rgba(15,23,42,0.85)] dark:border-white/10 dark:bg-slate-950 sm:p-7">
+      <div className="relative w-full max-w-lg rounded-[1rem] border border-white/10 bg-[#202020] p-6 text-center text-white shadow-[0_34px_120px_-48px_rgba(0,0,0,0.95)] sm:p-7">
         <button
           type="button"
           onClick={onClose}
           aria-label={t("common.close")}
-          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-lg font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-950 dark:border-slate-800 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:text-white"
+          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/12 text-lg font-semibold text-white/70 transition hover:border-[var(--aw-accent)] hover:text-white"
         >
           x
         </button>
 
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[rgba(245,184,0,0.16)] text-[var(--aw-accent)]">
           <CheckIcon className="h-7 w-7" />
         </div>
         <h2
           id="tour-booking-success-title"
-          className="[font-family:var(--font-display)] mt-5 text-2xl font-semibold text-slate-950 dark:text-white"
+          className="[font-family:var(--font-display)] mt-5 text-2xl font-semibold text-white"
         >
           {t("tours.bookingRequest.successTitle")}
         </h2>
-        <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+        <p className="mt-3 text-sm leading-7 text-white/72">
           {t("tours.bookingRequest.success")}
         </p>
         <button
           type="button"
           onClick={onClose}
-          className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[#e64d53] px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_42px_-26px_rgba(216,63,69,0.9)] transition hover:bg-[#d83f45]"
+          className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[var(--aw-accent)] px-5 py-3 text-sm font-black text-slate-950 shadow-[0_18px_42px_-26px_rgba(245,184,0,0.9)] transition hover:bg-[var(--aw-accent-hover)]"
         >
           {t("tours.bookingRequest.successAction")}
         </button>
@@ -924,7 +925,7 @@ function BookingTextField({
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+      <span className="text-sm font-semibold text-white/78">
         {label}
       </span>
       <input
@@ -934,7 +935,7 @@ function BookingTextField({
         onChange={onChange}
         required={required}
         readOnly={readOnly}
-        className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-[#e64d53]/60 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+        className="mt-2 w-full rounded-[0.85rem] border border-white/10 bg-[var(--aw-input)] px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-[var(--aw-accent)]"
       />
     </label>
   );
@@ -943,10 +944,10 @@ function BookingTextField({
 function TourMeta({ label, value }) {
   return (
     <div>
-      <span className="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+      <span className="block text-xs font-semibold uppercase tracking-[0.18em] text-white/50">
         {label}
       </span>
-      <span className="mt-1 block break-words font-semibold text-slate-800 dark:text-slate-100">
+      <span className="mt-1 block break-words font-semibold text-white">
         {value}
       </span>
     </div>
@@ -955,15 +956,15 @@ function TourMeta({ label, value }) {
 
 function CompactList({ title, items }) {
   return (
-    <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+    <div className="mt-4 border-t border-white/10 pt-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--aw-accent)]">
         {title}
       </p>
       <ul className="mt-3 space-y-2">
         {items.map((item) => (
           <li
             key={item}
-            className="text-sm leading-6 text-slate-700 dark:text-slate-300"
+            className="text-sm leading-6 text-white/70"
           >
             {item}
           </li>

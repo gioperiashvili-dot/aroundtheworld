@@ -58,8 +58,7 @@ export default function HomeHeroSlider({
         })}
       </div>
 
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.68)_0%,rgba(2,6,23,0.38)_34%,rgba(15,23,42,0.55)_100%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.14),_transparent_30%),radial-gradient(circle_at_bottom_left,_rgba(251,146,60,0.24),_transparent_34%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,17,17,0.7)_0%,rgba(17,17,17,0.42)_34%,rgba(17,17,17,0.76)_100%)]" />
 
       {showControls ? (
         <div className="absolute bottom-8 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3">

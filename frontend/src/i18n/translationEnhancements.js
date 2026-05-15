@@ -24,6 +24,28 @@ export const translationEnhancements = {
         toLabel: "სად?",
         dateLabel: "როდის?",
       },
+      cards: {
+        tours: {
+          category: "ტურები",
+          title: "ტურები",
+          text: "შეარჩიეთ ტური თქვენი სურვილების, ბიუჯეტის და მოგზაურობის სტილის მიხედვით.",
+        },
+        flights: {
+          category: "ავიაბილეთები",
+          title: "ავიაბილეთები",
+          text: "მოძებნეთ ფრენები სასურველ მიმართულებაზე და აირჩიეთ მოსახერხებელი რეისი.",
+        },
+        hotels: {
+          category: "სასტუმროები",
+          title: "სასტუმროები",
+          text: "იპოვეთ კომფორტული განთავსება ქალაქის, თარიღების და სტუმრების მიხედვით.",
+        },
+        restaurants: {
+          category: "რესტორნები",
+          title: "რესტორნები",
+          text: "აღმოაჩინეთ პოპულარული რესტორნები და ადგილობრივი გემოები.",
+        },
+      },
     },
     flights: {
       heroDescription:
@@ -58,6 +80,39 @@ export const translationEnhancements = {
       decrease: "შემცირება",
       departureLabel: "გამგზავრება",
       returnLabel: "დაბრუნება",
+      datePicker: {
+        chooseDate: "თარიღის არჩევა",
+        noReturnTicket: "დაბრუნების ბილეთი არ მჭირდება",
+        previousMonth: "წინა თვე",
+        nextMonth: "შემდეგი თვე",
+        loadingPrices: "ფასები იტვირთება...",
+        pricesUnavailable: "ფასები ამ მომენტში მიუწვდომელია, თარიღის არჩევა მაინც შეგიძლიათ.",
+        pricesCurrencyFallback: "ფასები ნაჩვენებია {currency}-ში.",
+      },
+      filters: {
+        label: "ფილტრები",
+        open: "ფილტრების გახსნა",
+        close: "ფილტრების დახურვა",
+        clear: "ფილტრების გასუფთავება",
+        sortBy: "დალაგება",
+        recommended: "რეკომენდებული",
+        lowestPrice: "ყველაზე იაფი",
+        fastest: "ყველაზე სწრაფი",
+        earliest: "უადრესი",
+        arrivalTime: "ჩასვლის დრო",
+        morning: "დილა",
+        afternoon: "შუადღე",
+        evening: "საღამო",
+        night: "ღამე",
+        stops: "გაჩერებები",
+        nonstop: "პირდაპირი",
+        oneStop: "1 გაჩერება",
+        twoPlusStops: "2+ გაჩერება",
+        airlinesIncluded: "ავიაკომპანიები",
+        priceRange: "ფასის დიაპაზონი",
+        minPrice: "მინ. ფასი",
+        maxPrice: "მაქს. ფასი",
+      },
       swapRoute: "მიმართულებების შეცვლა",
       multiCityComingSoon: "მრავალქალაქიანი ფრენების ძიება მალე დაემატება.",
       resultsHeading: "ხელმისაწვდომი ფრენები",
@@ -110,6 +165,14 @@ export const translationEnhancements = {
       searchPlaceholder: "დანიშნულება, სათაური ან აღწერა",
       helper: "ძიება მუშაობს ქართულად და ინგლისურად.",
       resultsLabel: "ნაპოვნი ტურები",
+      filters: {
+        label: "ფილტრები",
+        category: "კატეგორია",
+        priceRange: "ფასის დიაპაზონი",
+        minPrice: "მინ. ფასი",
+        maxPrice: "მაქს. ფასი",
+        clear: "ფილტრების გასუფთავება",
+      },
       noMatchTitle: "ტურები ვერ მოიძებნა",
       noMatchMessage: "სცადეთ სხვა სიტყვა ან გაასუფთავეთ ფილტრი.",
       clearSearch: "ფილტრის გასუფთავება",
@@ -149,6 +212,28 @@ export const translationEnhancements = {
         toLabel: "Where to?",
         dateLabel: "When?",
       },
+      cards: {
+        tours: {
+          category: "Tours",
+          title: "Tours",
+          text: "Choose a tour by your preferences, budget, and travel style.",
+        },
+        flights: {
+          category: "Flights",
+          title: "Flights",
+          text: "Search flights to your preferred destination and choose a convenient route.",
+        },
+        hotels: {
+          category: "Hotels",
+          title: "Hotels",
+          text: "Find a comfortable stay by city, travel dates, and guests.",
+        },
+        restaurants: {
+          category: "Restaurants",
+          title: "Restaurants",
+          text: "Discover popular restaurants and local dining picks.",
+        },
+      },
     },
     flights: {
       heroDescription:
@@ -183,6 +268,39 @@ export const translationEnhancements = {
       decrease: "Decrease",
       departureLabel: "Departure",
       returnLabel: "Return",
+      datePicker: {
+        chooseDate: "Choose date",
+        noReturnTicket: "I don’t need a return ticket",
+        previousMonth: "Previous month",
+        nextMonth: "Next month",
+        loadingPrices: "Loading prices...",
+        pricesUnavailable: "Prices are unavailable right now. You can still choose a date.",
+        pricesCurrencyFallback: "Prices are shown in {currency}.",
+      },
+      filters: {
+        label: "Filters",
+        open: "Open filters",
+        close: "Close filters",
+        clear: "Clear filters",
+        sortBy: "Sort by",
+        recommended: "Recommended",
+        lowestPrice: "Lowest Price",
+        fastest: "Fastest",
+        earliest: "Earliest",
+        arrivalTime: "Arrival Time",
+        morning: "Morning",
+        afternoon: "Afternoon",
+        evening: "Evening",
+        night: "Night",
+        stops: "Stops",
+        nonstop: "Nonstop",
+        oneStop: "1 Stop",
+        twoPlusStops: "2+ Stops",
+        airlinesIncluded: "Airlines Included",
+        priceRange: "Price Range",
+        minPrice: "Min Price",
+        maxPrice: "Max Price",
+      },
       swapRoute: "Swap route",
       multiCityComingSoon: "Multi-city flight search is coming soon.",
       resultsHeading: "Available Flights",
@@ -235,6 +353,14 @@ export const translationEnhancements = {
       searchPlaceholder: "Destination, title, or description",
       helper: "Search works across Georgian and English tour content.",
       resultsLabel: "Matching tours",
+      filters: {
+        label: "Filters",
+        category: "Category",
+        priceRange: "Price Range",
+        minPrice: "Min Price",
+        maxPrice: "Max Price",
+        clear: "Clear filters",
+      },
       noMatchTitle: "No tours found",
       noMatchMessage: "Try another keyword or clear the filter.",
       clearSearch: "Clear filter",
@@ -265,9 +391,87 @@ translationEnhancements.en.nav.contact = "Contact";
 translationEnhancements.ka.nav.visaServices = "სავიზო მომსახურება";
 translationEnhancements.en.nav.visaServices = "Visa Services";
 translationEnhancements.ka.nav.about = "ჩვენს შესახებ";
-translationEnhancements.en.nav.about = "About";
+translationEnhancements.en.nav.about = "About Us";
 translationEnhancements.ka.common.close = "დახურვა";
 translationEnhancements.en.common.close = "Close";
+
+translationEnhancements.ka.home.title = "იმოგზაურე AroundWorld.ge-სთან ერთად";
+translationEnhancements.en.home.title = "Travel with AroundWorld.ge";
+translationEnhancements.ka.home.description =
+  "ტურები, ავიაბილეთები, სასტუმროები და რესტორნები ერთ სივრცეში";
+translationEnhancements.en.home.description =
+  "Tours, flights, hotels, and restaurants in one place";
+translationEnhancements.ka.home.cards = translationEnhancements.ka.home.cards || {};
+translationEnhancements.en.home.cards = translationEnhancements.en.home.cards || {};
+
+translationEnhancements.ka.booking = {
+  tabsLabel: "სამოგზაურო სერვისები",
+  currency: "ვალუტა",
+  tabs: {
+    oneWay: "ერთი გზა",
+    roundTrip: "ორმხრივი",
+    hotel: "სასტუმრო",
+    restaurant: "რესტორანი",
+  },
+  hotel: {
+    destination: "მიმართულება",
+    rooms: "ოთახები",
+    guests: "სტუმრები",
+  },
+  restaurant: {
+    location: "ქალაქი",
+  },
+};
+
+translationEnhancements.en.booking = {
+  tabsLabel: "Travel booking services",
+  currency: "Currency",
+  tabs: {
+    oneWay: "One-way",
+    roundTrip: "Round-trip",
+    hotel: "Hotel",
+    restaurant: "Restaurant",
+  },
+  hotel: {
+    destination: "Destination",
+    rooms: "Rooms",
+    guests: "Guests",
+  },
+  restaurant: {
+    location: "City",
+  },
+};
+
+translationEnhancements.ka.home.cards.visaServices = {
+  category: "ვიზა",
+  title: "სავიზო მომსახურება",
+  text: "მიიღეთ კონსულტაცია მოთხოვნებზე, დოკუმენტებზე და განაცხადის მომზადებაზე.",
+};
+translationEnhancements.en.home.cards.visaServices = {
+  category: "Visa",
+  title: "Visa Services",
+  text: "Get guidance on requirements, documents, and application preparation.",
+};
+translationEnhancements.ka.home.cards.blog = {
+  category: "ბლოგი",
+  title: "სამოგზაურო რჩევები",
+  text: "წაიკითხეთ იდეები, სიახლეები და პრაქტიკული რჩევები მომავალი მოგზაურობისთვის.",
+};
+translationEnhancements.en.home.cards.blog = {
+  category: "Blog",
+  title: "Travel Notes",
+  text: "Read ideas, updates, and practical tips for your next journey.",
+};
+translationEnhancements.ka.home.cards.contact = {
+  category: "კონტაქტი",
+  title: "დაგეგმეთ ჩვენთან ერთად",
+  text: "მოგვწერეთ ან დაგვირეკეთ, რომ ოპერატორმა თქვენი მოგზაურობა დაგეგმოს.",
+};
+translationEnhancements.en.home.cards.contact = {
+  category: "Contact",
+  title: "Plan with us",
+  text: "Message or call us so an operator can help plan your trip.",
+};
 
 translationEnhancements.ka.app = translationEnhancements.ka.app || {};
 translationEnhancements.en.app = translationEnhancements.en.app || {};

@@ -105,7 +105,7 @@ export default function TourSearchModal({ isOpen, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-slate-950/54 px-4 pt-24 backdrop-blur-sm sm:pt-28"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 px-4 pt-24 backdrop-blur-sm sm:pt-28"
       onMouseDown={(event) => {
         if (panelRef.current && !panelRef.current.contains(event.target)) {
           onClose();
@@ -114,16 +114,16 @@ export default function TourSearchModal({ isOpen, onClose }) {
     >
       <div
         ref={panelRef}
-        className="w-full max-w-2xl animate-[searchModalIn_180ms_ease-out] overflow-hidden rounded-[2rem] border border-white/20 bg-white/96 shadow-[0_34px_110px_-46px_rgba(2,6,23,0.8)] dark:border-white/10 dark:bg-slate-950/96"
+        className="w-full max-w-2xl animate-[searchModalIn_180ms_ease-out] overflow-hidden rounded-[1rem] border border-white/12 bg-[var(--aw-panel)] text-white shadow-[0_34px_110px_-46px_rgba(0,0,0,0.95)]"
       >
-        <div className="flex items-center justify-between gap-4 border-b border-slate-200/80 px-5 py-4 dark:border-white/10">
-          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
+        <div className="flex items-center justify-between gap-4 border-b border-white/10 px-5 py-4">
+          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[var(--aw-accent)]">
             {t("tourSearch.title")}
           </p>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+            className="rounded-full border border-white/12 p-2 text-white/72 transition hover:border-[var(--aw-accent)] hover:bg-white/10 hover:text-white"
             aria-label={t("common.close")}
             title={t("common.close")}
           >
@@ -139,14 +139,14 @@ export default function TourSearchModal({ isOpen, onClose }) {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={t("tourSearch.placeholder")}
-              className="w-full rounded-[1.5rem] border border-slate-200 bg-slate-50 py-4 pl-12 pr-4 text-base font-semibold text-slate-950 outline-none transition placeholder:text-slate-500 focus:border-slate-400 focus:bg-white dark:border-white/10 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-white/24"
+              className="w-full rounded-[0.85rem] border border-white/10 bg-[var(--aw-input)] py-4 pl-12 pr-4 text-base font-semibold text-slate-950 outline-none transition placeholder:text-slate-500 focus:border-[var(--aw-accent)] focus:bg-white"
             />
           </label>
         </form>
 
         <div className="max-h-[22rem] overflow-y-auto px-5 pb-5">
           {query.trim().length >= 2 && results.length === 0 ? (
-            <div className="rounded-[1.5rem] bg-slate-50 px-4 py-5 text-sm text-slate-700 dark:bg-slate-900 dark:text-slate-300">
+            <div className="rounded-[0.85rem] bg-white/7 px-4 py-5 text-sm text-white/72">
               {t("tourSearch.noResults")}
             </div>
           ) : null}
@@ -158,17 +158,17 @@ export default function TourSearchModal({ isOpen, onClose }) {
                   key={tour.id}
                   type="button"
                   onClick={() => closeAndNavigate(getTourPublicPath(tour))}
-                  className="group flex items-center justify-between gap-4 rounded-[1.5rem] bg-slate-50 p-4 text-left transition hover:bg-slate-950 hover:text-white dark:bg-slate-900 dark:hover:bg-white dark:hover:text-slate-950"
+                  className="group flex items-center justify-between gap-4 rounded-[0.85rem] bg-white/7 p-4 text-left text-white transition hover:bg-[var(--aw-accent)] hover:text-slate-950"
                 >
                   <span className="min-w-0">
                     <span className="block truncate text-base font-semibold">
                       {getLocalized(tour.title, language)}
                     </span>
-                    <span className="mt-1 block truncate text-sm text-slate-700 group-hover:text-white/72 dark:text-slate-300 dark:group-hover:text-slate-600">
+                    <span className="mt-1 block truncate text-sm text-white/64 group-hover:text-slate-800">
                       {getLocalized(tour.destination, language)}
                     </span>
                   </span>
-                  <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-950 dark:bg-slate-950 dark:text-white">
+                  <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-950">
                     {t("tourSearch.viewTour")}
                   </span>
                 </button>

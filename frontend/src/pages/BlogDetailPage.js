@@ -99,14 +99,14 @@ export default function BlogDetailPage() {
       {loading ? <LoadingSkeleton count={1} className="xl:grid-cols-1" /> : null}
 
       {!loading && (!blog || error) ? (
-        <div className="rounded-[2rem] border border-white/70 bg-white/92 p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)] lg:p-8">
+        <div className="rounded-[1rem] border border-white/10 bg-[#202020] p-6 text-white shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)] lg:p-8">
           <EmptyState
             title={t("blog.notFoundTitle")}
             message={error || t("blog.notFoundMessage")}
           />
           <Link
             to="/blog"
-            className="mt-5 inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
+            className="mt-5 inline-flex rounded-full bg-[var(--aw-accent)] px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-[var(--aw-accent-hover)]"
           >
             {t("blog.backToBlog")}
           </Link>
@@ -114,7 +114,7 @@ export default function BlogDetailPage() {
       ) : null}
 
       {!loading && blog ? (
-        <article className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
+        <article className="overflow-hidden rounded-[1rem] border border-white/10 bg-[#202020] text-white shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)]">
           <TravelImage
             image={blog.image}
             title={title}
@@ -125,50 +125,50 @@ export default function BlogDetailPage() {
             fetchPriority="high"
           />
 
-          <div className="space-y-8 p-6 md:p-8 bg-white dark:bg-[#071426]">
+          <div className="space-y-8 bg-[#202020] p-6 md:p-8">
             <header className="space-y-4">
               <div className="flex flex-wrap items-center gap-3">
                 {category ? (
-                  <span className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-800 dark:bg-cyan-500/10 dark:text-cyan-100">
+                  <span className="rounded-full bg-[rgba(245,184,0,0.14)] px-3 py-1 text-xs font-semibold text-[var(--aw-accent)]">
                     {category}
                   </span>
                 ) : null}
                 {blog.createdAt ? (
-                  <span className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-white/50">
                     {formatCalendarDate(blog.createdAt, language)}
                   </span>
                 ) : null}
               </div>
-              <h2 className="[font-family:var(--font-display)] text-3xl font-semibold leading-tight text-slate-950 dark:text-white md:text-5xl">
+              <h2 className="[font-family:var(--font-display)] max-w-[72rem] text-3xl font-semibold leading-tight text-white md:text-5xl">
                 {title}
               </h2>
               {excerpt ? (
-                <p className="max-w-4xl text-base leading-8 text-slate-600 dark:text-slate-300">
+                <p className="max-w-4xl text-base leading-8 text-white/70">
                   {excerpt}
                 </p>
               ) : null}
             </header>
 
-            <div className="prose max-w-none whitespace-pre-line break-words text-base leading-8 text-slate-700 dark:text-slate-200">
+            <div className="prose max-w-none whitespace-pre-line break-words text-base leading-8 text-white/76">
               {content}
             </div>
 
-            <div className="flex flex-col gap-3 border-t border-slate-200 pt-6 dark:border-white/10 sm:flex-row">
+            <div className="flex flex-col gap-3 border-t border-white/10 pt-6 sm:flex-row">
               <Link
                 to="/tours"
-                className="inline-flex justify-center rounded-full bg-[#e64d53] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#d83f45]"
+                className="inline-flex justify-center rounded-full bg-[var(--aw-accent)] px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-[var(--aw-accent-hover)]"
               >
                 {t("blog.viewTours")}
               </Link>
               <Link
                 to="/contact"
-                className="inline-flex justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
+                className="inline-flex justify-center rounded-full border border-white/12 bg-white/8 px-5 py-3 text-sm font-semibold text-white/78 transition hover:border-[var(--aw-accent)] hover:text-white"
               >
                 {t("blog.contactUs")}
               </Link>
               <Link
                 to="/blog"
-                className="inline-flex justify-center rounded-full bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                className="inline-flex justify-center rounded-full border border-white/12 bg-[#171717] px-5 py-3 text-sm font-semibold text-white/72 transition hover:border-[var(--aw-accent)] hover:text-white"
               >
                 {t("blog.backToBlog")}
               </Link>

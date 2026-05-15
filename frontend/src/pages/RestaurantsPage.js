@@ -1,40 +1,20 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import AutocompleteInput from "../components/AutocompleteInput";
+import BookingSearchTabs from "../components/BookingSearchTabs";
 import EmptyState from "../components/EmptyState";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
 import RestaurantCard from "../components/RestaurantCard";
 import SEO, { PAGE_SEO } from "../components/SEO";
 import backgroundOne from "../assets/background/background-1.webp";
-import {
-  findLocation,
-  getCitySearchValue,
-  getLocationLabel,
-  getLocationMeta,
-  getLocationSuggestions,
-} from "../data/locations";
 import { useLanguage } from "../i18n/LanguageContext";
 import { fetchRestaurants } from "../lib/api";
 import { getFriendlyApiError } from "../lib/formatters";
 import { buildWebPageStructuredData } from "../lib/structuredData";
 
-function toLocationSuggestion(location, language) {
-  return {
-    id: location.id,
-    primary: getLocationLabel(location, language),
-    secondary: getLocationMeta(location, language),
-    tag: location.code,
-    value: getLocationLabel(location, language),
-    location,
-  };
-}
-
 export default function RestaurantsPage() {
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [city, setCity] = useState("");
-  const [cityValue, setCityValue] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -70,21 +50,8 @@ export default function RestaurantsPage() {
     }
   }, [t]);
 
-  const citySuggestions = useMemo(
-    () => getLocationSuggestions(city).map((location) => toLocationSuggestion(location, language)),
-    [city, language]
-  );
-
   useEffect(() => {
     const cityParam = searchParams.get("city") || "";
-    const cityLocation = findLocation(cityParam);
-    const cityLabel =
-      searchParams.get("cityLabel") ||
-      getLocationLabel(cityLocation, language) ||
-      cityParam;
-
-    setCity(cityLabel);
-    setCityValue(cityLocation?.en || cityParam);
 
     if (!cityParam || searchParams.get("auto") !== "1") {
       return;
@@ -99,36 +66,22 @@ export default function RestaurantsPage() {
     lastAutoSearchRef.current = searchKey;
 
     void loadRestaurants(cityParam);
-  }, [language, loadRestaurants, searchParams]);
+  }, [loadRestaurants, searchParams]);
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  const handleRestaurantSearch = useCallback(
+    (search, nextParams) => {
+      setError("");
 
-    const cityLocation = findLocation(cityValue || city);
-    const normalizedCity = getCitySearchValue(cityLocation, city);
-    const cityLabel = city.trim();
+      if (searchParams.toString() === nextParams.toString()) {
+        lastAutoSearchRef.current = search.city;
+        void loadRestaurants(search.city);
+        return;
+      }
 
-    if (!cityLabel) {
-      setError(t("restaurants.errors.required"));
-      return;
-    }
-
-    setError("");
-
-    const params = new URLSearchParams({
-      city: normalizedCity,
-      cityLabel,
-      auto: "1",
-    });
-
-    if (searchParams.toString() === params.toString()) {
-      lastAutoSearchRef.current = normalizedCity;
-      void loadRestaurants(normalizedCity);
-      return;
-    }
-
-    setSearchParams(params);
-  };
+      setSearchParams(nextParams);
+    },
+    [loadRestaurants, searchParams, setSearchParams]
+  );
 
   const heroContent = t("app.pages.restaurants");
   const webPageStructuredData = buildWebPageStructuredData(PAGE_SEO.restaurants);
@@ -144,63 +97,27 @@ export default function RestaurantsPage() {
     >
       <SEO {...PAGE_SEO.restaurants} structuredData={webPageStructuredData} />
       <section className="space-y-6">
-        <div className="overflow-visible rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
-          <div className="p-6 lg:p-8">
-            <div className="space-y-5">
-              <form className="grid gap-4 md:grid-cols-[1fr_auto]" onSubmit={handleSubmit}>
-                <FieldCard>
-                  <AutocompleteInput
-                    label={t("common.city")}
-                    value={city}
-                    onChange={(value) => {
-                      setCity(value);
-                      setCityValue("");
-                      if (error) {
-                        setError("");
-                      }
-                    }}
-                    onSelect={(suggestion) => {
-                      setCity(suggestion.value);
-                      setCityValue(suggestion.location.en);
-                      if (error) {
-                        setError("");
-                      }
-                    }}
-                    suggestions={citySuggestions}
-                    placeholder={t("restaurants.cityPlaceholder")}
-                    noSuggestionsText={t("common.noSuggestions")}
-                  />
-                </FieldCard>
+        <BookingSearchTabs
+          defaultTab="restaurant"
+          restaurantLoading={loading}
+          onRestaurantSearch={handleRestaurantSearch}
+        />
 
-                <div className="flex items-stretch">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full rounded-[1.35rem] bg-slate-950 px-6 py-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
-                  >
-                    {loading ? t("restaurants.searchingButton") : t("restaurants.searchButton")}
-                  </button>
-                </div>
-              </form>
-            </div>
+        {error ? (
+          <div className="rounded-[1rem] border border-rose-400/20 bg-rose-500/10 px-6 py-4 text-sm font-semibold text-rose-100">
+            {error}
           </div>
-
-          {error ? (
-            <div className="border-t border-rose-100 bg-rose-50 px-6 py-4 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
-              {error}
-            </div>
-          ) : null}
-        </div>
+        ) : null}
 
         {loading ? <LoadingSkeleton /> : null}
 
         {!loading && results.length > 0 ? (
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
+              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-white/60">
                 {t("restaurants.resultsLabel")}
               </p>
-              <p className="text-sm text-slate-700 dark:text-slate-300">{results.length}</p>
+              <p className="text-sm text-white/70">{results.length}</p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -222,13 +139,5 @@ export default function RestaurantsPage() {
         ) : null}
       </section>
     </PublicPageShell>
-  );
-}
-
-function FieldCard({ children }) {
-  return (
-    <div className="rounded-[1.35rem] border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900/90">
-      {children}
-    </div>
   );
 }

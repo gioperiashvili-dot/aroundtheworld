@@ -8,11 +8,21 @@ import {
   getLocationSuggestions,
 } from "../data/locations";
 import { useLanguage } from "../i18n/LanguageContext";
+import { fetchFlightPriceCalendar } from "../lib/api";
 
 const SEARCH_DEBOUNCE_MS = 850;
+const PRICE_CALENDAR_MONTH_COUNT = 2;
 const QUICK_DESTINATIONS = ["CDG", "IST", "LHR", "DXB", "ATH"];
 const TRIP_TYPES = ["oneWay", "roundTrip", "multiCity"];
 const CABIN_OPTIONS = ["economy", "premium_economy", "business", "first"];
+const EMPTY_PRICE_CALENDAR_STATE = {
+  calendar: {},
+  loading: false,
+  error: "",
+  currency: "",
+  requestedCurrency: "",
+  currencyFallback: false,
+};
 
 function toLocationSuggestion(location, language) {
   return {
@@ -42,6 +52,10 @@ export function buildFlightSearchParams(snapshot) {
     params.set("returnDate", snapshot.returnDate);
   }
 
+  if (snapshot.currencyCode) {
+    params.set("currencyCode", snapshot.currencyCode);
+  }
+
   params.set("human", snapshot.isHuman ? "1" : "0");
   params.set("auto", "1");
   return params;
@@ -69,6 +83,135 @@ function getTravelersTotal(travelers) {
   return travelers.adults + travelers.children + travelers.infants;
 }
 
+function parseDateInput(value) {
+  const [year, month, day] = String(value || "")
+    .split("-")
+    .map((segment) => Number.parseInt(segment, 10));
+
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  const parsedDate = new Date(year, month - 1, day);
+  return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+}
+
+function formatDateInput(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getMonthStartInput(date) {
+  return formatDateInput(new Date(date.getFullYear(), date.getMonth(), 1));
+}
+
+function addMonths(date, amount) {
+  return new Date(date.getFullYear(), date.getMonth() + amount, 1);
+}
+
+function getMonthDays(monthDate) {
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const startOffset = (firstDay.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells = [];
+
+  for (let index = 0; index < startOffset; index += 1) {
+    cells.push(null);
+  }
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    cells.push(new Date(year, month, day));
+  }
+
+  while (cells.length % 7 !== 0) {
+    cells.push(null);
+  }
+
+  return cells;
+}
+
+function getCalendarLocale(language) {
+  return language === "ka" ? "ka-GE" : "en-US";
+}
+
+function formatSelectedDate(value, language) {
+  const parsedDate = parseDateInput(value);
+
+  if (!parsedDate) {
+    return "";
+  }
+
+  return parsedDate.toLocaleDateString(getCalendarLocale(language), {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function getWeekdayLabels(language) {
+  const baseDate = new Date(2024, 0, 1);
+
+  return Array.from({ length: 7 }, (_, index) =>
+    new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + index)
+      .toLocaleDateString(getCalendarLocale(language), { weekday: "short" })
+  );
+}
+
+function getPriceCalendarCurrency(currencyCode, language) {
+  return String(currencyCode || (language === "ka" ? "GEL" : "USD"))
+    .trim()
+    .toUpperCase();
+}
+
+function getPriceCalendarLocale(language) {
+  return language === "ka" ? "ka-GE" : "en-US";
+}
+
+function getPriceCalendarCountryCode(language) {
+  return language === "ka" ? "GE" : "US";
+}
+
+function getPriceCalendarCacheKey({
+  originSkyId,
+  destinationSkyId,
+  fromDate,
+  currency,
+  market,
+  countryCode,
+  locale,
+}) {
+  return [
+    originSkyId,
+    destinationSkyId,
+    fromDate,
+    currency,
+    market,
+    countryCode,
+    locale,
+  ].join("|");
+}
+
+function mergePriceCalendarResponses(responses) {
+  return responses.reduce((calendar, response) => {
+    if (response?.calendar && typeof response.calendar === "object") {
+      return {
+        ...calendar,
+        ...response.calendar,
+      };
+    }
+
+    return calendar;
+  }, {});
+}
+
+function hasCalendarEntries(calendar) {
+  return Object.keys(calendar || {}).length > 0;
+}
+
 function buildAutoSearchKey(snapshot) {
   return [
     snapshot.from,
@@ -82,6 +225,7 @@ function buildAutoSearchKey(snapshot) {
     snapshot.travelers.adults,
     snapshot.travelers.children,
     snapshot.travelers.infants,
+    snapshot.currencyCode,
   ].join("|");
 }
 
@@ -91,9 +235,16 @@ export default function FlightSearchPanel({
   externalError = "",
   onSearch,
   onFormInteraction,
+  onTripTypeChange,
   className = "",
+  forcedTripType,
+  showTripTypeOptions = true,
+  availableTripTypes = TRIP_TYPES,
+  variant = "default",
+  currencyCode = "",
 }) {
   const { language, t } = useLanguage();
+  const isBookingVariant = variant === "booking";
   const [form, setForm] = useState({
     from: "",
     fromCode: "",
@@ -113,14 +264,48 @@ export default function FlightSearchPanel({
   const [isTravelersOpen, setIsTravelersOpen] = useState(false);
   const [validationError, setValidationError] = useState("");
   const [isDebouncing, setIsDebouncing] = useState(false);
+  const [priceCalendarMonth, setPriceCalendarMonth] = useState("");
+  const [priceCalendarState, setPriceCalendarState] = useState(EMPTY_PRICE_CALENDAR_STATE);
   const debounceRef = useRef(null);
   const lastAutoSearchRef = useRef("");
+  const priceCalendarCacheRef = useRef(new Map());
+  const priceCalendarRequestRef = useRef(0);
   const searchParamsString = searchParams?.toString() || "";
 
   const clearErrors = useCallback(() => {
     setValidationError("");
     onFormInteraction?.();
   }, [onFormInteraction]);
+
+  const selectTripType = useCallback(
+    (nextTripType) => {
+      setTripType(nextTripType);
+      onTripTypeChange?.(nextTripType);
+
+      if (nextTripType !== "roundTrip") {
+        setReturnDate("");
+      }
+
+      clearErrors();
+    },
+    [clearErrors, onTripTypeChange]
+  );
+
+  const handleCalendarVisibleMonthChange = useCallback((monthDate) => {
+    setPriceCalendarMonth(getMonthStartInput(monthDate));
+  }, []);
+
+  useEffect(() => {
+    if (!forcedTripType || !TRIP_TYPES.includes(forcedTripType)) {
+      return;
+    }
+
+    setTripType(forcedTripType);
+
+    if (forcedTripType !== "roundTrip") {
+      setReturnDate("");
+    }
+  }, [forcedTripType]);
 
   useEffect(() => {
     return () => {
@@ -154,8 +339,14 @@ export default function FlightSearchPanel({
     const toParam = searchParams.get("to") || "";
     const dateParam = searchParams.get("date") || "";
     const returnDateParam = searchParams.get("returnDate") || "";
-    const nextTripType = normalizeTripType(searchParams.get("tripType"), returnDateParam);
+    const parsedTripType = normalizeTripType(searchParams.get("tripType"), returnDateParam);
+    const nextTripType =
+      forcedTripType && TRIP_TYPES.includes(forcedTripType)
+        ? forcedTripType
+        : parsedTripType;
     const nextCabin = normalizeCabin(searchParams.get("cabin"));
+    const nextCurrencyCode =
+      searchParams.get("currencyCode") || currencyCode || "";
     const nextTravelers = {
       adults: parseTravelerCount(searchParams.get("adults"), 1, 1),
       children: parseTravelerCount(searchParams.get("children"), 0, 0),
@@ -202,6 +393,7 @@ export default function FlightSearchPanel({
       cabin: nextCabin,
       travelers: nextTravelers,
       isHuman,
+      currencyCode: nextCurrencyCode,
     };
     const searchKey = buildAutoSearchKey(snapshot);
 
@@ -211,7 +403,150 @@ export default function FlightSearchPanel({
 
     lastAutoSearchRef.current = searchKey;
     onSearch?.(snapshot, buildFlightSearchParams(snapshot), { auto: true });
-  }, [language, onSearch, searchParams, searchParamsString]);
+  }, [currencyCode, forcedTripType, language, onSearch, searchParams, searchParamsString]);
+
+  useEffect(() => {
+    const originSkyId = findLocation(form.fromCode || form.from)?.code || form.fromCode;
+    const destinationSkyId = findLocation(form.toCode || form.to)?.code || form.toCode;
+
+    if (
+      !originSkyId ||
+      !destinationSkyId ||
+      originSkyId === destinationSkyId ||
+      !priceCalendarMonth
+    ) {
+      setPriceCalendarState((currentState) =>
+        currentState.loading ||
+        currentState.error ||
+        currentState.currencyFallback ||
+        hasCalendarEntries(currentState.calendar)
+          ? EMPTY_PRICE_CALENDAR_STATE
+          : currentState
+      );
+      return undefined;
+    }
+
+    const firstMonth = parseDateInput(priceCalendarMonth);
+
+    if (!firstMonth) {
+      return undefined;
+    }
+
+    const currency = getPriceCalendarCurrency(currencyCode, language);
+    const market = getPriceCalendarLocale(language);
+    const locale = market;
+    const countryCode = getPriceCalendarCountryCode(language);
+    const monthStarts = Array.from({ length: PRICE_CALENDAR_MONTH_COUNT }, (_, index) =>
+      getMonthStartInput(addMonths(firstMonth, index))
+    );
+    const cachedResponses = [];
+    const pendingRequests = [];
+
+    monthStarts.forEach((fromDate) => {
+      const cacheKey = getPriceCalendarCacheKey({
+        originSkyId,
+        destinationSkyId,
+        fromDate,
+        currency,
+        market,
+        countryCode,
+        locale,
+      });
+      const cachedResponse = priceCalendarCacheRef.current.get(cacheKey);
+
+      if (cachedResponse) {
+        cachedResponses.push(cachedResponse);
+        return;
+      }
+
+      pendingRequests.push({
+        cacheKey,
+        params: {
+          originSkyId,
+          destinationSkyId,
+          fromDate,
+          currency,
+          market,
+          countryCode,
+          locale,
+        },
+      });
+    });
+
+    const requestId = priceCalendarRequestRef.current + 1;
+    priceCalendarRequestRef.current = requestId;
+
+    if (pendingRequests.length === 0) {
+      setPriceCalendarState({
+        calendar: mergePriceCalendarResponses(cachedResponses),
+        loading: false,
+        error: "",
+        currency: cachedResponses.find((response) => response?.currency)?.currency || currency,
+        requestedCurrency:
+          cachedResponses.find((response) => response?.requestedCurrency)?.requestedCurrency ||
+          currency,
+        currencyFallback: cachedResponses.some((response) => response?.currencyFallback),
+      });
+      return undefined;
+    }
+
+    setPriceCalendarState({
+      calendar: mergePriceCalendarResponses(cachedResponses),
+      loading: true,
+      error: "",
+      currency: cachedResponses.find((response) => response?.currency)?.currency || currency,
+      requestedCurrency:
+        cachedResponses.find((response) => response?.requestedCurrency)?.requestedCurrency ||
+        currency,
+      currencyFallback: cachedResponses.some((response) => response?.currencyFallback),
+    });
+
+    let isActive = true;
+
+    Promise.allSettled(
+      pendingRequests.map(async ({ cacheKey, params }) => {
+        const response = await fetchFlightPriceCalendar(params);
+        priceCalendarCacheRef.current.set(cacheKey, response);
+        return response;
+      })
+    ).then((settledResponses) => {
+      if (!isActive || priceCalendarRequestRef.current !== requestId) {
+        return;
+      }
+
+      const fulfilledResponses = settledResponses
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => result.value);
+      const allResponses = [...cachedResponses, ...fulfilledResponses];
+      const calendar = mergePriceCalendarResponses(allResponses);
+
+      setPriceCalendarState({
+        calendar,
+        loading: false,
+        error:
+          fulfilledResponses.length === 0 && !hasCalendarEntries(calendar)
+            ? "unavailable"
+            : "",
+        currency: allResponses.find((response) => response?.currency)?.currency || currency,
+        requestedCurrency:
+          allResponses.find((response) => response?.requestedCurrency)?.requestedCurrency ||
+          currency,
+        currencyFallback: allResponses.some((response) => response?.currencyFallback),
+      });
+    });
+
+    return () => {
+      isActive = false;
+    };
+  }, [
+    currencyCode,
+    form.from,
+    form.fromCode,
+    form.to,
+    form.toCode,
+    language,
+    priceCalendarMonth,
+  ]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -229,6 +564,7 @@ export default function FlightSearchPanel({
       cabin,
       travelers,
       isHuman: form.isHuman,
+      currencyCode,
     };
 
     if (!snapshot.fromLabel || !snapshot.toLabel || !snapshot.date) {
@@ -316,44 +652,67 @@ export default function FlightSearchPanel({
   const displayError = validationError || externalError;
 
   return (
-    <div className={className}>
-      <div className="overflow-visible rounded-[2.25rem] border border-white/75 bg-white/95 shadow-[0_34px_100px_-58px_rgba(15,23,42,0.6)] backdrop-blur dark:border-white/10 dark:bg-transparent dark:shadow-[0_34px_100px_-58px_rgba(2,6,23,0.95)]">
-        <div className="space-y-6 p-4 sm:p-5 lg:p-7">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d83f45] dark:text-[#ff8c90]">
-              {t("flights.sectionLabel")}
-            </p>
-            {flightsHeading ? (
-              <h2 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
-                {flightsHeading}
-              </h2>
-            ) : null}
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 dark:text-white">
-              {t("flights.helperText")}
-            </p>
-          </div>
+    <div className={`${className} ${isBookingVariant ? "flight-search-panel--booking" : ""}`}>
+      <div
+        className={
+          isBookingVariant
+            ? "overflow-visible"
+            : "overflow-visible rounded-[2.25rem] border border-white/75 bg-white/95 shadow-[0_34px_100px_-58px_rgba(15,23,42,0.6)] backdrop-blur dark:border-white/10 dark:bg-transparent dark:shadow-[0_34px_100px_-58px_rgba(2,6,23,0.95)]"
+        }
+      >
+        <div className={isBookingVariant ? "space-y-5" : "space-y-6 p-4 sm:p-5 lg:p-7"}>
+          {!isBookingVariant ? (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--aw-accent)]">
+                {t("flights.sectionLabel")}
+              </p>
+              {flightsHeading ? (
+                <h2 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
+                  {flightsHeading}
+                </h2>
+              ) : null}
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 dark:text-white">
+                {t("flights.helperText")}
+              </p>
+            </div>
+          ) : null}
 
           <form className="space-y-5" onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <TripTypeOptions
-                tripType={tripType}
-                onChange={(nextTripType) => {
-                  setTripType(nextTripType);
-                  clearErrors();
-                }}
-                t={t}
-              />
+            {showTripTypeOptions ? (
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <TripTypeOptions
+                  tripType={tripType}
+                  onChange={selectTripType}
+                  t={t}
+                  availableTripTypes={availableTripTypes}
+                  variant={variant}
+                />
 
-              <CabinSelect
-                value={cabin}
-                onChange={(event) => {
-                  setCabin(event.target.value);
-                  clearErrors();
-                }}
-                t={t}
-                className="lg:min-w-[12rem]"
-              />
-            </div>
+                <CabinSelect
+                  value={cabin}
+                  onChange={(event) => {
+                    setCabin(event.target.value);
+                    clearErrors();
+                  }}
+                  t={t}
+                  className="lg:min-w-[12rem]"
+                  variant={variant}
+                />
+              </div>
+            ) : (
+              <div className="flex justify-end">
+                <CabinSelect
+                  value={cabin}
+                  onChange={(event) => {
+                    setCabin(event.target.value);
+                    clearErrors();
+                  }}
+                  t={t}
+                  className="w-full sm:w-56"
+                  variant={variant}
+                />
+              </div>
+            )}
 
             {isMultiCity ? (
               <div className="rounded-[1.4rem] bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 dark:bg-amber-500/10 dark:text-amber-100">
@@ -362,7 +721,7 @@ export default function FlightSearchPanel({
             ) : null}
 
             <div className="flex flex-col gap-3 xl:flex-row xl:items-stretch">
-              <FieldCard className="xl:min-w-0 xl:flex-[1.16]">
+              <FieldCard className="xl:min-w-0 xl:flex-[1.16]" variant={variant}>
                 <AutocompleteInput
                   label={t("common.from")}
                   value={form.from}
@@ -393,12 +752,12 @@ export default function FlightSearchPanel({
                 onClick={handleSwapLocations}
                 aria-label={t("flights.swapRoute")}
                 title={t("flights.swapRoute")}
-                className="flex h-12 w-12 shrink-0 items-center justify-center self-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-[0_16px_34px_-26px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:border-[#e64d53]/45 hover:text-[#d83f45] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-[#ff8c90]/45 dark:hover:text-[#ffb4b7] xl:h-[4.6rem] xl:w-[4.6rem]"
+                className="flex h-12 w-12 shrink-0 items-center justify-center self-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-[0_16px_34px_-26px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:border-[var(--aw-accent)] hover:text-slate-950 dark:border-white/10 dark:bg-[var(--aw-panel)] dark:text-white/84 dark:hover:border-[var(--aw-accent)] dark:hover:text-[var(--aw-accent-hover)] xl:h-[4.6rem] xl:w-[4.6rem]"
               >
                 <SwapIcon />
               </button>
 
-              <FieldCard className="xl:min-w-0 xl:flex-[1.16]">
+              <FieldCard className="xl:min-w-0 xl:flex-[1.16]" variant={variant}>
                 <AutocompleteInput
                   label={t("common.to")}
                   value={form.to}
@@ -424,11 +783,19 @@ export default function FlightSearchPanel({
                 />
               </FieldCard>
 
-              <FieldCard className="xl:min-w-[10rem] xl:flex-[0.78]">
+              <FieldCard className="xl:min-w-[10rem] xl:flex-[0.78]" variant={variant}>
                 <DateField
                   label={t("flights.departureLabel")}
                   name="date"
                   value={form.date}
+                  language={language}
+                  t={t}
+                  priceCalendar={priceCalendarState.calendar}
+                  priceCalendarLoading={priceCalendarState.loading}
+                  priceCalendarError={priceCalendarState.error}
+                  priceCalendarCurrency={priceCalendarState.currency}
+                  priceCalendarCurrencyFallback={priceCalendarState.currencyFallback}
+                  onVisibleMonthChange={handleCalendarVisibleMonthChange}
                   onChange={(event) => {
                     setForm((previousForm) => ({
                       ...previousForm,
@@ -440,11 +807,21 @@ export default function FlightSearchPanel({
               </FieldCard>
 
               {showReturnDate ? (
-                <FieldCard className="xl:min-w-[10rem] xl:flex-[0.78]">
+                <FieldCard className="xl:min-w-[10rem] xl:flex-[0.78]" variant={variant}>
                   <DateField
                     label={t("flights.returnLabel")}
                     name="returnDate"
                     value={returnDate}
+                    language={language}
+                    t={t}
+                    priceCalendar={priceCalendarState.calendar}
+                    priceCalendarLoading={priceCalendarState.loading}
+                    priceCalendarError={priceCalendarState.error}
+                    priceCalendarCurrency={priceCalendarState.currency}
+                    priceCalendarCurrencyFallback={priceCalendarState.currencyFallback}
+                    onVisibleMonthChange={handleCalendarVisibleMonthChange}
+                    showNoReturnAction
+                    onNoReturn={() => selectTripType("oneWay")}
                     onChange={(event) => {
                       setReturnDate(event.target.value);
                       clearErrors();
@@ -460,20 +837,33 @@ export default function FlightSearchPanel({
                 onChange={updateTravelerCount}
                 t={t}
                 className="xl:min-w-[10rem] xl:flex-[0.78]"
+                variant={variant}
               />
 
               <button
                 type="submit"
                 disabled={isBusy || isMultiCity}
                 aria-label={statusLabel}
-                className="group flex h-14 w-full shrink-0 items-center justify-center rounded-[1.25rem] bg-[#e64d53] px-5 text-sm font-semibold text-white shadow-[0_22px_44px_-26px_rgba(216,63,69,0.9)] transition hover:-translate-y-0.5 hover:bg-[#d83f45] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 disabled:shadow-none dark:disabled:bg-slate-700 dark:disabled:text-slate-300 xl:h-[4.6rem] xl:w-[4.6rem] xl:rounded-full xl:px-0"
+                className={
+                  isBookingVariant
+                    ? "group flex h-14 w-full shrink-0 items-center justify-center rounded-[0.7rem] bg-[var(--aw-accent)] px-6 text-sm font-black uppercase text-slate-950 shadow-[0_18px_34px_-26px_rgba(245,184,0,0.9)] transition hover:-translate-y-0.5 hover:bg-[var(--aw-accent-hover)] disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-300 disabled:shadow-none xl:h-[4.6rem] xl:w-auto xl:min-w-[10rem]"
+                    : "group flex h-14 w-full shrink-0 items-center justify-center rounded-[1.25rem] bg-[var(--aw-accent)] px-5 text-sm font-black uppercase text-slate-950 shadow-[0_22px_44px_-26px_rgba(245,184,0,0.9)] transition hover:-translate-y-0.5 hover:bg-[var(--aw-accent-hover)] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 disabled:shadow-none dark:disabled:bg-slate-700 dark:disabled:text-slate-300 xl:h-[4.6rem] xl:w-[4.6rem] xl:rounded-full xl:px-0"
+                }
               >
                 <SearchIcon />
-                <span className="ml-2 xl:sr-only">{statusLabel}</span>
+                <span className={`ml-2 ${isBookingVariant ? "" : "xl:sr-only"}`}>
+                  {statusLabel}
+                </span>
               </button>
             </div>
 
-            <div className="flex flex-col gap-4 rounded-[1.75rem] bg-slate-50 p-4 md:flex-row md:items-center md:justify-between dark:bg-slate-900/80">
+            <div
+              className={
+                isBookingVariant
+                  ? "flex flex-col gap-4 rounded-[0.85rem] border border-white/10 bg-black/20 p-4 md:flex-row md:items-center md:justify-between"
+                  : "flex flex-col gap-4 rounded-[1.75rem] bg-slate-50 p-4 md:flex-row md:items-center md:justify-between dark:bg-slate-900/80"
+              }
+            >
               <label className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-200">
                 <input
                   type="checkbox"
@@ -486,7 +876,7 @@ export default function FlightSearchPanel({
                     }));
                     clearErrors();
                   }}
-                  className="h-5 w-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                  className="h-5 w-5 rounded border-slate-300 text-[var(--aw-accent)] focus:ring-[var(--aw-accent)]"
                 />
                 {t("flights.humanCheck")}
               </label>
@@ -514,7 +904,7 @@ export default function FlightSearchPanel({
                         }));
                         clearErrors();
                       }}
-                      className="rounded-full bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-200 dark:hover:bg-emerald-500/20"
+                      className="rounded-full bg-[rgba(245,184,0,0.14)] px-3 py-2 text-sm font-semibold text-[#6f5200] transition hover:bg-[rgba(245,184,0,0.22)] dark:text-[var(--aw-accent-hover)]"
                     >
                       {getLocationLabel(location, language)}
                     </button>
@@ -535,14 +925,26 @@ export default function FlightSearchPanel({
   );
 }
 
-function TripTypeOptions({ tripType, onChange, t }) {
+function TripTypeOptions({
+  tripType,
+  onChange,
+  t,
+  availableTripTypes = TRIP_TYPES,
+  variant = "default",
+}) {
+  const isBookingVariant = variant === "booking";
+
   return (
     <div
       role="radiogroup"
       aria-label={t("flights.tripTypeLabel")}
-      className="inline-flex w-full flex-wrap gap-1 rounded-full bg-slate-100 p-1 dark:bg-slate-900 sm:w-auto"
+      className={
+        isBookingVariant
+          ? "inline-flex w-full flex-wrap gap-1 rounded-full bg-black/30 p-1 sm:w-auto"
+          : "inline-flex w-full flex-wrap gap-1 rounded-full bg-slate-100 p-1 dark:bg-slate-900 sm:w-auto"
+      }
     >
-      {TRIP_TYPES.map((type) => {
+      {availableTripTypes.map((type) => {
         const isSelected = tripType === type;
 
         return (
@@ -553,9 +955,13 @@ function TripTypeOptions({ tripType, onChange, t }) {
             aria-checked={isSelected}
             onClick={() => onChange(type)}
             className={`min-h-10 flex-1 rounded-full px-4 py-2 text-sm font-semibold transition sm:flex-none ${
-              isSelected
-                ? "bg-white text-slate-950 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.72)] dark:bg-slate-800 dark:text-white"
-                : "text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"
+              isBookingVariant
+                ? isSelected
+                  ? "bg-[var(--aw-accent)] text-slate-950 shadow-[0_12px_30px_-22px_rgba(245,184,0,0.9)]"
+                  : "text-white/72 hover:bg-white/8 hover:text-white"
+                : isSelected
+                  ? "bg-white text-slate-950 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.72)] dark:bg-slate-800 dark:text-white"
+                  : "text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"
             }`}
           >
             {t(`flights.tripTypes.${type}`)}
@@ -566,40 +972,258 @@ function TripTypeOptions({ tripType, onChange, t }) {
   );
 }
 
-function FieldCard({ children, className = "" }) {
+function FieldCard({ children, className = "", variant = "default" }) {
+  const isBookingVariant = variant === "booking";
+
   return (
     <div
-      className={`min-h-[4.6rem] rounded-[1.35rem] border border-slate-200 bg-white px-4 py-3 shadow-[0_18px_46px_-40px_rgba(15,23,42,0.9)] transition focus-within:border-[#e64d53]/55 dark:border-slate-800 dark:bg-slate-900/90 ${className}`}
+      className={`min-h-[4.6rem] px-4 py-3 transition ${
+        isBookingVariant
+          ? "rounded-[0.7rem] border border-white/10 bg-[var(--aw-input)] shadow-[0_18px_42px_-34px_rgba(0,0,0,0.9)] focus-within:border-[var(--aw-accent)]"
+          : "rounded-[1.35rem] border border-slate-200 bg-white shadow-[0_18px_46px_-40px_rgba(15,23,42,0.9)] focus-within:border-[var(--aw-accent)] dark:border-white/10 dark:bg-[var(--aw-panel)]"
+      } ${className}`}
     >
       {children}
     </div>
   );
 }
 
-function DateField({ label, name, value, onChange }) {
+function DateField({
+  label,
+  name,
+  value,
+  onChange,
+  language,
+  t,
+  priceCalendar = {},
+  priceCalendarLoading = false,
+  priceCalendarError = "",
+  priceCalendarCurrency = "",
+  priceCalendarCurrencyFallback = false,
+  onVisibleMonthChange,
+  showNoReturnAction = false,
+  onNoReturn,
+}) {
+  const selectedDate = useMemo(() => parseDateInput(value), [value]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [visibleMonth, setVisibleMonth] = useState(() => {
+    const dateForMonth = selectedDate || new Date();
+    return new Date(dateForMonth.getFullYear(), dateForMonth.getMonth(), 1);
+  });
+  const selectedLabel = formatSelectedDate(value, language);
+  const weekdayLabels = useMemo(() => getWeekdayLabels(language), [language]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const nextDate = selectedDate || new Date();
+    setVisibleMonth(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
+  }, [isOpen, selectedDate]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    onVisibleMonthChange?.(visibleMonth);
+  }, [isOpen, onVisibleMonthChange, visibleMonth]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+
+  const handleSelectDate = (date) => {
+    onChange({
+      target: {
+        name,
+        value: formatDateInput(date),
+      },
+    });
+    setIsOpen(false);
+  };
+
   return (
-    <label className="block text-left">
-      <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
+    <div className="relative text-left">
+      <span className="block text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
         {label}
       </span>
-      <input
-        type="date"
-        name={name}
-        value={value}
-        onChange={onChange}
-        className="mt-2 w-full bg-transparent text-sm font-semibold text-slate-950 outline-none dark:text-white"
-      />
-    </label>
+      <button
+        type="button"
+        onClick={() => setIsOpen((currentValue) => !currentValue)}
+        className="mt-2 flex w-full min-w-0 items-center justify-between gap-3 bg-transparent text-left text-sm font-semibold text-slate-950 outline-none transition dark:text-white"
+        aria-label={`${t("flights.datePicker.chooseDate")}: ${label}`}
+        aria-expanded={isOpen}
+      >
+        <span className={selectedLabel ? "truncate" : "truncate text-slate-500"}>
+          {selectedLabel || t("flights.datePicker.chooseDate")}
+        </span>
+        <CalendarIcon />
+      </button>
+
+      {isOpen ? (
+        <div className="fixed inset-x-4 top-24 z-50 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-[1.35rem] border border-slate-200 bg-[#fbfaf7] p-4 text-slate-950 shadow-[0_28px_100px_-42px_rgba(0,0,0,0.55)] md:absolute md:left-1/2 md:right-auto md:top-[calc(100%+0.75rem)] md:w-[42rem] md:max-w-[calc(100vw-2rem)] md:-translate-x-1/2 md:overflow-visible">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
+            <button
+              type="button"
+              onClick={() => setVisibleMonth((currentMonth) => addMonths(currentMonth, -1))}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-[var(--aw-accent)] hover:text-slate-950"
+              aria-label={t("flights.datePicker.previousMonth")}
+            >
+              <ChevronLeftIcon />
+            </button>
+            <p className="text-sm font-black uppercase tracking-[0.18em] text-slate-600">
+              {t("flights.datePicker.chooseDate")}
+            </p>
+            <button
+              type="button"
+              onClick={() => setVisibleMonth((currentMonth) => addMonths(currentMonth, 1))}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-[var(--aw-accent)] hover:text-slate-950"
+              aria-label={t("flights.datePicker.nextMonth")}
+            >
+              <ChevronRightIcon />
+            </button>
+          </div>
+
+          <div className="mt-4 grid gap-5 md:grid-cols-2">
+            {[visibleMonth, addMonths(visibleMonth, 1)].map((monthDate) => (
+              <CalendarMonth
+                key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
+                monthDate={monthDate}
+                selectedValue={value}
+                weekdayLabels={weekdayLabels}
+                language={language}
+                priceCalendar={priceCalendar}
+                onSelect={handleSelectDate}
+              />
+            ))}
+          </div>
+
+          {priceCalendarLoading || priceCalendarError || priceCalendarCurrencyFallback ? (
+            <div className="mt-4 rounded-[0.85rem] bg-white px-3 py-2 text-center text-xs font-semibold text-slate-500">
+              {priceCalendarLoading
+                ? t("flights.datePicker.loadingPrices")
+                : priceCalendarError
+                  ? t("flights.datePicker.pricesUnavailable")
+                  : t("flights.datePicker.pricesCurrencyFallback").replace(
+                      "{currency}",
+                      priceCalendarCurrency || "USD"
+                    )}
+            </div>
+          ) : null}
+
+          {showNoReturnAction ? (
+            <button
+              type="button"
+              onClick={() => {
+                onNoReturn?.();
+                setIsOpen(false);
+              }}
+              className="mt-4 w-full rounded-[0.9rem] border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 transition hover:border-[var(--aw-accent)] hover:text-slate-950"
+            >
+              {t("flights.datePicker.noReturnTicket")}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
-function CabinSelect({ value, onChange, t, className = "" }) {
+function CalendarMonth({
+  monthDate,
+  selectedValue,
+  weekdayLabels,
+  language,
+  priceCalendar = {},
+  onSelect,
+}) {
+  const monthLabel = monthDate.toLocaleDateString(getCalendarLocale(language), {
+    month: "long",
+    year: "numeric",
+  });
+  const todayValue = formatDateInput(new Date());
+
+  return (
+    <section>
+      <h3 className="text-center [font-family:var(--font-display)] text-lg font-semibold capitalize text-slate-950">
+        {monthLabel}
+      </h3>
+      <div className="mt-4 grid grid-cols-7 gap-1 text-center">
+        {weekdayLabels.map((weekday) => (
+          <span
+            key={weekday}
+            className="py-1 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"
+          >
+            {weekday}
+          </span>
+        ))}
+        {getMonthDays(monthDate).map((date, index) => {
+          if (!date) {
+            return <span key={`blank-${index}`} className="min-h-11" />;
+          }
+
+          const dateValue = formatDateInput(date);
+          const isSelected = selectedValue === dateValue;
+          const isToday = todayValue === dateValue;
+          const dayPrice = priceCalendar?.[dateValue];
+
+          return (
+            <button
+              key={dateValue}
+              type="button"
+              onClick={() => onSelect(date)}
+              className={`flex min-h-14 flex-col items-center justify-center rounded-[0.8rem] border px-1 py-2 text-sm font-bold transition ${
+                isSelected
+                  ? "border-[var(--aw-accent)] bg-[var(--aw-accent)] text-slate-950 shadow-[0_14px_30px_-20px_rgba(245,184,0,0.95)]"
+                  : isToday
+                    ? "border-[var(--aw-accent)] bg-white text-slate-950"
+                    : "border-transparent bg-transparent text-slate-700 hover:border-slate-200 hover:bg-white hover:text-slate-950"
+              }`}
+            >
+              <span>{date.getDate()}</span>
+              {dayPrice?.formatted ? (
+                <span
+                  className={`mt-1 max-w-full truncate text-[10px] font-black leading-none ${
+                    isSelected ? "text-slate-900" : "text-[#9a7300]"
+                  }`}
+                >
+                  {dayPrice.formatted}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function CabinSelect({ value, onChange, t, className = "", variant = "default" }) {
+  const isBookingVariant = variant === "booking";
+
   return (
     <div
-      className={`min-h-[4.6rem] rounded-[1.35rem] border border-slate-200 bg-white px-4 py-3 text-left shadow-[0_18px_46px_-40px_rgba(15,23,42,0.9)] dark:border-slate-800 dark:bg-slate-900/90 ${className}`}
+      className={`min-h-[4.6rem] px-4 py-3 text-left ${
+        isBookingVariant
+          ? "rounded-[0.7rem] border border-white/10 bg-slate-100 shadow-[0_18px_42px_-34px_rgba(0,0,0,0.9)]"
+          : "rounded-[1.35rem] border border-slate-200 bg-white shadow-[0_18px_46px_-40px_rgba(15,23,42,0.9)] dark:border-slate-800 dark:bg-slate-900/90"
+      } ${className}`}
     >
       <label className="block">
-        <span className="block text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
+        <span className="sr-only">
           {t("flights.cabinLabel")}
         </span>
         <select
@@ -625,7 +1249,9 @@ function TravelersField({
   onChange,
   t,
   className = "",
+  variant = "default",
 }) {
+  const isBookingVariant = variant === "booking";
   const totalTravelers = getTravelersTotal(travelers);
   const summary =
     totalTravelers === 1
@@ -638,7 +1264,11 @@ function TravelersField({
         type="button"
         onClick={onToggle}
         aria-expanded={isOpen}
-        className="min-h-[4.6rem] w-full rounded-[1.35rem] border border-slate-200 bg-white px-4 py-3 text-left shadow-[0_18px_46px_-40px_rgba(15,23,42,0.9)] transition hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-slate-700"
+        className={
+          isBookingVariant
+            ? "min-h-[4.6rem] w-full rounded-[0.7rem] border border-white/10 bg-[var(--aw-input)] px-4 py-3 text-left shadow-[0_18px_42px_-34px_rgba(0,0,0,0.9)] transition hover:border-[var(--aw-accent)]"
+            : "min-h-[4.6rem] w-full rounded-[1.35rem] border border-slate-200 bg-white px-4 py-3 text-left shadow-[0_18px_46px_-40px_rgba(15,23,42,0.9)] transition hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-slate-700"
+        }
       >
         <span className="block text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
           {t("flights.travelersLabel")}
@@ -710,6 +1340,60 @@ function TravelerCounter({ label, value, minValue, onDecrease, onIncrease, t }) 
         </button>
       </span>
     </div>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-4 w-4 shrink-0"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M8 2v4" />
+      <path d="M16 2v4" />
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M3 10h18" />
+    </svg>
+  );
+}
+
+function ChevronLeftIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m9 18 6-6-6-6" />
+    </svg>
   );
 }
 

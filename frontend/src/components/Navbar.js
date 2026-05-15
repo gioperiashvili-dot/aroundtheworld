@@ -2,20 +2,21 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useFirebaseAuth } from "../auth/FirebaseAuthContext";
 import TourSearchModal from "./TourSearchModal";
-import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE_NAV_128.png";
+import logoMain from "../assets/AroundTheWorld.png";
 import { useLanguage } from "../i18n/LanguageContext";
-import { useTheme } from "../theme/ThemeContext";
 
 const LANGUAGE_OPTIONS = [
   {
     value: "ka",
     Icon: GeorgiaFlagIcon,
     label: "\u10e5\u10d0\u10e0\u10d7\u10e3\u10da\u10d8",
+    shortLabel: "KA",
   },
   {
     value: "en",
     Icon: UnitedKingdomFlagIcon,
     label: "English",
+    shortLabel: "EN",
   },
 ];
 
@@ -39,19 +40,14 @@ const ACCOUNT_LABELS = {
 export default function Navbar({ variant = "page" }) {
   const location = useLocation();
   const { language, setLanguage, t } = useLanguage();
-  const { theme, toggleTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const isHomeVariant = variant === "home";
   const navSubtitle = t("nav.subtitle");
 
   const navItems = useMemo(
     () => [
       { to: "/", label: t("nav.home"), end: true },
       { to: "/tours", label: t("nav.tours") },
-      { to: "/flights", label: t("nav.flights") },
-      { to: "/hotels", label: t("nav.hotels") },
-      { to: "/restaurants", label: t("nav.restaurants") },
       { to: "/visa-services", label: t("nav.visaServices") },
       { to: "/blog", label: t("nav.blog") },
       { to: "/about", label: t("nav.about") },
@@ -64,52 +60,38 @@ export default function Navbar({ variant = "page" }) {
     setIsMenuOpen(false);
   }, [location.hash, location.pathname, location.search, variant]);
 
-  const navContainerClassName = isHomeVariant
-    ? "rounded-[2rem] border border-white/12 bg-black/12 px-5 py-4 shadow-[0_25px_90px_-55px_rgba(15,23,42,0.95)] backdrop-blur-xl"
-    : "rounded-[2rem] border border-white/18 bg-black/14 px-5 py-4 shadow-[0_25px_80px_-45px_rgba(15,23,42,0.85)] backdrop-blur-xl";
-
-  const menuPanelClassName = isHomeVariant
-    ? "border-white/12 bg-black/18"
-    : "border-white/12 bg-slate-950/55";
+  const navContainerClassName =
+    "border border-white/10 bg-[#111111]/95 px-3 py-3 shadow-[0_28px_90px_-58px_rgba(0,0,0,0.95)] backdrop-blur-xl sm:px-5";
+  const menuPanelClassName =
+    "border-white/10 bg-[#171717]/98 shadow-[0_24px_70px_-48px_rgba(0,0,0,0.95)]";
 
   return (
-    <nav className={`sticky top-4 z-30 w-full dark:bg-[#071426] ${navContainerClassName}`}>
-      <div className="hidden flex-col gap-4 xl:flex">
-        <div className="flex min-w-0 items-center justify-between gap-5">
-          <BrandLink navSubtitle={navSubtitle} />
+    <nav className={`sticky top-4 z-30 w-full ${navContainerClassName}`}>
+      <div className="hidden min-w-0 items-center gap-5 xl:flex">
+        <BrandLink navSubtitle={navSubtitle} />
 
-          <div className="flex min-w-0 flex-shrink-0 items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => setIsSearchOpen(true)}
-              className="flex-shrink-0 rounded-full bg-[#ff5a5f] p-3 text-white transition hover:bg-[#ff4a50]"
-              aria-label={t("nav.searchTours")}
-              title={t("nav.searchTours")}
-            >
-              <SearchIcon className="h-4 w-4" />
-            </button>
-
-            <Controls
-              language={language}
-              setLanguage={setLanguage}
-              theme={theme}
-              toggleTheme={toggleTheme}
-              t={t}
-            />
-          </div>
+        <div className="flex min-w-0 flex-1 items-center justify-center gap-1 2xl:gap-2">
+          {navItems.map((item) => (
+            <HeaderNavLink key={item.to} item={item} location={location} />
+          ))}
         </div>
 
-        <div className="border-t border-white/12 pt-4">
-          <div className="flex min-w-0 flex-wrap items-center justify-center gap-2 2xl:gap-3">
-            {navItems.map((item) => (
-              <HeaderNavLink
-                key={item.to}
-                item={item}
-                location={location}
-                isHomeVariant={isHomeVariant}
-              />
-            ))}
-          </div>
+        <div className="flex min-w-0 flex-shrink-0 items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setIsSearchOpen(true)}
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-white/12 bg-[var(--aw-accent)] text-slate-950 shadow-[0_16px_34px_-24px_rgba(245,184,0,0.95)] transition hover:-translate-y-0.5 hover:bg-[var(--aw-accent-hover)]"
+            aria-label={t("nav.searchTours")}
+            title={t("nav.searchTours")}
+          >
+            <SearchIcon className="h-4 w-4" />
+          </button>
+
+          <Controls
+            language={language}
+            setLanguage={setLanguage}
+            t={t}
+          />
         </div>
       </div>
 
@@ -117,60 +99,38 @@ export default function Navbar({ variant = "page" }) {
         <div className="flex min-w-0 items-center justify-between gap-3">
           <BrandLink navSubtitle={navSubtitle} compact />
 
-          <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setIsSearchOpen(true)}
-              className="rounded-full border border-white/15 bg-white/8 p-3 text-white transition hover:bg-white/14"
-              aria-label={t("nav.searchTours")}
-              title={t("nav.searchTours")}
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen((currentState) => !currentState)}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white transition hover:bg-white/14"
+            aria-label={isMenuOpen ? t("nav.closeMenu") : t("nav.openMenu")}
+            aria-expanded={isMenuOpen}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              className="h-5 w-5"
+              aria-hidden="true"
             >
-              <SearchIcon className="h-5 w-5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsMenuOpen((currentState) => !currentState)}
-              className="rounded-full border border-white/15 bg-white/8 p-3 text-white transition hover:bg-white/14"
-              aria-label={isMenuOpen ? t("nav.closeMenu") : t("nav.openMenu")}
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                className="h-5 w-5"
-                aria-hidden="true"
-              >
-                {isMenuOpen ? (
-                  <path d="M6 6l12 12M18 6L6 18" />
-                ) : (
-                  <>
-                    <path d="M4 7h16" />
-                    <path d="M4 12h16" />
-                    <path d="M4 17h16" />
-                  </>
-                )}
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-3 flex justify-end">
-          <Controls
-            language={language}
-            setLanguage={setLanguage}
-            theme={theme}
-            toggleTheme={toggleTheme}
-            t={t}
-            compact
-          />
+              {isMenuOpen ? (
+                <path d="M6 6l12 12M18 6L6 18" />
+              ) : (
+                <>
+                  <path d="M4 7h16" />
+                  <path d="M4 12h16" />
+                  <path d="M4 17h16" />
+                </>
+              )}
+            </svg>
+          </button>
         </div>
       </div>
 
       {isMenuOpen ? (
         <div
-          className={`mt-4 space-y-3 rounded-[1.6rem] border p-4 xl:hidden ${menuPanelClassName}`}
+          className={`mt-4 space-y-4 rounded-[1.15rem] border p-4 xl:hidden ${menuPanelClassName}`}
         >
           <div className="grid gap-2">
             {navItems.map((item) => (
@@ -178,11 +138,31 @@ export default function Navbar({ variant = "page" }) {
                 key={item.to}
                 item={item}
                 location={location}
-                isHomeVariant={isHomeVariant}
                 mobile
               />
             ))}
           </div>
+
+          <div className="border-t border-white/10 pt-4">
+            <button
+              type="button"
+              onClick={() => {
+                setIsSearchOpen(true);
+                setIsMenuOpen(false);
+              }}
+              className="flex w-full items-center justify-between rounded-[0.9rem] border border-white/10 bg-[var(--aw-accent)] px-4 py-3 text-left text-sm font-black uppercase text-slate-950 shadow-[0_16px_34px_-24px_rgba(245,184,0,0.95)] transition hover:bg-[var(--aw-accent-hover)]"
+            >
+              <span>{t("common.searchPlaceholder")}</span>
+              <SearchIcon className="h-4 w-4" />
+            </button>
+          </div>
+
+          <Controls
+            language={language}
+            setLanguage={setLanguage}
+            t={t}
+            mobile
+          />
         </div>
       ) : null}
 
@@ -195,7 +175,7 @@ function BrandLink({ compact = false, navSubtitle }) {
   return (
     <Link to="/" className="flex min-w-0 flex-shrink-0 items-center gap-3 text-left">
       <span
-        className={`flex items-center rounded-2xl bg-white/14 px-2.5 shadow-lg shadow-cyan-950/30 backdrop-blur ${
+        className={`flex items-center rounded-lg border border-white/10 bg-white/8 px-2.5 shadow-[0_16px_34px_-28px_rgba(0,0,0,0.95)] backdrop-blur ${
           compact ? "h-11" : "h-12"
         }`}
       >
@@ -209,7 +189,7 @@ function BrandLink({ compact = false, navSubtitle }) {
         />
       </span>
       <span className="hidden min-w-0 sm:block">
-        <span className="[font-family:var(--font-display)] block truncate text-lg font-bold text-white 2xl:text-2xl">
+        <span className="[font-family:var(--font-display)] block truncate text-base font-bold text-white 2xl:text-xl">
           Around The World
         </span>
         {navSubtitle ? (
@@ -222,7 +202,7 @@ function BrandLink({ compact = false, navSubtitle }) {
   );
 }
 
-function HeaderNavLink({ item, location, isHomeVariant, mobile = false }) {
+function HeaderNavLink({ item, location, mobile = false }) {
   const isHashActive =
     item.hashOnly && location.pathname === "/" && location.hash === "#about";
 
@@ -233,7 +213,7 @@ function HeaderNavLink({ item, location, isHomeVariant, mobile = false }) {
         className={
           mobile
             ? getMobileNavLinkClass(isHashActive)
-            : getDesktopNavLinkClass(isHashActive, isHomeVariant)
+            : getDesktopNavLinkClass(isHashActive)
         }
       >
         {item.label}
@@ -248,7 +228,7 @@ function HeaderNavLink({ item, location, isHomeVariant, mobile = false }) {
       className={({ isActive }) =>
         mobile
           ? getMobileNavLinkClass(isActive)
-          : getDesktopNavLinkClass(isActive, isHomeVariant)
+          : getDesktopNavLinkClass(isActive)
       }
     >
       {item.label}
@@ -256,25 +236,23 @@ function HeaderNavLink({ item, location, isHomeVariant, mobile = false }) {
   );
 }
 
-function getDesktopNavLinkClass(isActive, isHomeVariant) {
-  return `whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-semibold transition ${
+function getDesktopNavLinkClass(isActive) {
+  return `whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-semibold transition 2xl:px-4 ${
     isActive
-      ? "bg-white text-slate-950 shadow-lg"
-      : isHomeVariant
-        ? "text-white/84 hover:bg-white/10 hover:text-white"
-        : "bg-white/10 text-white/80 hover:bg-white/18 hover:text-white"
+      ? "bg-[var(--aw-accent)] text-slate-950 shadow-[0_14px_32px_-24px_rgba(245,184,0,0.95)]"
+      : "text-white/76 hover:bg-white/8 hover:text-white"
   }`;
 }
 
 function getMobileNavLinkClass(isActive) {
-  return `rounded-2xl px-4 py-3 text-left text-sm font-semibold transition ${
+  return `rounded-[0.9rem] px-4 py-3 text-left text-sm font-semibold transition ${
     isActive
-      ? "bg-white text-slate-950"
-      : "bg-white/8 text-white/84 hover:bg-white/12 hover:text-white"
+      ? "bg-[var(--aw-accent)] text-slate-950"
+      : "bg-white/8 text-white/84 hover:bg-white/10 hover:text-white"
   }`;
 }
 
-function Controls({ compact = false, language, setLanguage, theme, toggleTheme, t }) {
+function Controls({ language, setLanguage, t, mobile = false }) {
   const { currentUser, loading, logout } = useFirebaseAuth();
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const accountLabels = ACCOUNT_LABELS[language] || ACCOUNT_LABELS.ka;
@@ -290,49 +268,43 @@ function Controls({ compact = false, language, setLanguage, theme, toggleTheme, 
 
   return (
     <div
-      className={`flex items-center gap-2 ${compact ? "flex-wrap justify-end" : "flex-nowrap"}`}
+      className={
+        mobile
+          ? "grid gap-3 border-t border-white/10 pt-4"
+          : "flex items-center gap-2"
+      }
     >
-      <div
-        className="flex flex-shrink-0 items-center gap-1 rounded-full border border-white/15 bg-white/8 p-1"
-        aria-label={t("common.language")}
-      >
-        {LANGUAGE_OPTIONS.map((option) => (
-          <LanguageButton
-            key={option.value}
-            option={option}
-            isActive={language === option.value}
-            onSelect={() => setLanguage(option.value)}
-          />
-        ))}
-      </div>
-
-      <button
-        type="button"
-        onClick={toggleTheme}
-        className={`flex-shrink-0 rounded-full border border-white/15 bg-white/8 px-3 py-2 text-[13px] font-semibold text-white/84 transition hover:bg-white/14 hover:text-white 2xl:px-4 2xl:text-sm ${
-          compact ? "px-3 text-xs" : ""
-        }`}
-      >
-        {theme === "dark" ? t("nav.lightMode") : t("nav.darkMode")}
-      </button>
+      <LanguageDropdown
+        language={language}
+        setLanguage={setLanguage}
+        label={t("common.language")}
+        mobile={mobile}
+      />
 
       <div className="relative flex-shrink-0">
         <button
           type="button"
           onClick={() => setIsAccountMenuOpen((currentState) => !currentState)}
           disabled={loading}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/8 text-white/84 transition hover:bg-white/14 hover:text-white disabled:cursor-wait disabled:opacity-70"
+          className={
+            mobile
+              ? "flex min-h-11 w-full items-center justify-between rounded-[0.9rem] border border-white/12 bg-white/8 px-4 py-3 text-sm font-semibold text-white/84 transition hover:border-[var(--aw-accent)] hover:bg-white/12 hover:text-white disabled:cursor-wait disabled:opacity-70"
+              : "flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white/84 transition hover:border-[var(--aw-accent)] hover:bg-white/12 hover:text-white disabled:cursor-wait disabled:opacity-70"
+          }
           aria-label={accountLabels.account}
           aria-haspopup="menu"
           aria-expanded={isAccountMenuOpen}
           title={accountLabels.account}
         >
+          {mobile ? <span>{accountLabels.account}</span> : null}
           <UserIcon />
         </button>
 
         {isAccountMenuOpen ? (
           <div
-            className="absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-[1.2rem] border border-white/15 bg-slate-950/95 p-1 text-sm font-semibold text-white shadow-[0_20px_70px_-38px_rgba(2,6,23,0.95)] backdrop-blur"
+            className={`z-50 mt-2 overflow-hidden rounded-[1rem] border border-white/12 bg-[#1c1f1f]/98 p-1 text-sm font-semibold text-white shadow-[0_20px_70px_-38px_rgba(0,0,0,0.95)] backdrop-blur ${
+              mobile ? "w-full" : "absolute right-0 top-full w-48"
+            }`}
             role="menu"
           >
             {currentUser ? (
@@ -383,23 +355,74 @@ function Controls({ compact = false, language, setLanguage, theme, toggleTheme, 
   );
 }
 
-function LanguageButton({ option, isActive, onSelect }) {
-  const FlagIcon = option.Icon;
+function LanguageDropdown({ language, setLanguage, label, mobile = false }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const currentOption =
+    LANGUAGE_OPTIONS.find((option) => option.value === language) || LANGUAGE_OPTIONS[0];
+  const dropdownOptions = LANGUAGE_OPTIONS.filter(
+    (option) => option.value !== currentOption.value
+  );
+  const CurrentFlag = currentOption.Icon;
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [language]);
 
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      aria-label={option.label}
-      title={option.label}
-      className={`flex h-8 w-10 items-center justify-center rounded-full transition ${
-        isActive
-          ? "bg-white shadow-sm ring-1 ring-white/70"
-          : "opacity-75 hover:bg-white/10 hover:opacity-100"
-      }`}
-    >
-      <FlagIcon />
-    </button>
+    <div className={`relative flex-shrink-0 ${mobile ? "w-full" : ""}`}>
+      <button
+        type="button"
+        onClick={() => setIsOpen((currentState) => !currentState)}
+        className={
+          mobile
+            ? "flex min-h-11 w-full items-center justify-between rounded-[0.9rem] border border-white/12 bg-white/8 px-4 py-3 text-sm font-semibold text-white/84 transition hover:border-[var(--aw-accent)] hover:bg-white/12 hover:text-white"
+            : "flex h-10 min-w-12 items-center justify-center gap-2 rounded-full border border-white/12 bg-white/8 px-2.5 text-white/84 transition hover:border-[var(--aw-accent)] hover:bg-white/12 hover:text-white"
+        }
+        aria-label={`${label}: ${currentOption.label}`}
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        title={currentOption.label}
+      >
+        <span className="flex items-center gap-3">
+          <CurrentFlag />
+          {mobile ? (
+            <span>
+              {currentOption.label} / {currentOption.shortLabel}
+            </span>
+          ) : null}
+        </span>
+        <span className="h-2 w-2 rotate-45 border-b border-r border-current opacity-70" />
+      </button>
+
+      {isOpen ? (
+        <div
+          className={`z-50 mt-2 overflow-hidden rounded-[0.95rem] border border-white/12 bg-[#1c1f1f]/98 p-1 text-sm font-semibold text-white shadow-[0_20px_70px_-38px_rgba(0,0,0,0.95)] backdrop-blur ${
+            mobile ? "w-full" : "absolute right-0 top-full w-40"
+          }`}
+          role="menu"
+        >
+          {dropdownOptions.map((option) => {
+            const FlagIcon = option.Icon;
+
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  setLanguage(option.value);
+                  setIsOpen(false);
+                }}
+                className="flex w-full items-center gap-3 rounded-[0.8rem] px-3 py-3 text-left transition hover:bg-white/10"
+                role="menuitem"
+              >
+                <FlagIcon />
+                <span>{option.shortLabel}</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
   );
 }
 

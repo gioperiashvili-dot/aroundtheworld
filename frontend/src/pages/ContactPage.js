@@ -59,7 +59,7 @@ export default function ContactPage() {
     >
       <SEO {...PAGE_SEO.contact} />
       <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <article className="rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-transparent dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)] md:p-8">
+        <article className="rounded-[1rem] border border-white/10 bg-[#202020] p-6 text-white shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)] md:p-8">
           <div className="grid gap-6 md:grid-cols-[minmax(10rem,0.42fr)_1fr] md:items-center">
             <div className="flex justify-center md:justify-start">
               <img
@@ -73,13 +73,13 @@ export default function ContactPage() {
               />
             </div>
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
                 Around The World
               </p>
-              <h2 className="[font-family:var(--font-display)] mt-3 text-3xl font-semibold text-slate-950 dark:text-white">
+              <h2 className="[font-family:var(--font-display)] mt-3 text-3xl font-semibold text-white">
                 {t("contact.heading")}
               </h2>
-              <p className="mt-4 text-sm leading-8 text-slate-600 dark:text-slate-300">
+              <p className="mt-4 text-sm leading-8 text-white/72">
                 {t("contact.helper")}
               </p>
             </div>
@@ -103,10 +103,10 @@ function ContactCard({ item }) {
         {item.icon}
       </span>
       <span className="min-w-0">
-        <span className="block text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
+        <span className="block text-xs font-semibold uppercase tracking-[0.18em] text-white/50">
           {item.label}
         </span>
-        <span className="mt-2 block break-words text-base font-semibold text-slate-950 dark:text-white">
+        <span className="mt-2 block break-words text-base font-semibold text-white">
           {item.value}
         </span>
       </span>
@@ -114,7 +114,7 @@ function ContactCard({ item }) {
   );
 
   const className =
-    "flex min-h-[8rem] items-center gap-4 rounded-[2rem] border border-white/70 bg-white/92 p-5 text-left shadow-[0_24px_70px_-52px_rgba(15,23,42,0.5)] transition hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-slate-900/88 dark:hover:bg-slate-900";
+    "flex min-h-[8rem] items-center gap-4 rounded-[1rem] border border-white/10 bg-[#202020] p-5 text-left shadow-[0_24px_70px_-52px_rgba(0,0,0,0.86)] transition hover:-translate-y-0.5 hover:border-white/18 hover:bg-[#262626]";
 
   if (item.href) {
     return (
@@ -151,7 +151,7 @@ function getIconShellClass(brand) {
     return `${baseClass} bg-white text-[#EA4335] shadow-red-950/20 ring-1 ring-slate-200 dark:ring-white/20`;
   }
 
-  return `${baseClass} bg-slate-950 text-white dark:bg-white dark:text-slate-950`;
+  return `${baseClass} bg-[var(--aw-accent)] text-slate-950 shadow-[rgba(245,184,0,0.2)]`;
 }
 
 function AddressIcon() {

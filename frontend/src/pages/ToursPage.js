@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import AutocompleteInput from "../components/AutocompleteInput";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import EmptyState from "../components/EmptyState";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
@@ -11,7 +10,6 @@ import { useLanguage } from "../i18n/LanguageContext";
 import { fetchTours } from "../lib/api";
 import { getFriendlyApiError } from "../lib/formatters";
 import { buildBreadcrumbStructuredData } from "../lib/structuredData";
-import { getTourPublicPath } from "../lib/tourSlugs";
 
 function normalize(value) {
   return String(value || "").trim().toLowerCase();
@@ -36,15 +34,68 @@ function matchesTourSearch(tour, query) {
   return values.some((value) => normalize(value).includes(normalizedQuery));
 }
 
+function parsePriceValue(value) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  const source = String(value ?? "").trim();
+
+  if (!source) {
+    return null;
+  }
+
+  const match = source.match(/\d[\d\s.,]*/);
+
+  if (!match) {
+    return null;
+  }
+
+  let numericText = match[0].replace(/\s/g, "");
+  const lastCommaIndex = numericText.lastIndexOf(",");
+  const lastDotIndex = numericText.lastIndexOf(".");
+
+  if (lastCommaIndex > -1 && lastDotIndex > -1) {
+    const decimalIndex = Math.max(lastCommaIndex, lastDotIndex);
+    const integerPart = numericText.slice(0, decimalIndex).replace(/[,.]/g, "");
+    const decimalPart = numericText.slice(decimalIndex + 1).replace(/[,.]/g, "");
+    numericText = decimalPart ? `${integerPart}.${decimalPart}` : integerPart;
+  } else if (lastCommaIndex > -1) {
+    const parts = numericText.split(",");
+    const decimalPart = parts[parts.length - 1];
+    numericText =
+      parts.length === 2 && decimalPart.length <= 2
+        ? `${parts[0]}.${decimalPart}`
+        : numericText.replace(/,/g, "");
+  } else if (lastDotIndex > -1) {
+    const parts = numericText.split(".");
+    const decimalPart = parts[parts.length - 1];
+    numericText =
+      parts.length === 2 && decimalPart.length <= 2
+        ? numericText
+        : numericText.replace(/\./g, "");
+  }
+
+  const parsedValue = Number.parseFloat(numericText);
+  return Number.isFinite(parsedValue) ? parsedValue : null;
+}
+
+function getTourPriceValue(tour) {
+  return parsePriceValue(tour?.price);
+}
+
+function getPriceFilterValue(value) {
+  const parsedValue = Number.parseFloat(String(value || "").replace(",", "."));
+  return Number.isFinite(parsedValue) && parsedValue >= 0 ? parsedValue : null;
+}
+
 export default function ToursPage() {
-  const navigate = useNavigate();
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [searchInput, setSearchInput] = useState(searchParams.get("search") || "");
-  const searchInputRef = useRef(null);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
   useEffect(() => {
     const loadTours = async () => {
@@ -64,18 +115,13 @@ export default function ToursPage() {
     void loadTours();
   }, [t]);
 
-  useEffect(() => {
-    setSearchInput(searchParams.get("search") || "");
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (searchParams.get("focus") === "search" && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [searchParams]);
-
   const selectedCategory = searchParams.get("category") || "__all";
   const activeQuery = searchParams.get("search") || "";
+  const minPrice = searchParams.get("minPrice") || "";
+  const maxPrice = searchParams.get("maxPrice") || "";
+  const minPriceValue = useMemo(() => getPriceFilterValue(minPrice), [minPrice]);
+  const maxPriceValue = useMemo(() => getPriceFilterValue(maxPrice), [maxPrice]);
+  const hasPriceFilter = minPriceValue !== null || maxPriceValue !== null;
   const categories = useMemo(
     () => [
       { key: "__all", label: t("common.all") },
@@ -94,38 +140,54 @@ export default function ToursPage() {
       tours.filter((tour) => {
         const matchesCategory =
           selectedCategory === "__all" || tour.category === selectedCategory;
-        return matchesCategory && matchesTourSearch(tour, activeQuery);
+        const matchesSearch = matchesTourSearch(tour, activeQuery);
+
+        if (!matchesCategory || !matchesSearch) {
+          return false;
+        }
+
+        if (!hasPriceFilter) {
+          return true;
+        }
+
+        const tourPrice = getTourPriceValue(tour);
+
+        if (tourPrice === null) {
+          return false;
+        }
+
+        if (minPriceValue !== null && tourPrice < minPriceValue) {
+          return false;
+        }
+
+        if (maxPriceValue !== null && tourPrice > maxPriceValue) {
+          return false;
+        }
+
+        return true;
       }),
-    [activeQuery, selectedCategory, tours]
+    [
+      activeQuery,
+      hasPriceFilter,
+      maxPriceValue,
+      minPriceValue,
+      selectedCategory,
+      tours,
+    ]
   );
 
-  const suggestions = useMemo(() => {
-    const normalizedQuery = normalize(searchInput);
+  const hasActiveFilters =
+    activeQuery ||
+    selectedCategory !== "__all" ||
+    minPrice ||
+    maxPrice;
 
-    if (normalizedQuery.length < 2) {
-      return [];
-    }
-
-    return tours
-      .filter((tour) => matchesTourSearch(tour, searchInput))
-      .slice(0, 6)
-      .map((tour) => ({
-        id: tour.id,
-        primary: language === "en" ? tour.title?.en || tour.title?.ka : tour.title?.ka || tour.title?.en,
-        secondary:
-          language === "en"
-            ? tour.destination?.en || tour.destination?.ka
-            : tour.destination?.ka || tour.destination?.en,
-        tag: tour.category || undefined,
-        value:
-          language === "en"
-            ? tour.title?.en || tour.title?.ka || ""
-            : tour.title?.ka || tour.title?.en || "",
-        tour,
-      }));
-  }, [language, searchInput, tours]);
-
-  const updateFilters = (nextSearch, nextCategory) => {
+  const updateFilters = ({
+    nextSearch = activeQuery,
+    nextCategory = selectedCategory,
+    nextMinPrice = minPrice,
+    nextMaxPrice = maxPrice,
+  } = {}) => {
     const params = new URLSearchParams();
 
     if (nextSearch.trim()) {
@@ -134,6 +196,14 @@ export default function ToursPage() {
 
     if (nextCategory && nextCategory !== "__all") {
       params.set("category", nextCategory);
+    }
+
+    if (String(nextMinPrice || "").trim()) {
+      params.set("minPrice", String(nextMinPrice).trim());
+    }
+
+    if (String(nextMaxPrice || "").trim()) {
+      params.set("maxPrice", String(nextMaxPrice).trim());
     }
 
     setSearchParams(params);
@@ -156,86 +226,121 @@ export default function ToursPage() {
     >
       <SEO {...PAGE_SEO.tours} structuredData={breadcrumbStructuredData} />
       <section className="space-y-6">
-        <div className="overflow-visible rounded-[2rem] border border-white/70 bg-white/92 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-900/88 dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
-          <div className="p-6 lg:p-8">
-            <div className="space-y-5">
+        {!loading ? (
+          <div className="rounded-[1rem] border border-white/10 bg-[#202020] p-4 text-white shadow-[0_26px_86px_-58px_rgba(0,0,0,0.92)]">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
-                  {t("tours.sectionLabel")}
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--aw-accent)]">
+                  {t("tours.resultsLabel")}
                 </p>
-                <h2 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
-                  {t("tours.heading")}
-                </h2>
-                <p className="mt-3 text-sm leading-7 text-slate-700 dark:text-slate-300">
-                  {t("tours.helper")}
+                <p className="mt-2 text-sm text-white/66">
+                  {visibleTours.length}
+                  {activeQuery ? ` / ${activeQuery}` : ""}
                 </p>
               </div>
 
-              <form
-                className="grid gap-4 md:grid-cols-[1fr_auto]"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  updateFilters(searchInput, selectedCategory);
-                }}
-              >
-                <FieldCard>
-                  <AutocompleteInput
-                    label={t("tours.searchLabel")}
-                    value={searchInput}
-                    onChange={setSearchInput}
-                    onSelect={(suggestion) => navigate(getTourPublicPath(suggestion.tour))}
-                    suggestions={suggestions}
-                    placeholder={t("tours.searchPlaceholder")}
-                    noSuggestionsText={t("common.noSuggestions")}
-                    inputRef={searchInputRef}
-                  />
-                </FieldCard>
+              <div className="relative w-full lg:w-80">
+                <button
+                  type="button"
+                  onClick={() => setIsFiltersOpen((currentValue) => !currentValue)}
+                  className="flex min-h-11 w-full items-center justify-between rounded-[0.85rem] border border-white/12 bg-[#171717] px-4 py-3 text-sm font-black uppercase text-white transition hover:border-[var(--aw-accent)] hover:bg-white/8"
+                  aria-expanded={isFiltersOpen}
+                >
+                  <span>{t("tours.filters.label")}</span>
+                  <span className="h-2 w-2 rotate-45 border-b border-r border-[var(--aw-accent)]" />
+                </button>
 
-                <div className="flex items-stretch">
-                  <button
-                    type="submit"
-                    className="w-full rounded-[1.35rem] bg-slate-950 px-6 py-4 text-sm font-semibold text-white transition hover:bg-slate-800"
-                  >
-                    {t("common.search")}
-                  </button>
-                </div>
-              </form>
+                {isFiltersOpen ? (
+                  <div className="mt-3 grid gap-4 rounded-[1rem] border border-white/10 bg-[#171717] p-4 shadow-[0_24px_70px_-44px_rgba(0,0,0,0.95)] lg:absolute lg:right-0 lg:top-full lg:z-20 lg:w-80">
+                    <label className="grid gap-2">
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-white/58">
+                        {t("tours.filters.category")}
+                      </span>
+                      <select
+                        value={selectedCategory}
+                        onChange={(event) =>
+                          updateFilters({ nextCategory: event.target.value })
+                        }
+                        className="min-h-11 rounded-[0.7rem] border border-white/10 bg-[var(--aw-input)] px-3 text-sm font-bold text-slate-950 outline-none transition focus:border-[var(--aw-accent)]"
+                      >
+                        {categories.map((category) => (
+                          <option key={category.key} value={category.key}>
+                            {category.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <fieldset className="grid gap-3">
+                      <legend className="text-xs font-semibold uppercase tracking-[0.18em] text-white/58">
+                        {t("tours.filters.priceRange")}
+                      </legend>
+
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                        <label className="grid gap-2">
+                          <span className="text-xs font-semibold text-white/64">
+                            {t("tours.filters.minPrice")}
+                          </span>
+                          <input
+                            type="number"
+                            min="0"
+                            value={minPrice}
+                            onChange={(event) =>
+                              updateFilters({ nextMinPrice: event.target.value })
+                            }
+                            className="min-h-11 rounded-[0.7rem] border border-white/10 bg-[var(--aw-input)] px-3 text-sm font-bold text-slate-950 outline-none transition focus:border-[var(--aw-accent)]"
+                          />
+                        </label>
+
+                        <label className="grid gap-2">
+                          <span className="text-xs font-semibold text-white/64">
+                            {t("tours.filters.maxPrice")}
+                          </span>
+                          <input
+                            type="number"
+                            min="0"
+                            value={maxPrice}
+                            onChange={(event) =>
+                              updateFilters({ nextMaxPrice: event.target.value })
+                            }
+                            className="min-h-11 rounded-[0.7rem] border border-white/10 bg-[var(--aw-input)] px-3 text-sm font-bold text-slate-950 outline-none transition focus:border-[var(--aw-accent)]"
+                          />
+                        </label>
+                      </div>
+                    </fieldset>
+
+                    {hasActiveFilters ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateFilters({
+                            nextSearch: "",
+                            nextCategory: "__all",
+                            nextMinPrice: "",
+                            nextMaxPrice: "",
+                          })
+                        }
+                        className="rounded-[0.7rem] border border-white/12 px-4 py-3 text-sm font-semibold text-white/74 transition hover:border-[var(--aw-accent)] hover:text-white"
+                      >
+                        {t("tours.filters.clear")}
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
+        ) : null}
 
-          {error ? (
-            <div className="border-t border-rose-100 bg-rose-50 px-6 py-4 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
-              {error}
-            </div>
-          ) : null}
-        </div>
-
-        {!loading ? (
-          <div className="flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <button
-                key={category.key}
-                type="button"
-                onClick={() => updateFilters(activeQuery, category.key)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  selectedCategory === category.key
-                    ? "bg-slate-950 text-white"
-                    : "border border-white/70 bg-white/92 text-slate-700 shadow-sm hover:bg-white dark:border-white/10 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-800"
-                }`}
-              >
-                {category.label}
-              </button>
-            ))}
-
-            {activeQuery ? (
-              <button
-                type="button"
-                onClick={() => updateFilters("", selectedCategory)}
-                className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-200 dark:hover:bg-emerald-500/20"
-              >
-                {t("tours.clearSearch")}
-              </button>
-            ) : null}
+        {!loading && activeQuery ? (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => updateFilters({ nextSearch: "" })}
+              className="rounded-full border border-white/12 bg-white/8 px-4 py-2 text-sm font-semibold text-white/74 transition hover:border-[var(--aw-accent)] hover:text-white"
+            >
+              {t("tours.clearSearch")}
+            </button>
           </div>
         ) : null}
 
@@ -244,10 +349,10 @@ export default function ToursPage() {
         {!loading && visibleTours.length > 0 ? (
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-white/58">
                 {t("tours.resultsLabel")}
               </p>
-              <p className="text-sm text-slate-700 dark:text-slate-300">{visibleTours.length}</p>
+              <p className="text-sm text-white/70">{visibleTours.length}</p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -267,13 +372,5 @@ export default function ToursPage() {
         ) : null}
       </section>
     </PublicPageShell>
-  );
-}
-
-function FieldCard({ children }) {
-  return (
-    <div className="rounded-[1.35rem] border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900/90">
-      {children}
-    </div>
   );
 }

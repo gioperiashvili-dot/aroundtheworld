@@ -8,12 +8,12 @@ const SLIDER_INTERVAL_MS = 6200;
 
 export default function PublicPageShell({
   backgroundImage,
-  eyebrow,
   title,
   description,
   highlights = [],
   heroAside = null,
   compactHero = false,
+  tightHero = false,
   children,
 }) {
   const slides = useMemo(
@@ -21,6 +21,17 @@ export default function PublicPageShell({
     [backgroundImage]
   );
   const [activeSlide, setActiveSlide] = useState(0);
+  const hasHeroAsideContent = Boolean(heroAside) || highlights.length > 0;
+  const heroHeightClassName = compactHero
+    ? tightHero
+      ? "min-h-[17rem] pb-8 md:min-h-[18rem] md:pb-10"
+      : "min-h-[21rem] pb-14 md:min-h-[23rem] md:pb-16"
+    : "min-h-[34rem] pb-24";
+  const mainOffsetClassName = compactHero
+    ? tightHero
+      ? "-mt-2 md:-mt-3"
+      : "-mt-8 md:-mt-10"
+    : "-mt-16";
 
   useEffect(() => {
     setActiveSlide(0);
@@ -41,7 +52,7 @@ export default function PublicPageShell({
   }, [slides]);
 
   return (
-    <div className="relative isolate min-h-screen overflow-hidden bg-slate-950 text-slate-900 transition-colors dark:text-slate-100">
+    <div className="relative isolate min-h-screen overflow-hidden bg-[var(--aw-bg)] text-white transition-colors">
       <div className="pointer-events-none absolute inset-0">
         <HomeHeroSlider
           slides={slides}
@@ -49,30 +60,29 @@ export default function PublicPageShell({
           onSelect={setActiveSlide}
           showControls={false}
         />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.16)_0%,rgba(2,6,23,0.24)_28%,rgba(2,6,23,0.44)_58%,rgba(2,6,23,0.72)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,17,17,0.24)_0%,rgba(17,17,17,0.42)_38%,rgba(17,17,17,0.84)_100%)]" />
       </div>
 
       <section className="relative z-10">
         <div
-          className={`mx-auto flex w-full max-w-[1500px] flex-col px-4 pt-6 sm:px-6 md:pt-8 lg:px-8 ${
-            compactHero ? "min-h-[21rem] pb-14 md:min-h-[23rem] md:pb-16" : "min-h-[34rem] pb-24"
-          }`}
+          className={`mx-auto flex w-full max-w-[1500px] flex-col px-4 pt-6 sm:px-6 md:pt-8 lg:px-8 ${heroHeightClassName}`}
         >
           <Navbar variant="page" />
 
           <div
-            className={`grid flex-1 gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end ${
+            className={`grid flex-1 gap-6 lg:items-end ${
+              hasHeroAsideContent ? "lg:grid-cols-[1.05fr_0.95fr]" : "lg:grid-cols-1"
+            } ${
               compactHero ? "mt-7" : "mt-10"
             }`}
           >
-            <div className="max-w-4xl space-y-5 pb-2">
-              {eyebrow ? (
-                <p className="inline-flex rounded-full border border-white/18 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.34em] text-white/90 backdrop-blur">
-                  {eyebrow}
-                </p>
-              ) : null}
+            <div
+              className={`space-y-5 pb-2 ${
+                hasHeroAsideContent ? "max-w-4xl" : "max-w-[76rem]"
+              }`}
+            >
               {title ? (
-                <h1 className="[font-family:var(--font-display)] text-4xl font-semibold leading-tight text-white md:text-6xl">
+                <h1 className="[font-family:var(--font-display)] max-w-full text-4xl font-semibold leading-tight text-white md:text-5xl lg:text-6xl">
                   {title}
                 </h1>
               ) : null}
@@ -90,15 +100,15 @@ export default function PublicPageShell({
                 {highlights.map((highlight) => (
                   <article
                     key={highlight.label}
-                    className="rounded-[1.8rem] border border-white/70 bg-white/88 p-5 text-slate-900 shadow-[0_22px_80px_-54px_rgba(15,23,42,0.55)] backdrop-blur dark:border-white/10 dark:bg-white/5 dark:text-white dark:shadow-[0_22px_80px_-54px_rgba(15,23,42,0.9)]"
+                    className="rounded-[1rem] border border-white/10 bg-[var(--aw-panel-soft)] p-5 text-white shadow-[0_22px_80px_-54px_rgba(0,0,0,0.9)] backdrop-blur"
                   >
-                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-600 dark:text-white/58">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--aw-accent)]">
                       {highlight.label}
                     </p>
-                    <h2 className="mt-3 [font-family:var(--font-display)] text-2xl font-semibold text-slate-950 dark:text-white">
+                    <h2 className="mt-3 [font-family:var(--font-display)] text-2xl font-semibold text-white">
                       {highlight.value}
                     </h2>
-                    <p className="mt-3 text-sm leading-7 text-slate-700 dark:text-white/72">{highlight.text}</p>
+                    <p className="mt-3 text-sm leading-7 text-white/72">{highlight.text}</p>
                   </article>
                 ))}
               </div>
@@ -108,17 +118,14 @@ export default function PublicPageShell({
       </section>
 
       <main
-        className={`relative z-10 mx-auto w-full max-w-[1500px] px-4 pb-16 sm:px-6 lg:px-8 ${
-          compactHero ? "-mt-8 md:-mt-10" : "-mt-16"
-        }`}
+        className={`relative z-10 mx-auto w-full max-w-[1500px] px-4 pb-16 sm:px-6 lg:px-8 ${mainOffsetClassName}`}
       >
         {children}
       </main>
 
       <PublicFooter />
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-[linear-gradient(180deg,rgba(2,6,23,0)_0%,rgba(2,6,23,0.34)_48%,rgba(2,6,23,0.62)_100%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.08),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(251,146,60,0.16),transparent_28%)]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-[linear-gradient(180deg,rgba(17,17,17,0)_0%,rgba(17,17,17,0.76)_100%)]" />
     </div>
   );
 }

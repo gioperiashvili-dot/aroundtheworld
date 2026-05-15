@@ -1,9 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const {
+  fetchPriceCalendar,
   normalizeFlights,
+  PRICE_CALENDAR_PATH,
   searchFlights,
 } = require("../services/skyScrapper");
+const { SKY_SCRAPPER_HOST } = require("../config/env");
 const {
   MAX_BOOKING_REQUEST_BYTES,
   sendFlightBookingRequestEmail,
@@ -221,6 +224,358 @@ function isPlainObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+function normalizeCurrencyCode(value) {
+  const normalizedValue = String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z]/g, "");
+
+  return normalizedValue || "USD";
+}
+
+function parsePriceNumber(value) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  const source = String(value ?? "").trim();
+
+  if (!source) {
+    return null;
+  }
+
+  const match = source.match(/\d[\d\s.,]*/);
+
+  if (!match) {
+    return null;
+  }
+
+  let numericText = match[0].replace(/\s/g, "");
+  const lastCommaIndex = numericText.lastIndexOf(",");
+  const lastDotIndex = numericText.lastIndexOf(".");
+
+  if (lastCommaIndex > -1 && lastDotIndex > -1) {
+    const decimalIndex = Math.max(lastCommaIndex, lastDotIndex);
+    const integerPart = numericText.slice(0, decimalIndex).replace(/[,.]/g, "");
+    const decimalPart = numericText.slice(decimalIndex + 1).replace(/[,.]/g, "");
+    numericText = decimalPart ? `${integerPart}.${decimalPart}` : integerPart;
+  } else if (lastCommaIndex > -1) {
+    const parts = numericText.split(",");
+    const decimalPart = parts[parts.length - 1];
+    numericText =
+      parts.length === 2 && decimalPart.length <= 2
+        ? `${parts[0]}.${decimalPart}`
+        : numericText.replace(/,/g, "");
+  } else if (lastDotIndex > -1) {
+    const parts = numericText.split(".");
+    const decimalPart = parts[parts.length - 1];
+    numericText =
+      parts.length === 2 && decimalPart.length <= 2
+        ? numericText
+        : numericText.replace(/\./g, "");
+  }
+
+  const parsedValue = Number.parseFloat(numericText);
+  return Number.isFinite(parsedValue) ? parsedValue : null;
+}
+
+function extractCalendarDate(value) {
+  const match = String(value || "").match(/\d{4}-\d{2}-\d{2}/);
+  return match ? match[0] : "";
+}
+
+function getFirstString(value, keys) {
+  if (!isPlainObject(value)) {
+    return "";
+  }
+
+  for (const key of keys) {
+    const candidate = value[key];
+
+    if (typeof candidate === "string" && candidate.trim()) {
+      return candidate.trim();
+    }
+  }
+
+  return "";
+}
+
+function formatCalendarPrice(rawPrice, currency) {
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: Number.isInteger(rawPrice) ? 0 : 2,
+    }).format(rawPrice);
+  } catch (_error) {
+    return `${rawPrice} ${currency}`;
+  }
+}
+
+function normalizePriceValue(value, context = {}) {
+  if (typeof value === "number" || typeof value === "string") {
+    const raw = parsePriceNumber(value);
+    const source = String(value || "").trim();
+
+    return {
+      raw,
+      formatted:
+        raw !== null && /[^\d\s.,]/.test(source) ? source : "",
+      currency: normalizeCurrencyCode(context.currency),
+    };
+  }
+
+  if (!isPlainObject(value)) {
+    return {
+      raw: null,
+      formatted: "",
+      currency: normalizeCurrencyCode(context.currency),
+    };
+  }
+
+  const formatted = getFirstString(value, [
+    "formatted",
+    "formattedPrice",
+    "priceFormatted",
+    "displayPrice",
+  ]);
+  const currency = normalizeCurrencyCode(value.currency || value.currencyCode || context.currency);
+  const candidateKeys = [
+    "raw",
+    "amount",
+    "value",
+    "price",
+    "minPrice",
+    "lowestPrice",
+    "rawPrice",
+    "priceAmount",
+  ];
+
+  for (const key of candidateKeys) {
+    if (value[key] === undefined || value[key] === null || value[key] === value) {
+      continue;
+    }
+
+    const normalizedPrice = normalizePriceValue(value[key], {
+      currency,
+    });
+
+    if (normalizedPrice.raw !== null) {
+      return {
+        raw: normalizedPrice.raw,
+        formatted: formatted || normalizedPrice.formatted,
+        currency: normalizedPrice.currency || currency,
+      };
+    }
+  }
+
+  return {
+    raw: null,
+    formatted,
+    currency,
+  };
+}
+
+function findCalendarPrice(node, currency) {
+  if (!isPlainObject(node)) {
+    return normalizePriceValue(node, { currency });
+  }
+
+  const candidateKeys = [
+    "price",
+    "minPrice",
+    "lowestPrice",
+    "amount",
+    "raw",
+    "rawPrice",
+    "value",
+  ];
+
+  for (const key of candidateKeys) {
+    if (node[key] === undefined || node[key] === null) {
+      continue;
+    }
+
+    const normalizedPrice = normalizePriceValue(node[key], {
+      currency: node.currency || node.currencyCode || currency,
+    });
+
+    if (normalizedPrice.raw !== null) {
+      return normalizedPrice;
+    }
+  }
+
+  return {
+    raw: null,
+    formatted: "",
+    currency: normalizeCurrencyCode(node.currency || node.currencyCode || currency),
+  };
+}
+
+function addCalendarPrice(calendar, date, price, fallbackCurrency) {
+  if (!date || price.raw === null) {
+    return;
+  }
+
+  const currency = normalizeCurrencyCode(price.currency || fallbackCurrency);
+  const entry = {
+    raw: price.raw,
+    formatted: price.formatted || formatCalendarPrice(price.raw, currency),
+    currency,
+  };
+  const existingEntry = calendar[date];
+
+  if (!existingEntry || entry.raw < existingEntry.raw) {
+    calendar[date] = entry;
+  }
+}
+
+function visitPriceCalendarNode(node, calendar, fallbackCurrency, inheritedDate = "", seen) {
+  if (node === null || node === undefined) {
+    return;
+  }
+
+  if (Array.isArray(node)) {
+    node.forEach((item) =>
+      visitPriceCalendarNode(item, calendar, fallbackCurrency, inheritedDate, seen)
+    );
+    return;
+  }
+
+  if (!isPlainObject(node)) {
+    addCalendarPrice(
+      calendar,
+      inheritedDate,
+      normalizePriceValue(node, { currency: fallbackCurrency }),
+      fallbackCurrency
+    );
+    return;
+  }
+
+  if (seen.has(node)) {
+    return;
+  }
+
+  seen.add(node);
+
+  const date =
+    extractCalendarDate(node.date) ||
+    extractCalendarDate(node.day) ||
+    extractCalendarDate(node.departureDate) ||
+    extractCalendarDate(node.fromDate) ||
+    inheritedDate;
+  const price = findCalendarPrice(node, fallbackCurrency);
+
+  addCalendarPrice(calendar, date, price, fallbackCurrency);
+
+  Object.entries(node).forEach(([key, value]) => {
+    const keyDate = extractCalendarDate(key);
+
+    if (keyDate && !isPlainObject(value) && !Array.isArray(value)) {
+      addCalendarPrice(
+        calendar,
+        keyDate,
+        normalizePriceValue(value, { currency: fallbackCurrency }),
+        fallbackCurrency
+      );
+      return;
+    }
+
+    if (!isPlainObject(value) && !Array.isArray(value)) {
+      return;
+    }
+
+    visitPriceCalendarNode(value, calendar, fallbackCurrency, keyDate || date, seen);
+  });
+}
+
+function normalizePriceCalendarPayload(payload, currency) {
+  const calendar = {};
+
+  visitPriceCalendarNode(
+    payload?.data ?? payload?.calendar ?? payload,
+    calendar,
+    normalizeCurrencyCode(currency),
+    "",
+    new WeakSet()
+  );
+
+  return calendar;
+}
+
+function getErrorText(error) {
+  return [
+    error?.message,
+    error?.details,
+    error?.response?.data?.message,
+    error?.response?.data?.error,
+  ]
+    .filter(Boolean)
+    .map((value) => (typeof value === "string" ? value : JSON.stringify(value)))
+    .join(" ");
+}
+
+function isUnsupportedCurrencyError(error) {
+  const statusCode = error?.statusCode || error?.response?.status;
+  const errorText = getErrorText(error).toLowerCase();
+
+  return (
+    errorText.includes("currency") &&
+    ([400, 422].includes(statusCode) ||
+      /(unsupported|invalid|not supported)/i.test(errorText))
+  );
+}
+
+function isProduction() {
+  return process.env.NODE_ENV === "production";
+}
+
+function buildPriceCalendarQueryDebug({
+  originSkyId,
+  destinationSkyId,
+  fromDate,
+  currency,
+  market,
+  countryCode,
+  locale,
+}) {
+  return {
+    originSkyId,
+    destinationSkyId,
+    fromDate,
+    currency,
+    market,
+    countryCode,
+    locale,
+  };
+}
+
+function buildPriceCalendarDebug({ query, error }) {
+  if (isProduction()) {
+    return undefined;
+  }
+
+  const providerDiagnostics = error?.providerDebug || error?.providerDiagnostics || {};
+
+  return {
+    providerStatus: providerDiagnostics.providerStatus ?? null,
+    providerStatusText: providerDiagnostics.providerStatusText ?? null,
+    providerCode: providerDiagnostics.providerCode ?? null,
+    providerMessage: providerDiagnostics.providerMessage ?? null,
+    providerBody: providerDiagnostics.providerBody ?? null,
+    networkCode: providerDiagnostics.networkCode ?? error?.code ?? null,
+    networkMessage: providerDiagnostics.networkMessage ?? error?.message ?? null,
+    errorName: providerDiagnostics.errorName ?? error?.name ?? null,
+    errorMessage: providerDiagnostics.errorMessage ?? error?.message ?? null,
+    endpoint: providerDiagnostics.endpoint || PRICE_CALENDAR_PATH,
+    host: providerDiagnostics.host || SKY_SCRAPPER_HOST,
+    url: providerDiagnostics.url || `https://${SKY_SCRAPPER_HOST}${PRICE_CALENDAR_PATH}`,
+    query: providerDiagnostics.query || query,
+    attempt: providerDiagnostics.attempt ?? null,
+    flags: providerDiagnostics.flags || null,
+  };
+}
+
 function normalizeFlightErrorCode(error) {
   if (error?.code === "PROVIDER_LIMITED" || error?.code === "BLOCKED_OR_CAPTCHA") {
     return "PROVIDER_LIMITED";
@@ -341,6 +696,193 @@ router.post("/booking-request", async (req, res) => {
     });
 
     return res.status(errorResponse.statusCode).json(errorResponse.body);
+  }
+});
+
+router.get("/price-calendar", async (req, res) => {
+  const originSkyId = req.query.originSkyId?.trim();
+  const destinationSkyId = req.query.destinationSkyId?.trim();
+  const fromDate = req.query.fromDate?.trim();
+  const rawCurrency = req.query.currency?.trim();
+  const requestedCurrency = normalizeCurrencyCode(rawCurrency);
+  const market = req.query.market?.trim() || "en-US";
+  const countryCode = req.query.countryCode?.trim().toUpperCase() || "US";
+  const locale = req.query.locale?.trim() || market;
+
+  if (!originSkyId || !destinationSkyId || !fromDate || !rawCurrency) {
+    logFlightDiagnostic(
+      "price calendar validation failed",
+      { reason: "missing required params" },
+      "warn"
+    );
+
+    return res.status(400).json({
+      ok: false,
+      provider: "flights",
+      code: "VALIDATION_ERROR",
+      message: FLIGHT_MESSAGES.validation,
+      calendar: {},
+    });
+  }
+
+  if (!isValidDate(fromDate)) {
+    logFlightDiagnostic(
+      "price calendar validation failed",
+      { reason: "invalid date format" },
+      "warn"
+    );
+
+    return res.status(400).json({
+      ok: false,
+      provider: "flights",
+      code: "VALIDATION_ERROR",
+      message: FLIGHT_MESSAGES.validation,
+      calendar: {},
+    });
+  }
+
+  let activeCurrency = requestedCurrency;
+  let currencyFallback = false;
+  const initialQueryDebug = buildPriceCalendarQueryDebug({
+    originSkyId,
+    destinationSkyId,
+    fromDate,
+    currency: activeCurrency,
+    market,
+    countryCode,
+    locale,
+  });
+
+  logFlightDiagnostic("price calendar request received", {
+    endpoint: PRICE_CALENDAR_PATH,
+    host: SKY_SCRAPPER_HOST,
+    url: `https://${SKY_SCRAPPER_HOST}${PRICE_CALENDAR_PATH}`,
+    query: initialQueryDebug,
+  });
+
+  try {
+    let result;
+
+    try {
+      result = await fetchPriceCalendar({
+        originSkyId,
+        destinationSkyId,
+        fromDate,
+        currency: activeCurrency,
+        market,
+        countryCode,
+        locale,
+      });
+    } catch (error) {
+      if (activeCurrency !== "USD" && isUnsupportedCurrencyError(error)) {
+        activeCurrency = "USD";
+        currencyFallback = true;
+        logFlightDiagnostic(
+          "price calendar currency fallback",
+          {
+            endpoint: PRICE_CALENDAR_PATH,
+            host: SKY_SCRAPPER_HOST,
+            requestedCurrency,
+            fallbackCurrency: activeCurrency,
+            providerStatus:
+              (error?.providerDebug || error?.providerDiagnostics)?.providerStatus,
+            providerMessage:
+              (error?.providerDebug || error?.providerDiagnostics)?.providerMessage,
+          },
+          "warn"
+        );
+        result = await fetchPriceCalendar({
+          originSkyId,
+          destinationSkyId,
+          fromDate,
+          currency: activeCurrency,
+          market: "en-US",
+          countryCode: "US",
+          locale: "en-US",
+        });
+      } else {
+        throw error;
+      }
+    }
+
+    const calendar = normalizePriceCalendarPayload(result?.payload, activeCurrency);
+
+    logFlightDiagnostic("price calendar normalized", {
+      originSkyId,
+      destinationSkyId,
+      fromDate,
+      requestedCurrency,
+      activeCurrency,
+      currencyFallback,
+      resultCount: Object.keys(calendar).length,
+      cached: Boolean(result?.meta?.cached),
+    });
+
+    return res.json({
+      ok: true,
+      provider: "flights",
+      calendar,
+      currency: activeCurrency,
+      requestedCurrency,
+      currencyFallback,
+      meta: {
+        ...(result?.meta || {}),
+        endpoint: "/api/v1/flights/getPriceCalendar",
+        host: SKY_SCRAPPER_HOST,
+        fromDate,
+      },
+    });
+  } catch (err) {
+    const code = normalizeFlightErrorCode(err);
+    const statusCode = getStatusCodeForError(code, err);
+    const message = getMessageForError(code);
+
+    logFlightDiagnostic(
+      "price calendar error",
+      {
+        providerDebug: err?.providerDebug || err?.providerDiagnostics || null,
+        originSkyId,
+        destinationSkyId,
+        fromDate,
+        endpoint: PRICE_CALENDAR_PATH,
+        host: SKY_SCRAPPER_HOST,
+        code,
+        statusCode,
+        providerStatus: (err?.providerDebug || err?.providerDiagnostics)?.providerStatus,
+        providerStatusText:
+          (err?.providerDebug || err?.providerDiagnostics)?.providerStatusText,
+        providerCode: (err?.providerDebug || err?.providerDiagnostics)?.providerCode,
+        providerMessage:
+          (err?.providerDebug || err?.providerDiagnostics)?.providerMessage,
+        providerBody: (err?.providerDebug || err?.providerDiagnostics)?.providerBody,
+        networkCode: (err?.providerDebug || err?.providerDiagnostics)?.networkCode,
+        networkMessage:
+          (err?.providerDebug || err?.providerDiagnostics)?.networkMessage,
+        errorName: (err?.providerDebug || err?.providerDiagnostics)?.errorName,
+        errorMessage: (err?.providerDebug || err?.providerDiagnostics)?.errorMessage,
+        query: (err?.providerDebug || err?.providerDiagnostics)?.query || initialQueryDebug,
+      },
+      code === "PROVIDER_LIMITED" || code === "VALIDATION_ERROR" ? "warn" : "error"
+    );
+
+    const errorBody = {
+      ok: false,
+      provider: "flights",
+      code,
+      message,
+      calendar: {},
+    };
+    const debug = buildPriceCalendarDebug({
+      query: initialQueryDebug,
+      error: err,
+    });
+
+    if (debug) {
+      errorBody.debug = debug;
+      errorBody.providerDebug = debug;
+    }
+
+    return res.status(statusCode).json(errorBody);
   }
 });
 

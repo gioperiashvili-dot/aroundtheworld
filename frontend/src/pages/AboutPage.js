@@ -3,7 +3,7 @@ import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
 import backgroundFour from "../assets/background/background-4.webp";
 import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE_512.png";
-import skyscannerLogo from "../assets/partners/skyscanner.jpg";
+import skyscannerLogo from "../assets/partners/skyscanner.png";
 import tripadvisorLogo from "../assets/partners/tripadvisor.png";
 import { useLanguage } from "../i18n/LanguageContext";
 
@@ -287,9 +287,9 @@ export default function AboutPage() {
       <SEO {...PAGE_SEO.about} />
 
       <section className="space-y-6">
-        <article className="grid gap-6 rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)] md:p-8 lg:grid-cols-[auto_1fr] lg:items-center">
+        <article className="grid gap-6 rounded-[1rem] border border-white/10 bg-[#202020] p-6 text-white shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)] md:p-8 lg:grid-cols-[auto_1fr] lg:items-center">
           <div className="flex justify-center lg:justify-start">
-            <span className="flex h-32 w-32 items-center justify-center rounded-[2rem] bg-slate-950/5 p-4 ring-1 ring-slate-200/80 dark:bg-white/5 dark:ring-white/10 sm:h-40 sm:w-40">
+            <span className="flex h-32 w-32 items-center justify-center rounded-[1rem] bg-white/5 p-4 ring-1 ring-white/10 sm:h-40 sm:w-40">
               <img
                 src={logoMain}
                 alt="Around The World"
@@ -304,7 +304,7 @@ export default function AboutPage() {
             {content.intro.map((paragraph) => (
               <p
                 key={paragraph}
-                className="text-base leading-8 text-slate-700 dark:text-slate-300"
+                className="text-base leading-8 text-white/72"
               >
                 {paragraph}
               </p>
@@ -326,7 +326,7 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)] md:p-8">
+        <section className="rounded-[1rem] border border-white/10 bg-[#202020] p-6 text-white shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)] md:p-8">
           <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
             <div>
               <SectionHeading
@@ -336,15 +336,15 @@ export default function AboutPage() {
                 compact
               />
 
-              <div className="mt-6 rounded-[1.5rem] border border-slate-200 bg-slate-50/88 p-5 dark:border-white/10 dark:bg-white/5">
-                <p className="text-sm font-semibold text-slate-950 dark:text-white">
+              <div className="mt-6 rounded-[1rem] border border-white/10 bg-[#171717] p-5">
+                <p className="text-sm font-semibold text-white">
                   {content.online.listLabel}
                 </p>
                 <ul className="mt-4 space-y-3">
                   {content.online.list.map((item) => (
                     <li
                       key={item}
-                      className="flex gap-3 text-sm leading-7 text-slate-700 dark:text-slate-300"
+                      className="flex gap-3 text-sm leading-7 text-white/72"
                     >
                       <CheckIcon />
                       <span>{item}</span>
@@ -353,13 +353,13 @@ export default function AboutPage() {
                 </ul>
               </div>
 
-              <p className="mt-5 text-sm leading-8 text-slate-700 dark:text-slate-300">
+              <p className="mt-5 text-sm leading-8 text-white/72">
                 {content.online.footer}
               </p>
             </div>
 
-            <aside className="rounded-[1.8rem] border border-slate-200 bg-slate-50/88 p-5 dark:border-white/10 dark:bg-white/5">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
+            <aside className="rounded-[1rem] border border-white/10 bg-[#171717] p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
                 {content.online.partnersLabel}
               </p>
 
@@ -390,10 +390,10 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-slate-950 text-white shadow-[0_32px_100px_-58px_rgba(15,23,42,0.78)] dark:border-white/10 dark:bg-white dark:text-slate-950">
+        <section className="overflow-hidden rounded-[1rem] border border-white/10 bg-[#202020] text-white shadow-[0_32px_100px_-58px_rgba(0,0,0,0.9)]">
           <div className="grid gap-8 p-6 md:p-8 lg:grid-cols-[1fr_auto] lg:items-end">
             <div className="max-w-4xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-300 dark:text-emerald-700">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
                 {content.goal.eyebrow}
               </p>
               <h2 className="[font-family:var(--font-display)] mt-3 text-3xl font-semibold leading-tight md:text-4xl">
@@ -403,13 +403,13 @@ export default function AboutPage() {
                 {content.goal.paragraphs.map((paragraph) => (
                   <p
                     key={paragraph}
-                    className="text-sm leading-8 text-white/78 dark:text-slate-700"
+                    className="text-sm leading-8 text-white/72"
                   >
                     {paragraph}
                   </p>
                 ))}
               </div>
-              <p className="mt-6 [font-family:var(--font-display)] text-xl font-semibold text-white dark:text-slate-950">
+              <p className="mt-6 [font-family:var(--font-display)] text-xl font-semibold text-white">
                 {content.goal.tagline}
               </p>
             </div>
@@ -417,14 +417,14 @@ export default function AboutPage() {
             <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
               <Link
                 to="/tours"
-                className="inline-flex items-center justify-center gap-2 rounded-[1.35rem] bg-[#ff5a5f] px-6 py-4 text-sm font-semibold text-white transition hover:bg-[#ff4a50]"
+                className="inline-flex items-center justify-center gap-2 rounded-[0.85rem] bg-[var(--aw-accent)] px-6 py-4 text-sm font-black text-slate-950 transition hover:bg-[var(--aw-accent-hover)]"
               >
                 {content.cta.tours}
                 <ArrowIcon />
               </Link>
               <Link
                 to="/contact"
-                className="inline-flex items-center justify-center gap-2 rounded-[1.35rem] border border-white/22 bg-white/10 px-6 py-4 text-sm font-semibold text-white transition hover:bg-white/16 dark:border-slate-300 dark:bg-slate-950 dark:text-white dark:hover:bg-slate-800"
+                className="inline-flex items-center justify-center gap-2 rounded-[0.85rem] border border-white/12 bg-white/8 px-6 py-4 text-sm font-semibold text-white/78 transition hover:border-[var(--aw-accent)] hover:text-white"
               >
                 {content.cta.contact}
                 <ArrowIcon />
@@ -439,11 +439,11 @@ export default function AboutPage() {
 
 function AboutHeroAside({ content }) {
   return (
-    <aside className="rounded-[1.8rem] border border-white/70 bg-white p-5 text-slate-900 shadow-[0_22px_80px_-54px_rgba(15,23,42,0.55)] backdrop-blur dark:border-white/10 dark:bg-[#071426] dark:text-white dark:shadow-[0_22px_80px_-54px_rgba(15,23,42,0.9)]">
-      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
+    <aside className="rounded-[1rem] border border-white/10 bg-[#202020]/92 p-5 text-white shadow-[0_22px_80px_-54px_rgba(0,0,0,0.9)] backdrop-blur">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
         {content.label}
       </p>
-      <h2 className="[font-family:var(--font-display)] mt-3 text-2xl font-semibold leading-tight text-slate-950 dark:text-white">
+      <h2 className="[font-family:var(--font-display)] mt-3 text-2xl font-semibold leading-tight text-white">
         {content.title}
       </h2>
 
@@ -451,12 +451,12 @@ function AboutHeroAside({ content }) {
         {content.stats.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-[1.2rem] border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-white/5"
+            className="rounded-[0.85rem] border border-white/10 bg-[#171717] p-4"
           >
-            <p className="[font-family:var(--font-display)] text-xl font-semibold text-slate-950 dark:text-white">
+            <p className="[font-family:var(--font-display)] text-xl font-semibold text-white">
               {stat.value}
             </p>
-            <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-white/68">
+            <p className="mt-1 text-xs leading-5 text-white/62">
               {stat.label}
             </p>
           </div>
@@ -469,14 +469,14 @@ function AboutHeroAside({ content }) {
 function SectionHeading({ eyebrow, title, description, compact = false }) {
   return (
     <div className={compact ? "" : "max-w-4xl"}>
-      <p className="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
+      <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
         {eyebrow}
       </p>
-      <h2 className="[font-family:var(--font-display)] mt-3 text-3xl font-semibold leading-tight text-slate-950 dark:text-white md:text-4xl">
+      <h2 className="[font-family:var(--font-display)] mt-3 max-w-[72rem] text-3xl font-semibold leading-tight text-white md:text-4xl">
         {title}
       </h2>
       {description ? (
-        <p className="mt-4 text-sm leading-8 text-slate-700 dark:text-slate-300">
+        <p className="mt-4 text-sm leading-8 text-white/72">
           {description}
         </p>
       ) : null}
@@ -486,20 +486,20 @@ function SectionHeading({ eyebrow, title, description, compact = false }) {
 
 function ServiceCard({ service, index }) {
   return (
-    <article className="rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_24px_80px_-56px_rgba(15,23,42,0.45)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_24px_80px_-56px_rgba(2,6,23,0.8)]">
+    <article className="rounded-[1rem] border border-white/10 bg-[#202020] p-6 text-white shadow-[0_24px_80px_-56px_rgba(0,0,0,0.9)]">
       <div className="flex items-start gap-4">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-sm font-bold text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-200 dark:ring-emerald-400/20">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[rgba(245,184,0,0.16)] text-sm font-bold text-[var(--aw-accent)] ring-1 ring-[rgba(245,184,0,0.24)]">
           {String(index + 1).padStart(2, "0")}
         </span>
         <div>
-          <h3 className="[font-family:var(--font-display)] text-2xl font-semibold leading-tight text-slate-950 dark:text-white">
+          <h3 className="[font-family:var(--font-display)] text-2xl font-semibold leading-tight text-white">
             {service.title}
           </h3>
           <div className="mt-4 space-y-4">
             {service.text.map((paragraph) => (
               <p
                 key={paragraph}
-                className="text-sm leading-8 text-slate-700 dark:text-slate-300"
+                className="text-sm leading-8 text-white/72"
               >
                 {paragraph}
               </p>
@@ -513,7 +513,7 @@ function ServiceCard({ service, index }) {
 
 function PartnerCard({ partner, label }) {
   return (
-    <article className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-[0_18px_55px_-44px_rgba(15,23,42,0.45)] dark:border-white/10 dark:bg-white">
+    <article className="rounded-[0.9rem] border border-slate-200 bg-white p-5 shadow-[0_18px_55px_-44px_rgba(0,0,0,0.45)]">
       <div className="flex min-h-[4.5rem] items-center justify-center">
         <img
           src={partner.logo}
@@ -532,14 +532,14 @@ function PartnerCard({ partner, label }) {
 
 function HighlightCard({ card, index }) {
   return (
-    <article className="rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_24px_80px_-56px_rgba(15,23,42,0.45)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_24px_80px_-56px_rgba(2,6,23,0.8)]">
-      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#ff5a5f]/10 text-sm font-bold text-[#d83f45] dark:bg-[#ff5a5f]/18 dark:text-[#ff8c90]">
+    <article className="rounded-[1rem] border border-white/10 bg-[#202020] p-6 text-white shadow-[0_24px_80px_-56px_rgba(0,0,0,0.9)]">
+      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[rgba(245,184,0,0.16)] text-sm font-bold text-[var(--aw-accent)]">
         {index + 1}
       </span>
-      <h3 className="[font-family:var(--font-display)] mt-5 text-xl font-semibold leading-tight text-slate-950 dark:text-white">
+      <h3 className="[font-family:var(--font-display)] mt-5 text-xl font-semibold leading-tight text-white">
         {card.title}
       </h3>
-      <p className="mt-4 text-sm leading-8 text-slate-700 dark:text-slate-300">
+      <p className="mt-4 text-sm leading-8 text-white/72">
         {card.text}
       </p>
     </article>
@@ -548,7 +548,7 @@ function HighlightCard({ card, index }) {
 
 function CheckIcon() {
   return (
-    <span className="mt-1.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-400/12 dark:text-emerald-200">
+    <span className="mt-1.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[rgba(245,184,0,0.16)] text-[var(--aw-accent)]">
       <svg
         viewBox="0 0 24 24"
         fill="none"

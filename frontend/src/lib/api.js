@@ -81,6 +81,14 @@ export async function fetchFlights(params) {
   return response.data;
 }
 
+export async function fetchFlightPriceCalendar(params) {
+  const response = await apiClient.get("/api/flights/price-calendar", {
+    params,
+  });
+
+  return response.data;
+}
+
 export async function submitFlightBookingRequest(payload) {
   const response = await apiClient.post("/api/flights/booking-request", payload);
   return response.data;
