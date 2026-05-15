@@ -6,6 +6,9 @@ import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
 import TravelImage from "../components/TravelImage";
 import backgroundThree from "../assets/background/background-3.webp";
+import giorgiAvatar from "../assets/dpp/G.webp";
+import vitoAvatar from "../assets/dpp/V.webp";
+import zuraAvatar from "../assets/dpp/Z.webp";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 import { fetchBlogs, fetchReviews, fetchTours } from "../lib/api";
 import {
@@ -13,6 +16,12 @@ import {
   formatDateTimeLabel,
   getFriendlyApiError,
 } from "../lib/formatters";
+
+const LOCAL_REVIEW_AVATARS = {
+  "zura karsanauli": zuraAvatar,
+  "giorgi konwliashvili": giorgiAvatar,
+  "vito kosiashvili": vitoAvatar,
+};
 
 function getInitials(name) {
   return String(name || "G")
@@ -22,6 +31,10 @@ function getInitials(name) {
     .map((part) => part[0])
     .join("")
     .toUpperCase();
+}
+
+function getLocalReviewAvatar(name) {
+  return LOCAL_REVIEW_AVATARS[String(name || "").trim().toLowerCase()] || "";
 }
 
 export default function BlogPage() {
@@ -264,19 +277,7 @@ function PublicReviewCard({ review, tour, language, t }) {
   return (
     <article className="h-full rounded-[1rem] border border-white/10 bg-[#171717] p-5">
       <div className="flex items-start gap-3">
-        {review.photoURL ? (
-          <img
-            src={review.photoURL}
-            alt=""
-            className="h-12 w-12 rounded-full object-cover"
-            loading="lazy"
-            referrerPolicy="no-referrer"
-          />
-        ) : (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--aw-accent)] text-sm font-black text-slate-950">
-            {getInitials(review.name)}
-          </div>
-        )}
+        <ReviewAvatar review={review} className="h-12 w-12" />
 
         <div className="min-w-0 flex-1">
           <h3 className="break-words font-semibold text-white">
@@ -303,6 +304,32 @@ function PublicReviewCard({ review, tour, language, t }) {
         )}
       </div>
     </article>
+  );
+}
+
+function ReviewAvatar({ review, className }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const avatarSrc = getLocalReviewAvatar(review.name) || review.photoURL;
+
+  if (avatarSrc && !imageFailed) {
+    return (
+      <img
+        src={avatarSrc}
+        alt=""
+        className={`${className} shrink-0 rounded-full object-cover`}
+        loading="lazy"
+        referrerPolicy={avatarSrc.startsWith("http") ? "no-referrer" : undefined}
+        onError={() => setImageFailed(true)}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`${className} flex shrink-0 items-center justify-center rounded-full bg-[var(--aw-accent)] text-sm font-black text-slate-950`}
+    >
+      {getInitials(review.name)}
+    </div>
   );
 }
 

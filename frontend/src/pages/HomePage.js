@@ -6,7 +6,11 @@ import PublicFooter from "../components/PublicFooter";
 import ReviewsSection from "../components/ReviewsSection";
 import SEO, { PAGE_SEO } from "../components/SEO";
 import { useLanguage } from "../i18n/LanguageContext";
+import toursCardImage from "../assets/background/background-1.webp";
+import tipsCardImage from "../assets/background/background-5.webp";
+import planCardImage from "../assets/background/background-6.webp";
 import heroImage from "../assets/background/background-7.webp";
+import visaCardImage from "../assets/background/visa-services.webp";
 import {
   buildOrganizationStructuredData,
   buildWebsiteStructuredData,
@@ -24,10 +28,10 @@ export default function HomePage({ seoPage = "home" }) {
       : undefined;
 
   const pageCards = [
-    { key: "tours", path: "/tours" },
-    { key: "visaServices", path: "/visa-services" },
-    { key: "blog", path: "/blog" },
-    { key: "contact", path: "/contact" },
+    { key: "tours", path: "/tours", image: toursCardImage },
+    { key: "visaServices", path: "/visa-services", image: visaCardImage },
+    { key: "blog", path: "/blog", image: tipsCardImage },
+    { key: "contact", path: "/contact", image: planCardImage },
   ];
 
   return (
@@ -82,17 +86,28 @@ export default function HomePage({ seoPage = "home" }) {
               key={item.key}
               type="button"
               onClick={() => navigate(item.path)}
-              className="homepage-feature-card group rounded-[1.9rem] p-5 text-left backdrop-blur-md transition"
+              className="homepage-feature-card group relative min-h-[17rem] overflow-hidden rounded-[1.9rem] p-5 text-left backdrop-blur-md transition"
             >
-              <p className="homepage-feature-card__label text-xs font-semibold uppercase tracking-[0.26em] transition-colors">
-                {t(`home.cards.${item.key}.category`)}
-              </p>
-              <h2 className="homepage-feature-card__title [font-family:var(--font-display)] mt-3 text-2xl font-semibold transition-colors">
-                {t(`home.cards.${item.key}.title`)}
-              </h2>
-              <p className="homepage-feature-card__description mt-3 text-sm leading-8 transition-colors">
-                {t(`home.cards.${item.key}.text`)}
-              </p>
+              <img
+                src={item.image}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover opacity-72 transition duration-500 group-hover:scale-105 group-hover:opacity-88"
+                aria-hidden="true"
+              />
+              <span className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.28)_0%,rgba(0,0,0,0.54)_44%,rgba(0,0,0,0.82)_100%)] transition group-hover:bg-[linear-gradient(180deg,rgba(0,0,0,0.2)_0%,rgba(0,0,0,0.46)_44%,rgba(0,0,0,0.78)_100%)]" />
+              <span className="relative z-10 flex h-full flex-col justify-end">
+                <p className="homepage-feature-card__label text-xs font-semibold uppercase tracking-[0.26em] transition-colors">
+                  {t(`home.cards.${item.key}.category`)}
+                </p>
+                <h2 className="homepage-feature-card__title [font-family:var(--font-display)] mt-3 text-2xl font-semibold transition-colors">
+                  {t(`home.cards.${item.key}.title`)}
+                </h2>
+                <p className="homepage-feature-card__description mt-3 text-sm leading-8 transition-colors">
+                  {t(`home.cards.${item.key}.text`)}
+                </p>
+              </span>
             </button>
           ))}
         </section>

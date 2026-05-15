@@ -795,19 +795,19 @@ export default function FlightsPage() {
         />
 
         {(lastSearch || meta?.cached) && !loading ? (
-          <div className="flex flex-col gap-3 rounded-[1.9rem] border border-white/70 bg-white/88 px-5 py-4 shadow-[0_24px_80px_-56px_rgba(15,23,42,0.45)] md:flex-row md:items-center md:justify-between dark:border-white/10 dark:bg-slate-900/82 dark:shadow-[0_24px_80px_-56px_rgba(2,6,23,0.8)]">
+          <div className="flex flex-col gap-3 rounded-[1rem] border border-white/10 bg-[#202020] px-5 py-4 text-white shadow-[0_24px_80px_-56px_rgba(0,0,0,0.9)] md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-600 dark:text-slate-400">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--aw-accent)]">
                 {t("flights.recentSearch")}
               </p>
-              <p className="mt-1 text-lg font-semibold text-slate-950 dark:text-white">
+              <p className="mt-1 text-lg font-semibold text-white">
                 {lastSearch ? `${lastSearch.from} -> ${lastSearch.to}` : t("flights.latestRouteFallback")}
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
               {lastSearch?.date ? (
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                <span className="rounded-full bg-white/10 px-3 py-1 text-sm text-white/78">
                   {formatCalendarDate(lastSearch.date, language)}
                 </span>
               ) : null}
@@ -1282,8 +1282,8 @@ function FlightResultCard({
           </div>
 
           {segments.length > 1 ? (
-            <div className="rounded-[1.25rem] border border-slate-100 bg-white px-4 py-3 text-sm font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-200">
-              <span className="mr-2 text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+            <div className="rounded-[0.9rem] border border-white/10 bg-[#202020] px-4 py-3 text-sm font-semibold text-white/72">
+              <span className="mr-2 text-xs uppercase tracking-[0.14em] text-white/46">
                 {t("common.route")}
               </span>
               <span className="break-words">{routeLabel}</span>
@@ -1298,13 +1298,13 @@ function FlightResultCard({
         </div>
 
         <div className="flight-price-panel rounded-[0.9rem] border border-white/10 bg-[#1c1c1c] p-4 text-left lg:text-right">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/46">
             {t("common.price")}
           </p>
-          <p className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
+          <p className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-white">
             {price}
           </p>
-          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-2 text-xs text-white/52">
             {getSafeText(flightNumber, `${t("common.flight")} ${index + 1}`)}
           </p>
 
@@ -1340,7 +1340,7 @@ function FlightResultCard({
                 t={t}
               />
               {detailItems.length > 0 ? (
-                <div className="mt-4 grid gap-3 border-t border-slate-200 pt-4 dark:border-slate-800 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="mt-4 grid gap-3 border-t border-white/10 pt-4 sm:grid-cols-2 lg:grid-cols-3">
                   {detailItems.map((item) => (
                     <FlightMeta
                       key={`${item.label}-${item.value}`}
@@ -1427,10 +1427,10 @@ function FlightSegmentBreakdown({ flight, segments, lastSearch, language, t }) {
   return (
     <div className="space-y-4">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/46">
           {t("flights.flightDetails")}
         </p>
-        <p className="mt-2 break-words text-lg font-semibold text-slate-950 dark:text-white">
+        <p className="mt-2 break-words text-lg font-semibold text-white">
           {getRoutePathLabel(flight, lastSearch)}
         </p>
       </div>
@@ -1452,14 +1452,14 @@ function FlightSegmentBreakdown({ flight, segments, lastSearch, language, t }) {
           return (
             <div
               key={`${segment.flightNumber || "segment"}-${index}`}
-              className="rounded-[1.35rem] border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950/70"
+              className="rounded-[0.9rem] border border-white/10 bg-[#202020] p-4"
             >
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#d83f45] dark:text-[#ff8c90]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--aw-accent)]">
                     {t("flights.segment")} {index + 1}
                   </p>
-                  <h4 className="mt-2 text-base font-semibold text-slate-950 dark:text-white">
+                  <h4 className="mt-2 text-base font-semibold text-white">
                     {getSegmentRouteLabel(segment)}
                   </h4>
                 </div>
@@ -1500,7 +1500,7 @@ function FlightSegmentBreakdown({ flight, segments, lastSearch, language, t }) {
               </div>
 
               {showOperatingAirline ? (
-                <p className="mt-3 text-sm font-medium text-slate-600 dark:text-slate-300">
+                <p className="mt-3 text-sm font-medium text-white/66">
                   {t("flights.operatedBy")}: {operatingAirline}
                 </p>
               ) : null}
@@ -1592,15 +1592,15 @@ function BookingRequestModal({
         className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
       />
 
-      <div className="relative max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-[2rem] border border-white/70 bg-white p-5 shadow-[0_34px_120px_-48px_rgba(15,23,42,0.85)] dark:border-white/10 dark:bg-slate-950 dark:shadow-[0_34px_120px_-48px_rgba(2,6,23,0.95)] sm:p-6">
+      <div className="relative max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-[1rem] border border-white/10 bg-[#202020] p-5 text-white shadow-[0_34px_120px_-48px_rgba(0,0,0,0.95)] sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d83f45] dark:text-[#ff8c90]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--aw-accent)]">
               {t("flights.bookingRequest.eyebrow")}
             </p>
             <h2
               id="booking-request-title"
-              className="[font-family:var(--font-display)] mt-2 text-2xl font-semibold text-slate-950 dark:text-white"
+              className="[font-family:var(--font-display)] mt-2 text-2xl font-semibold text-white"
             >
               {t("flights.bookingRequest.title")}
             </h2>
@@ -1609,15 +1609,15 @@ function BookingRequestModal({
             type="button"
             onClick={onClose}
             aria-label={t("common.close")}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 text-lg font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-950 dark:border-slate-800 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:text-white"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/12 text-lg font-semibold text-white/64 transition hover:border-[var(--aw-accent)] hover:text-white"
           >
             x
           </button>
         </div>
 
         <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-          <div className="rounded-[1.5rem] bg-slate-50 p-4 dark:bg-transparent">
-            <h3 className="text-sm font-semibold text-slate-950 dark:text-white">
+          <div className="rounded-[1rem] border border-white/10 bg-[#171717] p-4">
+            <h3 className="text-sm font-semibold text-white">
               {t("flights.bookingRequest.selectedFlight")}
             </h3>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
@@ -1632,17 +1632,17 @@ function BookingRequestModal({
             </div>
 
             {selectedFlight.segments.length > 0 ? (
-              <div className="mt-4 space-y-2 border-t border-slate-200 pt-4 dark:border-slate-800">
+              <div className="mt-4 space-y-2 border-t border-white/10 pt-4">
                 {selectedFlight.segments.map((segment, index) => (
                   <div
                     key={`${segment.flightNumber || "modal-segment"}-${index}`}
-                    className="rounded-[1rem] border border-slate-200 bg-white p-3 text-sm dark:border-slate-800 dark:bg-slate-950/70"
+                    className="rounded-[0.85rem] border border-white/10 bg-[#202020] p-3 text-sm"
                   >
-                    <p className="font-semibold text-slate-950 dark:text-white">
+                    <p className="font-semibold text-white">
                       {t("flights.segment")} {index + 1}:{" "}
                       {getSegmentRouteLabel(segment)}
                     </p>
-                    <p className="mt-1 text-slate-600 dark:text-slate-300">
+                    <p className="mt-1 text-white/64">
                       {[segment.airline, segment.flightNumber, segment.duration]
                         .filter(Boolean)
                         .join(" | ")}
@@ -1678,7 +1678,7 @@ function BookingRequestModal({
               required
             />
             <label className="block">
-              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              <span className="text-sm font-semibold text-white/78">
                 {t("flights.bookingRequest.message")}
               </span>
               <textarea
@@ -1686,7 +1686,7 @@ function BookingRequestModal({
                 value={form.customerMessage}
                 onChange={onChange}
                 rows={4}
-                className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-[#e64d53]/60 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                className="mt-2 w-full rounded-[0.85rem] border border-white/10 bg-[#171717] px-4 py-3 text-sm text-white outline-none transition focus:border-[var(--aw-accent)]"
               />
             </label>
 
@@ -1702,7 +1702,7 @@ function BookingRequestModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex w-full items-center justify-center rounded-full bg-[#e64d53] px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_42px_-26px_rgba(216,63,69,0.9)] transition hover:bg-[#d83f45] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 disabled:shadow-none"
+              className="inline-flex w-full items-center justify-center rounded-full bg-[var(--aw-accent)] px-5 py-3 text-sm font-black text-slate-950 shadow-[0_18px_42px_-26px_rgba(245,184,0,0.9)] transition hover:bg-[var(--aw-accent-hover)] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300 disabled:shadow-none"
             >
               {isSubmitting
                 ? t("flights.bookingRequest.sending")
@@ -1747,12 +1747,12 @@ function BookingSuccessModal({ t, onClose }) {
         className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
       />
 
-      <div className="relative w-full max-w-lg rounded-[2rem] border border-white/70 bg-white p-6 text-center shadow-[0_34px_120px_-48px_rgba(15,23,42,0.85)] dark:border-white/10 dark:bg-slate-950 sm:p-7">
+      <div className="relative w-full max-w-lg rounded-[1rem] border border-white/10 bg-[#202020] p-6 text-center text-white shadow-[0_34px_120px_-48px_rgba(0,0,0,0.95)] sm:p-7">
         <button
           type="button"
           onClick={onClose}
           aria-label={t("common.close")}
-          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-lg font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-950 dark:border-slate-800 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:text-white"
+          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/12 text-lg font-semibold text-white/64 transition hover:border-[var(--aw-accent)] hover:text-white"
         >
           x
         </button>
@@ -1773,11 +1773,11 @@ function BookingSuccessModal({ t, onClose }) {
         </div>
         <h2
           id="booking-success-title"
-          className="[font-family:var(--font-display)] mt-5 text-2xl font-semibold text-slate-950 dark:text-white"
+          className="[font-family:var(--font-display)] mt-5 text-2xl font-semibold text-white"
         >
           {t("flights.bookingRequest.successTitle")}
         </h2>
-        <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+        <p className="mt-3 text-sm leading-7 text-white/68">
           {t("flights.bookingRequest.success")}
         </p>
         <p className="mt-4 rounded-[1.1rem] bg-amber-50 px-4 py-3 text-sm font-medium leading-6 text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
@@ -1786,7 +1786,7 @@ function BookingSuccessModal({ t, onClose }) {
         <button
           type="button"
           onClick={onClose}
-          className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[#e64d53] px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_42px_-26px_rgba(216,63,69,0.9)] transition hover:bg-[#d83f45]"
+          className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[var(--aw-accent)] px-5 py-3 text-sm font-black text-slate-950 shadow-[0_18px_42px_-26px_rgba(245,184,0,0.9)] transition hover:bg-[var(--aw-accent-hover)]"
         >
           {t("flights.bookingRequest.successAction")}
         </button>
@@ -1805,7 +1805,7 @@ function BookingTextField({
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+      <span className="text-sm font-semibold text-white/78">
         {label}
       </span>
       <input
@@ -1814,7 +1814,7 @@ function BookingTextField({
         value={value}
         onChange={onChange}
         required={required}
-        className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-[#e64d53]/60 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+        className="mt-2 w-full rounded-[0.85rem] border border-white/10 bg-[#171717] px-4 py-3 text-sm text-white outline-none transition focus:border-[var(--aw-accent)]"
       />
     </label>
   );
@@ -1825,13 +1825,13 @@ function FlightTimeBlock({ align, code, time, date }) {
 
   return (
     <div className={alignment}>
-      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/46">
         {code}
       </p>
-      <p className="mt-1 text-3xl font-semibold text-slate-950 dark:text-white">
+      <p className="mt-1 text-3xl font-semibold text-white">
         {time}
       </p>
-      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{date}</p>
+      <p className="mt-1 text-sm text-white/52">{date}</p>
     </div>
   );
 }
@@ -1839,11 +1839,11 @@ function FlightTimeBlock({ align, code, time, date }) {
 function FlightMeta({ label, value, wrap = false }) {
   return (
     <div>
-      <span className="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+      <span className="block text-xs font-semibold uppercase tracking-[0.14em] text-white/46">
         {label}
       </span>
       <span
-        className={`mt-1 block font-semibold text-slate-800 dark:text-slate-100 ${
+        className={`mt-1 block font-semibold text-white ${
           wrap ? "break-words" : "truncate"
         }`}
       >

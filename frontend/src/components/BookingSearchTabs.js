@@ -483,7 +483,7 @@ function BookingDateField({ label, value, onChange }) {
   return (
     <BookingField>
       <label className="block text-left">
-        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">
+        <span className="form-field-label text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">
           {label}
         </span>
         <input
@@ -501,7 +501,7 @@ function BookingNumberField({ label, value, min, onChange }) {
   return (
     <BookingField>
       <label className="block text-left">
-        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">
+        <span className="form-field-label text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">
           {label}
         </span>
         <input

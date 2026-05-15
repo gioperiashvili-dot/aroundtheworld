@@ -4,8 +4,8 @@ import { resolvePublicAssetUrl } from "../lib/api";
 
 const VARIANT_STYLES = {
   hotel: {
-    gradient: "from-sky-500 via-cyan-500 to-emerald-400",
-    accent: "bg-cyan-50/20 text-white",
+    gradient: "from-[#151515] via-[#252018] to-[#6f5200]",
+    accent: "bg-[rgba(245,184,0,0.18)] text-[var(--aw-accent)]",
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -21,8 +21,8 @@ const VARIANT_STYLES = {
     ),
   },
   restaurant: {
-    gradient: "from-amber-300 via-orange-400 to-rose-500",
-    accent: "bg-amber-50/20 text-white",
+    gradient: "from-[#151515] via-[#2a2418] to-[#8a6500]",
+    accent: "bg-[rgba(245,184,0,0.18)] text-[var(--aw-accent)]",
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -37,8 +37,8 @@ const VARIANT_STYLES = {
     ),
   },
   tour: {
-    gradient: "from-emerald-400 via-teal-500 to-cyan-600",
-    accent: "bg-emerald-50/20 text-white",
+    gradient: "from-[#151515] via-[#202020] to-[#6f5200]",
+    accent: "bg-[rgba(245,184,0,0.18)] text-[var(--aw-accent)]",
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -54,8 +54,8 @@ const VARIANT_STYLES = {
     ),
   },
   blog: {
-    gradient: "from-cyan-500 via-emerald-500 to-rose-400",
-    accent: "bg-white/20 text-white",
+    gradient: "from-[#151515] via-[#252018] to-[#6f5200]",
+    accent: "bg-[rgba(245,184,0,0.18)] text-[var(--aw-accent)]",
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -123,14 +123,11 @@ export default function TravelImage({
         <div
           className={`relative flex h-full w-full flex-col justify-between bg-gradient-to-br ${variantStyle.gradient} p-5 text-white`}
         >
-          <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-white/18 blur-2xl" />
-          <div className="absolute -bottom-12 left-0 h-32 w-32 rounded-full bg-slate-950/12 blur-3xl" />
-
           <div className="relative flex items-start justify-between gap-3">
             <span className={`rounded-full px-3 py-1 text-xs font-semibold ${variantStyle.accent}`}>
               {variantLabel}
             </span>
-            <div className="rounded-[1.3rem] bg-white/14 p-3 shadow-lg shadow-slate-950/10">
+            <div className="rounded-[1rem] border border-white/10 bg-black/24 p-3 text-[var(--aw-accent)] shadow-lg shadow-black/20">
               {variantStyle.icon}
             </div>
           </div>

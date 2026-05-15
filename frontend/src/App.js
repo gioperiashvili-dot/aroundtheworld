@@ -20,10 +20,10 @@ const VisaServicesPage = lazy(() => import("./pages/VisaServicesPage"));
 
 function RouteLoadingFallback() {
   return (
-    <div className="min-h-screen bg-[#0f1111] px-4 py-6 text-white">
+    <div className="min-h-dvh bg-[#0f1111] px-4 py-6 text-[#f7f7f7]">
       <div className="mx-auto flex min-h-[12rem] w-full max-w-[1500px] items-center justify-center">
         <div
-          className="h-10 w-10 animate-spin rounded-full border-2 border-white/14 border-t-[var(--aw-accent)]"
+          className="h-10 w-10 animate-spin rounded-full border-2 border-[#f7f7f7]/15 border-t-[#f5b800] shadow-[0_0_28px_rgba(245,184,0,0.18)]"
           role="status"
           aria-label="Loading page"
         />

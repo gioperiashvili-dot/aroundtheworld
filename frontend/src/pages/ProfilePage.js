@@ -385,16 +385,16 @@ export default function ProfilePage() {
       />
 
       <section className="space-y-6">
-        <article className="flex flex-col gap-5 rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)] md:flex-row md:items-center md:justify-between md:p-8">
+        <article className="flex flex-col gap-5 rounded-[1rem] border border-white/10 bg-[#202020] p-6 text-white shadow-[0_30px_90px_-58px_rgba(0,0,0,0.92)] md:flex-row md:items-center md:justify-between md:p-8">
           <div className="flex min-w-0 items-center gap-4">
-            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-slate-950 text-lg font-semibold text-white dark:bg-white dark:text-slate-950">
+            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--aw-accent)] text-lg font-black text-slate-950">
               {initials}
             </span>
             <div className="min-w-0">
-              <h2 className="[font-family:var(--font-display)] truncate text-2xl font-semibold text-slate-950 dark:text-white">
+              <h2 className="[font-family:var(--font-display)] truncate text-2xl font-semibold text-white">
                 {displayName}
               </h2>
-              <p className="mt-1 break-words text-sm font-medium text-slate-600 dark:text-slate-300">
+              <p className="mt-1 break-words text-sm font-medium text-white/66">
                 {text.email}: {currentUser.email}
               </p>
             </div>
@@ -405,7 +405,7 @@ export default function ProfilePage() {
             onClick={() => {
               void logout();
             }}
-            className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
+            className="inline-flex items-center justify-center rounded-full border border-white/12 bg-white/8 px-5 py-3 text-sm font-semibold text-white transition hover:border-[var(--aw-accent)] hover:text-[var(--aw-accent)]"
           >
             {text.logout}
           </button>
@@ -490,7 +490,7 @@ export default function ProfilePage() {
 
 function ProfileTabs({ activeTab, onChange, tabs }) {
   return (
-    <div className="flex flex-wrap gap-2 rounded-[1.5rem] border border-white/70 bg-white p-3 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.45)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)]">
+    <div className="flex flex-wrap gap-2 rounded-[1rem] border border-white/10 bg-[#202020] p-3 shadow-[0_30px_90px_-58px_rgba(0,0,0,0.9)]">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
 
@@ -502,16 +502,16 @@ function ProfileTabs({ activeTab, onChange, tabs }) {
             aria-pressed={isActive}
             className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
               isActive
-                ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950"
-                : "bg-slate-50 text-slate-700 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                ? "bg-[var(--aw-accent)] text-slate-950"
+                : "border border-white/10 bg-white/7 text-white/72 hover:border-white/18 hover:text-white"
             }`}
           >
             <span>{tab.label}</span>
             <span
               className={`rounded-full px-2 py-0.5 text-xs ${
                 isActive
-                  ? "bg-white/15 text-white dark:bg-slate-950/10 dark:text-slate-950"
-                  : "bg-white text-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  ? "bg-slate-950/12 text-slate-950"
+                  : "bg-white/10 text-white/78"
               }`}
             >
               {tab.count}
@@ -533,13 +533,13 @@ function ProfileDataSection({
   renderItem,
 }) {
   return (
-    <section className="rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)] md:p-8">
+    <section className="rounded-[1rem] border border-white/10 bg-[#202020] p-6 text-white shadow-[0_30px_90px_-58px_rgba(0,0,0,0.92)] md:p-8">
       <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#d83f45] dark:text-[#ff8c90]">
+        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--aw-accent)]">
           {title}
         </p>
         {description ? (
-          <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-600 dark:text-slate-300">
+          <p className="mt-3 max-w-4xl text-sm leading-7 text-white/66">
             {description}
           </p>
         ) : null}
@@ -548,7 +548,7 @@ function ProfileDataSection({
       {isLoading ? <LoadingBlock label={loadingLabel} compact /> : null}
 
       {!isLoading && items.length === 0 ? (
-        <div className="mt-5 rounded-[1.5rem] bg-slate-50 p-5 text-sm font-semibold text-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
+        <div className="mt-5 rounded-[1rem] border border-white/10 bg-[#171717] p-5 text-sm font-semibold text-white/72">
           {emptyMessage}
         </div>
       ) : null}
@@ -576,13 +576,13 @@ function BookingRequestCard({ request, language, text }) {
   const submittedDate = formatProfileDate(request.createdAt, language);
 
   return (
-    <article className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 dark:border-white/10 dark:bg-slate-950/55">
+    <article className="rounded-[1rem] border border-white/10 bg-[#171717] p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-slate-950 dark:text-white">
+          <h3 className="text-lg font-semibold text-white">
             {title || text.requestFallbackTitle}
           </h3>
-          <div className="mt-3 grid gap-2 text-sm text-slate-600 dark:text-slate-300">
+          <div className="mt-3 grid gap-2 text-sm text-white/64">
             <InlineMeta label={text.serviceType} value={serviceType} />
             <InlineMeta label={text.category} value={category} />
             <InlineMeta label={text.submittedDate} value={submittedDate} />
@@ -598,7 +598,7 @@ function BookingRequestCard({ request, language, text }) {
       </div>
 
       {message ? (
-        <p className="mt-4 text-sm leading-7 text-slate-700 dark:text-slate-300">
+        <p className="mt-4 text-sm leading-7 text-white/68">
           {text.message}: {message}
         </p>
       ) : null}
@@ -646,13 +646,13 @@ function BookingCard({
   const notes = getFirstText(booking, ["notes", "description", "message"]);
 
   return (
-    <article className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 dark:border-white/10 dark:bg-slate-950/55">
+    <article className="rounded-[1rem] border border-white/10 bg-[#171717] p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-slate-950 dark:text-white">
+          <h3 className="text-lg font-semibold text-white">
             {title || text.bookingFallbackTitle}
           </h3>
-          <div className="mt-3 grid gap-2 text-sm text-slate-600 dark:text-slate-300">
+          <div className="mt-3 grid gap-2 text-sm text-white/64">
             <InlineMeta label={text.serviceType} value={serviceType} />
             <InlineMeta label={text.category} value={category} />
             <InlineMeta label={text.dateRange} value={dateRange} />
@@ -673,8 +673,8 @@ function BookingCard({
       </div>
 
       {files.length > 0 ? (
-        <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+        <div className="mt-4 border-t border-white/10 pt-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/46">
             {text.documents}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -684,7 +684,7 @@ function BookingCard({
                 type="button"
                 onClick={() => onDownloadFile(booking, file)}
                 disabled={downloadActionId === `${booking.id}:${file.id}`}
-                className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/8 px-3 py-2 text-xs font-semibold text-white/72 transition hover:border-[var(--aw-accent)] hover:text-white"
               >
                 <span>{text.pdf}</span>
                 <span className="max-w-[12rem] truncate">
@@ -702,15 +702,15 @@ function BookingCard({
       ) : null}
 
       {includes.length > 0 ? (
-        <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+        <div className="mt-4 border-t border-white/10 pt-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/46">
             {text.includes}
           </p>
           <ul className="mt-3 space-y-2">
             {includes.map((item) => (
               <li
                 key={item}
-                className="text-sm leading-6 text-slate-700 dark:text-slate-300"
+                className="text-sm leading-6 text-white/68"
               >
                 {item}
               </li>
@@ -720,7 +720,7 @@ function BookingCard({
       ) : null}
 
       {notes ? (
-        <p className="mt-4 text-sm leading-7 text-slate-700 dark:text-slate-300">
+        <p className="mt-4 text-sm leading-7 text-white/68">
           {text.notes}: {notes}
         </p>
       ) : null}
@@ -735,7 +735,7 @@ function InlineMeta({ label, value }) {
 
   return (
     <span>
-      <span className="font-semibold text-slate-700 dark:text-slate-200">
+      <span className="font-semibold text-white/84">
         {label}:
       </span>{" "}
       {value}
@@ -750,10 +750,10 @@ function ReadOnlyMeta({ label, value }) {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/46">
         {label}
       </p>
-      <p className="mt-1 font-semibold text-slate-950 dark:text-white">{value}</p>
+      <p className="mt-1 font-semibold text-white">{value}</p>
     </div>
   );
 }
@@ -761,11 +761,11 @@ function ReadOnlyMeta({ label, value }) {
 function LoadingBlock({ label, compact = false }) {
   return (
     <div
-      className={`flex items-center justify-center rounded-[1.5rem] bg-white/90 text-slate-700 dark:bg-[#071426] dark:text-slate-200 ${
+      className={`flex items-center justify-center rounded-[1rem] border border-white/10 bg-[#202020] text-white/72 ${
         compact ? "mt-5 min-h-[7rem]" : "min-h-[12rem]"
       }`}
     >
-      <span className="h-8 w-8 rounded-full border-2 border-slate-200 border-t-[#e64d53] animate-spin" />
+      <span className="h-8 w-8 animate-spin rounded-full border-2 border-white/14 border-t-[var(--aw-accent)]" />
       <span className="ml-3 text-sm font-semibold">{label}</span>
     </div>
   );

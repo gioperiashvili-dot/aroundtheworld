@@ -20,45 +20,45 @@ export default function HotelCard({ hotel }) {
           {hotel.provider || "Tripadvisor"}
         </div>
 
-        <div className="absolute bottom-5 right-5 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-slate-950/15">
+        <div className="absolute bottom-5 right-5 rounded-full bg-[var(--aw-accent)] px-4 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-[rgba(245,184,0,0.18)]">
           {hotel.price}
         </div>
       </div>
 
-      <div className="space-y-5 p-5 dark:bg-[#071426]">
+      <div className="space-y-5 bg-[#242424] p-5 text-white">
         <div>
-          <h3 className="[font-family:var(--font-display)] text-2xl font-semibold text-slate-950 dark:text-white">
+          <h3 className="[font-family:var(--font-display)] text-2xl font-semibold text-white">
             {hotel.name}
           </h3>
-          <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">
+          <p className="mt-2 text-sm leading-6 text-white/66">
             {hotel.area || t("hotels.card.areaUnavailable")}
           </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-[1.4rem] bg-slate-50 p-4 dark:bg-slate-800/80">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
+          <div className="rounded-[0.9rem] border border-white/10 bg-[#1c1c1c] p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/48">
               {t("common.rating")}
             </p>
-            <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
+            <p className="mt-2 text-lg font-semibold text-white">
               {hotel.rating ? `${hotel.rating}/5` : t("common.notRated")}
             </p>
           </div>
 
-          <div className="rounded-[1.4rem] bg-slate-50 p-4 dark:bg-slate-800/80">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
+          <div className="rounded-[0.9rem] border border-white/10 bg-[#1c1c1c] p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/48">
               {t("common.reviews")}
             </p>
-            <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
+            <p className="mt-2 text-lg font-semibold text-white">
               {formatReviewCount(hotel.reviewCount, language) || t("common.noData")}
             </p>
           </div>
 
-          <div className="rounded-[1.4rem] bg-slate-50 p-4 dark:bg-slate-800/80">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
+          <div className="rounded-[0.9rem] border border-white/10 bg-[#1c1c1c] p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/48">
               {t("common.provider")}
             </p>
-            <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
+            <p className="mt-2 text-lg font-semibold text-white">
               {hotel.provider || "Tripadvisor"}
             </p>
           </div>
@@ -71,7 +71,7 @@ export default function HotelCard({ hotel }) {
         ) : null}
 
         {hotel.summary ? (
-          <p className="text-sm leading-6 text-slate-700 dark:text-slate-300">{hotel.summary}</p>
+          <p className="text-sm leading-6 text-white/68">{hotel.summary}</p>
         ) : null}
 
         {hotel.bookingUrl ? (
@@ -79,7 +79,7 @@ export default function HotelCard({ hotel }) {
             href={hotel.bookingUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+            className="inline-flex rounded-full bg-[var(--aw-accent)] px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-[var(--aw-accent-hover)]"
           >
             {t("hotels.card.viewStay")}
           </a>

@@ -145,7 +145,7 @@ export default function RegisterPage() {
       <section className="mx-auto w-full max-w-xl">
         <form
           onSubmit={handleSubmit}
-          className="rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)] md:p-8"
+          className="rounded-[1rem] border border-white/10 bg-[#202020] p-6 text-white shadow-[0_30px_90px_-58px_rgba(0,0,0,0.92)] md:p-8"
           noValidate
         >
           <AuthField
@@ -187,7 +187,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={!authConfigured || loading || submitting || googleSubmitting}
-            className="inline-flex w-full items-center justify-center rounded-full bg-[#e64d53] px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_42px_-26px_rgba(216,63,69,0.9)] transition hover:bg-[#d83f45] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 disabled:shadow-none"
+            className="inline-flex w-full items-center justify-center rounded-full bg-[var(--aw-accent)] px-5 py-3 text-sm font-black text-slate-950 shadow-[0_18px_42px_-26px_rgba(245,184,0,0.9)] transition hover:bg-[var(--aw-accent-hover)] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300 disabled:shadow-none"
           >
             {submitting ? text.submitting : text.submit}
           </button>
@@ -196,17 +196,17 @@ export default function RegisterPage() {
             type="button"
             onClick={handleGoogleLogin}
             disabled={!authConfigured || loading || submitting || googleSubmitting}
-            className="mt-3 inline-flex w-full items-center justify-center gap-3 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
+            className="mt-3 inline-flex w-full items-center justify-center gap-3 rounded-full border border-white/12 bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
           >
             <GoogleIcon />
             {googleSubmitting ? text.googleLoading : text.google}
           </button>
 
-          <p className="mt-5 text-center text-sm font-medium text-slate-600 dark:text-slate-300">
+          <p className="mt-5 text-center text-sm font-medium text-white/68">
             {text.loginPrompt}{" "}
             <Link
               to="/login"
-              className="font-semibold text-[#d83f45] transition hover:text-[#b83238] dark:text-[#ff8c90]"
+              className="font-semibold text-[var(--aw-accent)] transition hover:text-[var(--aw-accent-hover)]"
             >
               {text.loginLink}
             </Link>
@@ -227,7 +227,7 @@ function AuthField({
 }) {
   return (
     <label className="mb-4 block">
-      <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+      <span className="text-sm font-semibold text-white/78">
         {label}
       </span>
       <input
@@ -236,7 +236,7 @@ function AuthField({
         value={value}
         onChange={onChange}
         autoComplete={autoComplete}
-        className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-500 focus:border-[#e64d53]/60 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
+        className="mt-2 w-full rounded-[0.85rem] border border-white/10 bg-[#171717] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/38 focus:border-[var(--aw-accent)]"
       />
     </label>
   );

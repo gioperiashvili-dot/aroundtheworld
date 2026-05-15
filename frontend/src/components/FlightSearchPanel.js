@@ -212,6 +212,118 @@ function hasCalendarEntries(calendar) {
   return Object.keys(calendar || {}).length > 0;
 }
 
+function formatCompactCurrencyAmount(rawValue) {
+  const amount = Number(rawValue);
+
+  if (!Number.isFinite(amount)) {
+    return "";
+  }
+
+  const roundedAmount = Math.round(amount);
+
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+  }).format(roundedAmount);
+}
+
+function getCompactCalendarPriceLabel(price) {
+  const rawAmount = Number(price?.raw);
+  const currency = String(price?.currency || "").trim().toUpperCase();
+
+  if (Number.isFinite(rawAmount)) {
+    const amountLabel = formatCompactCurrencyAmount(rawAmount);
+
+    if (currency === "GEL") {
+      return `₾${amountLabel}`;
+    }
+
+    if (currency === "USD") {
+      return `$${amountLabel}`;
+    }
+
+    if (currency === "EUR") {
+      return `€${amountLabel}`;
+    }
+
+    return currency ? `${currency} ${amountLabel}` : amountLabel;
+  }
+
+  const formatted = String(price?.formatted || "").trim();
+
+  if (!formatted) {
+    return "";
+  }
+
+  return formatted
+    .replace(/^GEL\s*/i, "₾")
+    .replace(/^USD\s*/i, "$")
+    .replace(/^EUR\s*/i, "€")
+    .replace(/^US\$\s*/i, "$");
+}
+
+function getCalendarPriceTiers(priceCalendar) {
+  const numericPrices = Object.values(priceCalendar || {})
+    .map((price) => Number(price?.raw))
+    .filter((price) => Number.isFinite(price));
+
+  if (numericPrices.length < 3) {
+    return null;
+  }
+
+  const sortedPrices = [...numericPrices].sort((a, b) => a - b);
+  const bucketSize = Math.max(1, Math.round(sortedPrices.length * 0.33));
+  const cheapMax = sortedPrices[bucketSize - 1];
+  const expensiveMin = sortedPrices[sortedPrices.length - bucketSize];
+
+  if (
+    !Number.isFinite(cheapMax) ||
+    !Number.isFinite(expensiveMin) ||
+    cheapMax === expensiveMin
+  ) {
+    return null;
+  }
+
+  return {
+    cheapMax,
+    expensiveMin,
+  };
+}
+
+function getCalendarPriceTier(price, priceTiers) {
+  const rawAmount = Number(price?.raw);
+
+  if (!priceTiers || !Number.isFinite(rawAmount)) {
+    return "medium";
+  }
+
+  if (rawAmount <= priceTiers.cheapMax) {
+    return "cheap";
+  }
+
+  if (rawAmount >= priceTiers.expensiveMin) {
+    return "expensive";
+  }
+
+  return "medium";
+}
+
+function getCalendarPriceClassName(priceTier, isSelected) {
+  if (isSelected) {
+    return "border border-slate-950/10 bg-slate-950/10 text-slate-950";
+  }
+
+  if (priceTier === "cheap") {
+    return "border border-[#9edeb8] bg-[#ddf7e8] text-[#247246]";
+  }
+
+  if (priceTier === "expensive") {
+    return "border border-[#f0b6b2] bg-[#ffe3e1] text-[#ad3c35]";
+  }
+
+  return "border border-[#efd389] bg-[#fff1c2] text-[#8a6500]";
+}
+
 function buildAutoSearchKey(snapshot) {
   return [
     snapshot.from,
@@ -783,7 +895,7 @@ export default function FlightSearchPanel({
                 />
               </FieldCard>
 
-              <FieldCard className="xl:min-w-[10rem] xl:flex-[0.78]" variant={variant}>
+              <FieldCard className="xl:min-w-[11.5rem] xl:flex-[0.82]" variant={variant}>
                 <DateField
                   label={t("flights.departureLabel")}
                   name="date"
@@ -807,7 +919,7 @@ export default function FlightSearchPanel({
               </FieldCard>
 
               {showReturnDate ? (
-                <FieldCard className="xl:min-w-[10rem] xl:flex-[0.78]" variant={variant}>
+                <FieldCard className="xl:min-w-[11.5rem] xl:flex-[0.82]" variant={variant}>
                   <DateField
                     label={t("flights.returnLabel")}
                     name="returnDate"
@@ -882,7 +994,13 @@ export default function FlightSearchPanel({
               </label>
 
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
+                <span
+                  className={`form-field-label text-xs font-semibold uppercase tracking-[0.18em] ${
+                    isBookingVariant
+                      ? "text-white/78"
+                      : "text-slate-700 dark:text-white/76"
+                  }`}
+                >
                   {t("common.popularDestinations")}
                 </span>
                 {QUICK_DESTINATIONS.map((code) => {
@@ -904,7 +1022,11 @@ export default function FlightSearchPanel({
                         }));
                         clearErrors();
                       }}
-                      className="rounded-full bg-[rgba(245,184,0,0.14)] px-3 py-2 text-sm font-semibold text-[#6f5200] transition hover:bg-[rgba(245,184,0,0.22)] dark:text-[var(--aw-accent-hover)]"
+                      className={`rounded-full bg-[rgba(245,184,0,0.14)] px-3 py-2 text-sm font-semibold transition hover:bg-[rgba(245,184,0,0.22)] ${
+                        isBookingVariant
+                          ? "text-[var(--aw-accent-hover)]"
+                          : "text-[#6f5200] dark:text-[var(--aw-accent-hover)]"
+                      }`}
                     >
                       {getLocationLabel(location, language)}
                     </button>
@@ -977,7 +1099,7 @@ function FieldCard({ children, className = "", variant = "default" }) {
 
   return (
     <div
-      className={`min-h-[4.6rem] px-4 py-3 transition ${
+      className={`min-h-[4.6rem] min-w-0 px-4 py-3 transition ${
         isBookingVariant
           ? "rounded-[0.7rem] border border-white/10 bg-[var(--aw-input)] shadow-[0_18px_42px_-34px_rgba(0,0,0,0.9)] focus-within:border-[var(--aw-accent)]"
           : "rounded-[1.35rem] border border-slate-200 bg-white shadow-[0_18px_46px_-40px_rgba(15,23,42,0.9)] focus-within:border-[var(--aw-accent)] dark:border-white/10 dark:bg-[var(--aw-panel)]"
@@ -1012,6 +1134,10 @@ function DateField({
   });
   const selectedLabel = formatSelectedDate(value, language);
   const weekdayLabels = useMemo(() => getWeekdayLabels(language), [language]);
+  const priceTiers = useMemo(
+    () => getCalendarPriceTiers(priceCalendar),
+    [priceCalendar]
+  );
 
   useEffect(() => {
     if (!isOpen) {
@@ -1040,9 +1166,14 @@ function DateField({
         setIsOpen(false);
       }
     };
+    const previousOverflow = document.body.style.overflow;
 
+    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [isOpen]);
 
   const handleSelectDate = (date) => {
@@ -1057,7 +1188,7 @@ function DateField({
 
   return (
     <div className="relative text-left">
-      <span className="block text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
+      <span className="form-field-label block text-xs font-semibold uppercase tracking-[0.18em] text-slate-600 dark:text-slate-400">
         {label}
       </span>
       <button
@@ -1074,23 +1205,35 @@ function DateField({
       </button>
 
       {isOpen ? (
-        <div className="fixed inset-x-4 top-24 z-50 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-[1.35rem] border border-slate-200 bg-[#fbfaf7] p-4 text-slate-950 shadow-[0_28px_100px_-42px_rgba(0,0,0,0.55)] md:absolute md:left-1/2 md:right-auto md:top-[calc(100%+0.75rem)] md:w-[42rem] md:max-w-[calc(100vw-2rem)] md:-translate-x-1/2 md:overflow-visible">
+        <div
+          className="fixed inset-0 z-[1000] flex items-end justify-center bg-black/55 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+          role="dialog"
+          aria-modal="true"
+        >
+          <button
+            type="button"
+            className="absolute inset-0 cursor-default"
+            aria-label={t("flights.datePicker.close")}
+            onClick={() => setIsOpen(false)}
+          />
+
+          <div className="flight-calendar-dialog relative z-10 max-h-[86vh] w-full overflow-y-auto rounded-t-[1.35rem] border border-slate-200 bg-[#fbfaf7] p-4 text-slate-950 shadow-[0_30px_120px_-42px_rgba(0,0,0,0.72)] sm:max-h-[80vh] sm:max-w-[900px] sm:rounded-[1.35rem] sm:p-5">
           <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
             <button
               type="button"
               onClick={() => setVisibleMonth((currentMonth) => addMonths(currentMonth, -1))}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-[var(--aw-accent)] hover:text-slate-950"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-[var(--aw-accent)] hover:bg-[rgba(245,184,0,0.08)] hover:text-slate-950"
               aria-label={t("flights.datePicker.previousMonth")}
             >
               <ChevronLeftIcon />
             </button>
-            <p className="text-sm font-black uppercase tracking-[0.18em] text-slate-600">
+            <p className="calendar-heading text-center text-sm font-bold text-slate-700 sm:text-base">
               {t("flights.datePicker.chooseDate")}
             </p>
             <button
               type="button"
               onClick={() => setVisibleMonth((currentMonth) => addMonths(currentMonth, 1))}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-[var(--aw-accent)] hover:text-slate-950"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-[var(--aw-accent)] hover:bg-[rgba(245,184,0,0.08)] hover:text-slate-950"
               aria-label={t("flights.datePicker.nextMonth")}
             >
               <ChevronRightIcon />
@@ -1098,18 +1241,24 @@ function DateField({
           </div>
 
           <div className="mt-4 grid gap-5 md:grid-cols-2">
-            {[visibleMonth, addMonths(visibleMonth, 1)].map((monthDate) => (
-              <CalendarMonth
-                key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
-                monthDate={monthDate}
-                selectedValue={value}
-                weekdayLabels={weekdayLabels}
-                language={language}
-                priceCalendar={priceCalendar}
-                onSelect={handleSelectDate}
-              />
+            {[visibleMonth, addMonths(visibleMonth, 1)].map((monthDate, index) => (
+              <div key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`} className={index === 1 ? "hidden md:block" : ""}>
+                <CalendarMonth
+                  monthDate={monthDate}
+                  selectedValue={value}
+                  weekdayLabels={weekdayLabels}
+                  language={language}
+                  priceCalendar={priceCalendar}
+                  priceTiers={priceTiers}
+                  onSelect={handleSelectDate}
+                />
+              </div>
             ))}
           </div>
+
+          {priceTiers ? (
+            <CalendarPriceLegend t={t} />
+          ) : null}
 
           {priceCalendarLoading || priceCalendarError || priceCalendarCurrencyFallback ? (
             <div className="mt-4 rounded-[0.85rem] bg-white px-3 py-2 text-center text-xs font-semibold text-slate-500">
@@ -1136,6 +1285,7 @@ function DateField({
               {t("flights.datePicker.noReturnTicket")}
             </button>
           ) : null}
+          </div>
         </div>
       ) : null}
     </div>
@@ -1148,6 +1298,7 @@ function CalendarMonth({
   weekdayLabels,
   language,
   priceCalendar = {},
+  priceTiers,
   onSelect,
 }) {
   const monthLabel = monthDate.toLocaleDateString(getCalendarLocale(language), {
@@ -1158,14 +1309,14 @@ function CalendarMonth({
 
   return (
     <section>
-      <h3 className="text-center [font-family:var(--font-display)] text-lg font-semibold capitalize text-slate-950">
+      <h3 className="calendar-month-title text-center [font-family:var(--font-display)] text-lg font-semibold capitalize text-slate-950">
         {monthLabel}
       </h3>
       <div className="mt-4 grid grid-cols-7 gap-1 text-center">
         {weekdayLabels.map((weekday) => (
           <span
             key={weekday}
-            className="py-1 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500"
+            className="calendar-weekday py-1 text-[11px] font-bold text-slate-500"
           >
             {weekday}
           </span>
@@ -1179,28 +1330,31 @@ function CalendarMonth({
           const isSelected = selectedValue === dateValue;
           const isToday = todayValue === dateValue;
           const dayPrice = priceCalendar?.[dateValue];
+          const priceLabel = getCompactCalendarPriceLabel(dayPrice);
+          const priceTier = getCalendarPriceTier(dayPrice, priceTiers);
 
           return (
             <button
               key={dateValue}
               type="button"
               onClick={() => onSelect(date)}
-              className={`flex min-h-14 flex-col items-center justify-center rounded-[0.8rem] border px-1 py-2 text-sm font-bold transition ${
+              className={`flex min-h-[3.75rem] flex-col items-center justify-center rounded-[0.8rem] border px-1.5 py-2 text-sm font-bold transition ${
                 isSelected
                   ? "border-[var(--aw-accent)] bg-[var(--aw-accent)] text-slate-950 shadow-[0_14px_30px_-20px_rgba(245,184,0,0.95)]"
                   : isToday
-                    ? "border-[var(--aw-accent)] bg-white text-slate-950"
-                    : "border-transparent bg-transparent text-slate-700 hover:border-slate-200 hover:bg-white hover:text-slate-950"
+                    ? "border-[var(--aw-accent)] bg-[rgba(245,184,0,0.08)] text-slate-950"
+                    : "border-transparent bg-transparent text-slate-700 hover:border-[rgba(245,184,0,0.42)] hover:bg-[rgba(245,184,0,0.08)] hover:text-slate-950"
               }`}
             >
               <span>{date.getDate()}</span>
-              {dayPrice?.formatted ? (
+              {priceLabel ? (
                 <span
-                  className={`mt-1 max-w-full truncate text-[10px] font-black leading-none ${
-                    isSelected ? "text-slate-900" : "text-[#9a7300]"
-                  }`}
+                  className={`mt-1 max-w-full rounded-full px-1.5 py-0.5 text-[10px] font-black leading-none tabular-nums sm:text-[11px] ${getCalendarPriceClassName(
+                    priceTier,
+                    isSelected
+                  )}`}
                 >
-                  {dayPrice.formatted}
+                  {priceLabel}
                 </span>
               ) : null}
             </button>
@@ -1211,6 +1365,30 @@ function CalendarMonth({
   );
 }
 
+function CalendarPriceLegend({ t }) {
+  const items = [
+    { key: "low", label: t("flights.datePicker.lowPrice"), tier: "cheap" },
+    { key: "medium", label: t("flights.datePicker.mediumPrice"), tier: "medium" },
+    { key: "high", label: t("flights.datePicker.highPrice"), tier: "expensive" },
+  ];
+
+  return (
+    <div className="mt-4 flex flex-wrap justify-center gap-2">
+      {items.map((item) => (
+        <span
+          key={item.key}
+          className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold ${getCalendarPriceClassName(
+            item.tier,
+            false
+          )}`}
+        >
+          {item.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function CabinSelect({ value, onChange, t, className = "", variant = "default" }) {
   const isBookingVariant = variant === "booking";
 
@@ -1218,7 +1396,7 @@ function CabinSelect({ value, onChange, t, className = "", variant = "default" }
     <div
       className={`min-h-[4.6rem] px-4 py-3 text-left ${
         isBookingVariant
-          ? "rounded-[0.7rem] border border-white/10 bg-slate-100 shadow-[0_18px_42px_-34px_rgba(0,0,0,0.9)]"
+          ? "rounded-[0.7rem] border border-white/10 bg-[var(--aw-input)] shadow-[0_18px_42px_-34px_rgba(0,0,0,0.9)] focus-within:border-[var(--aw-accent)]"
           : "rounded-[1.35rem] border border-slate-200 bg-white shadow-[0_18px_46px_-40px_rgba(15,23,42,0.9)] dark:border-slate-800 dark:bg-slate-900/90"
       } ${className}`}
     >
@@ -1270,7 +1448,7 @@ function TravelersField({
             : "min-h-[4.6rem] w-full rounded-[1.35rem] border border-slate-200 bg-white px-4 py-3 text-left shadow-[0_18px_46px_-40px_rgba(15,23,42,0.9)] transition hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-slate-700"
         }
       >
-        <span className="block text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
+        <span className="form-field-label block text-xs font-semibold uppercase tracking-[0.18em] text-slate-600 dark:text-slate-400">
           {t("flights.travelersLabel")}
         </span>
         <span className="mt-2 flex min-w-0 items-center justify-between gap-3 text-sm font-semibold text-slate-950 dark:text-white">

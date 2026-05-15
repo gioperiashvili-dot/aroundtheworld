@@ -1,10 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFirebaseAuth } from "../auth/FirebaseAuthContext";
 import { useLanguage } from "../i18n/LanguageContext";
+import giorgiAvatar from "../assets/dpp/G.webp";
+import vitoAvatar from "../assets/dpp/V.webp";
+import zuraAvatar from "../assets/dpp/Z.webp";
 import { fetchReviews, submitReview } from "../lib/api";
 import { formatDateTimeLabel, getFriendlyApiError } from "../lib/formatters";
 
 const DEFAULT_RATING = 5;
+const LOCAL_REVIEW_AVATARS = {
+  "zura karsanauli": zuraAvatar,
+  "giorgi konwliashvili": giorgiAvatar,
+  "vito kosiashvili": vitoAvatar,
+};
 
 function getInitials(name) {
   return String(name || "G")
@@ -14,6 +22,10 @@ function getInitials(name) {
     .map((part) => part[0])
     .join("")
     .toUpperCase();
+}
+
+function getLocalReviewAvatar(name) {
+  return LOCAL_REVIEW_AVATARS[String(name || "").trim().toLowerCase()] || "";
 }
 
 export default function ReviewsSection({
@@ -146,17 +158,17 @@ export default function ReviewsSection({
 
   return (
     <section className="space-y-6">
-      <div className="rounded-[2rem] border border-white/70 bg-white p-6 shadow-[0_30px_90px_-58px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-[#071426] dark:shadow-[0_30px_90px_-58px_rgba(2,6,23,0.9)] lg:p-8">
+      <div className="rounded-[1rem] border border-white/10 bg-[#202020] p-6 text-white shadow-[0_30px_90px_-58px_rgba(0,0,0,0.92)] lg:p-8">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
           <div className="space-y-5">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#d83f45] dark:text-[#ff8c90]">
+              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--aw-accent)]">
                 {t("reviews.sectionLabel")}
               </p>
-              <h2 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
+              <h2 className="[font-family:var(--font-display)] mt-2 text-3xl font-semibold text-white">
                 {title || t("reviews.heading")}
               </h2>
-              <p className="mt-3 text-sm leading-7 text-slate-700 dark:text-slate-300">
+              <p className="mt-3 text-sm leading-7 text-white/68">
                 {description || t("reviews.description")}
               </p>
             </div>
@@ -166,7 +178,7 @@ export default function ReviewsSection({
                 {[0, 1].map((item) => (
                   <div
                     key={item}
-                    className="h-32 animate-pulse rounded-[1.4rem] bg-slate-100 dark:bg-slate-800"
+                    className="h-32 animate-pulse rounded-[1rem] bg-white/8"
                   />
                 ))}
               </div>
@@ -177,11 +189,11 @@ export default function ReviewsSection({
                 ))}
               </div>
             ) : (
-              <div className="rounded-[1.4rem] bg-slate-50 p-5 dark:bg-slate-800/70">
-                <h3 className="font-semibold text-slate-950 dark:text-white">
+              <div className="rounded-[1rem] border border-white/10 bg-[#171717] p-5">
+                <h3 className="font-semibold text-white">
                   {t("reviews.emptyTitle")}
                 </h3>
-                <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">
+                <p className="mt-2 text-sm leading-7 text-white/66">
                   {t("reviews.emptyMessage")}
                 </p>
               </div>
@@ -190,14 +202,14 @@ export default function ReviewsSection({
 
           <form
             onSubmit={handleSubmit}
-            className="rounded-[1.5rem] border border-slate-100 bg-slate-50 p-5 dark:border-white/10 dark:bg-slate-950/55"
+            className="rounded-[1rem] border border-white/10 bg-[#171717] p-5"
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h3 className="[font-family:var(--font-display)] text-2xl font-semibold text-slate-950 dark:text-white">
+                <h3 className="[font-family:var(--font-display)] text-2xl font-semibold text-white">
                   {t("reviews.formHeading")}
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                <p className="mt-2 text-sm leading-6 text-white/66">
                   {reviewUser
                     ? `${t("reviews.signedInAs")} ${reviewUser.displayName || reviewUser.email || ""}`
                     : t("reviews.signInToReview")}
@@ -212,7 +224,7 @@ export default function ReviewsSection({
                     setSuccess("");
                     setError("");
                   }}
-                  className="inline-flex justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                  className="inline-flex justify-center rounded-full border border-white/10 bg-white/8 px-4 py-2 text-sm font-semibold text-white/72 transition hover:border-[var(--aw-accent)] hover:text-white"
                 >
                   {t("reviews.signOut")}
                 </button>
@@ -225,7 +237,7 @@ export default function ReviewsSection({
                   type="button"
                   onClick={handleSignIn}
                   disabled={!authConfigured || authLoading || signingIn}
-                  className="mt-5 inline-flex w-full items-center justify-center gap-3 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
+                  className="mt-5 inline-flex w-full items-center justify-center gap-3 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
                 >
                   <GoogleIcon />
                   {signingIn || authLoading
@@ -241,7 +253,7 @@ export default function ReviewsSection({
             ) : (
               <div className="mt-5 space-y-4">
                 <div>
-                  <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  <span className="text-sm font-semibold text-white/78">
                     {t("reviews.ratingLabel")}
                   </span>
                   <div className="mt-2 flex gap-2" role="radiogroup">
@@ -253,7 +265,7 @@ export default function ReviewsSection({
                         className={`flex h-11 w-11 items-center justify-center rounded-full transition ${
                           value <= rating
                             ? "bg-amber-400 text-slate-950"
-                            : "bg-white text-slate-400 hover:text-amber-500 dark:bg-slate-800 dark:text-slate-500"
+                            : "border border-white/10 bg-white/8 text-white/36 hover:text-[var(--aw-accent)]"
                         }`}
                         role="radio"
                         aria-checked={value === rating}
@@ -266,7 +278,7 @@ export default function ReviewsSection({
                 </div>
 
                 <label className="block">
-                  <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  <span className="text-sm font-semibold text-white/78">
                     {t("reviews.commentLabel")}
                   </span>
                   <textarea
@@ -280,14 +292,14 @@ export default function ReviewsSection({
                     rows={5}
                     maxLength={1500}
                     placeholder={t("reviews.commentPlaceholder")}
-                    className="mt-2 w-full rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-500 focus:border-[#e64d53]/60 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
+                    className="mt-2 w-full rounded-[0.85rem] border border-white/10 bg-[#202020] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/38 focus:border-[var(--aw-accent)]"
                   />
                 </label>
 
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="inline-flex w-full justify-center rounded-full bg-[#e64d53] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#d83f45] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700"
+                  className="inline-flex w-full justify-center rounded-full bg-[var(--aw-accent)] px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-[var(--aw-accent-hover)] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
                 >
                   {submitting ? t("reviews.submitting") : t("reviews.submit")}
                 </button>
@@ -314,25 +326,13 @@ export default function ReviewsSection({
 
 function ReviewCard({ review, language }) {
   return (
-    <article className="rounded-[1.4rem] border border-slate-100 bg-white p-4 dark:border-white/10 dark:bg-slate-950/55">
+    <article className="rounded-[1rem] border border-white/10 bg-[#171717] p-4">
       <div className="flex items-start gap-3">
-        {review.photoURL ? (
-          <img
-            src={review.photoURL}
-            alt=""
-            className="h-11 w-11 rounded-full object-cover"
-            loading="lazy"
-            referrerPolicy="no-referrer"
-          />
-        ) : (
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold text-white dark:bg-white dark:text-slate-950">
-            {getInitials(review.name)}
-          </div>
-        )}
+        <ReviewAvatar review={review} className="h-11 w-11" />
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <h3 className="font-semibold text-slate-950 dark:text-white">
+            <h3 className="font-semibold text-white">
               {review.name}
             </h3>
             <div className="flex text-amber-400" aria-hidden="true">
@@ -341,17 +341,43 @@ function ReviewCard({ review, language }) {
               ))}
             </div>
           </div>
-          <p className="mt-2 text-sm leading-7 text-slate-700 dark:text-slate-300">
+          <p className="mt-2 text-sm leading-7 text-white/68">
             {review.comment}
           </p>
           {review.createdAt ? (
-            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/46">
               {formatDateTimeLabel(review.createdAt, language)}
             </p>
           ) : null}
         </div>
       </div>
     </article>
+  );
+}
+
+function ReviewAvatar({ review, className }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const avatarSrc = getLocalReviewAvatar(review.name) || review.photoURL;
+
+  if (avatarSrc && !imageFailed) {
+    return (
+      <img
+        src={avatarSrc}
+        alt=""
+        className={`${className} shrink-0 rounded-full object-cover`}
+        loading="lazy"
+        referrerPolicy={avatarSrc.startsWith("http") ? "no-referrer" : undefined}
+        onError={() => setImageFailed(true)}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`${className} flex shrink-0 items-center justify-center rounded-full bg-[var(--aw-accent)] text-sm font-black text-slate-950`}
+    >
+      {getInitials(review.name)}
+    </div>
   );
 }
 

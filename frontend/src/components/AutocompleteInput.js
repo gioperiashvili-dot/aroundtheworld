@@ -41,7 +41,7 @@ export default function AutocompleteInput({
   return (
     <label className={`relative block text-left ${className}`}>
       {label ? (
-        <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">
+        <span className="form-field-label text-xs font-semibold uppercase tracking-[0.18em] text-slate-600 dark:text-slate-400">
           {label}
         </span>
       ) : null}
