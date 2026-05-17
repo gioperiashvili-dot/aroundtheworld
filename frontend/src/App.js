@@ -1,35 +1,56 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useFirebaseAuth } from "./auth/FirebaseAuthContext";
+import CookieConsentBanner from "./components/CookieConsentBanner";
+import PageLoader from "./components/PageLoader";
+import {
+  getPageLoaderMinimumDuration,
+  waitForPageLoaderCycle,
+} from "./lib/pageLoaderTiming";
 import HomePage from "./pages/HomePage";
 
-const AdminPage = lazy(() => import("./pages/AdminPage"));
-const AboutPage = lazy(() => import("./pages/AboutPage"));
-const BlogDetailPage = lazy(() => import("./pages/BlogDetailPage"));
-const BlogPage = lazy(() => import("./pages/BlogPage"));
-const ContactPage = lazy(() => import("./pages/ContactPage"));
-const FlightsPage = lazy(() => import("./pages/FlightsPage"));
-const HotelsPage = lazy(() => import("./pages/HotelsPage"));
-const LoginPage = lazy(() => import("./pages/LoginPage"));
-const ProfilePage = lazy(() => import("./pages/ProfilePage"));
-const RegisterPage = lazy(() => import("./pages/RegisterPage"));
-const RestaurantsPage = lazy(() => import("./pages/RestaurantsPage"));
-const TourDetailPage = lazy(() => import("./pages/TourDetailPage"));
-const ToursPage = lazy(() => import("./pages/ToursPage"));
-const VisaServicesPage = lazy(() => import("./pages/VisaServicesPage"));
+function lazyWithMinimumLoader(importPage) {
+  return lazy(async () => {
+    const startedAt = Date.now();
+    const pageModule = await importPage();
+    await waitForPageLoaderCycle(startedAt);
+    return pageModule;
+  });
+}
+
+const AdminPage = lazyWithMinimumLoader(() => import("./pages/AdminPage"));
+const AboutPage = lazyWithMinimumLoader(() => import("./pages/AboutPage"));
+const BlogDetailPage = lazyWithMinimumLoader(() => import("./pages/BlogDetailPage"));
+const BlogPage = lazyWithMinimumLoader(() => import("./pages/BlogPage"));
+const ContactPage = lazyWithMinimumLoader(() => import("./pages/ContactPage"));
+const FlightsPage = lazyWithMinimumLoader(() => import("./pages/FlightsPage"));
+const HotelsPage = lazyWithMinimumLoader(() => import("./pages/HotelsPage"));
+const LoginPage = lazyWithMinimumLoader(() => import("./pages/LoginPage"));
+const ProfilePage = lazyWithMinimumLoader(() => import("./pages/ProfilePage"));
+const RegisterPage = lazyWithMinimumLoader(() => import("./pages/RegisterPage"));
+const RestaurantsPage = lazyWithMinimumLoader(() => import("./pages/RestaurantsPage"));
+const TourDetailPage = lazyWithMinimumLoader(() => import("./pages/TourDetailPage"));
+const ToursPage = lazyWithMinimumLoader(() => import("./pages/ToursPage"));
+const VisaServicesPage = lazyWithMinimumLoader(() => import("./pages/VisaServicesPage"));
 
 function RouteLoadingFallback() {
-  return (
-    <div className="min-h-dvh bg-[#0f1111] px-4 py-6 text-[#f7f7f7]">
-      <div className="mx-auto flex min-h-[12rem] w-full max-w-[1500px] items-center justify-center">
-        <div
-          className="h-10 w-10 animate-spin rounded-full border-2 border-[#f7f7f7]/15 border-t-[#f5b800] shadow-[0_0_28px_rgba(245,184,0,0.18)]"
-          role="status"
-          aria-label="Loading page"
-        />
-      </div>
-    </div>
-  );
+  return <PageLoader />;
+}
+
+function useInitialLoaderCycle() {
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setIsVisible(false);
+    }, getPageLoaderMinimumDuration());
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
+  return isVisible;
 }
 
 function ProtectedRoute({ children }) {
@@ -48,33 +69,43 @@ function ProtectedRoute({ children }) {
 }
 
 export default function App() {
+  const location = useLocation();
+  const showInitialLoader = useInitialLoaderCycle();
+  const showCookieConsent = !location.pathname
+    .toLowerCase()
+    .startsWith("/adminpanel");
+
   return (
-    <Suspense fallback={<RouteLoadingFallback />}>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/flights" element={<FlightsPage />} />
-        <Route path="/hotels" element={<HotelsPage />} />
-        <Route path="/restaurants" element={<RestaurantsPage />} />
-        <Route path="/visa-services" element={<VisaServicesPage />} />
-        <Route path="/blog" element={<BlogPage />} />
-        <Route path="/blog/:slug" element={<BlogDetailPage />} />
-        <Route path="/tours" element={<ToursPage />} />
-        <Route path="/tours/:idOrSlug" element={<TourDetailPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/AdminPanel" element={<AdminPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Suspense>
+    <>
+      <Suspense fallback={showInitialLoader ? null : <RouteLoadingFallback />}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/flights" element={<FlightsPage />} />
+          <Route path="/hotels" element={<HotelsPage />} />
+          <Route path="/restaurants" element={<RestaurantsPage />} />
+          <Route path="/visa-services" element={<VisaServicesPage />} />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:slug" element={<BlogDetailPage />} />
+          <Route path="/tours" element={<ToursPage />} />
+          <Route path="/tours/:idOrSlug" element={<TourDetailPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/AdminPanel" element={<AdminPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+      {showInitialLoader ? <PageLoader /> : null}
+      {showCookieConsent ? <CookieConsentBanner /> : null}
+    </>
   );
 }

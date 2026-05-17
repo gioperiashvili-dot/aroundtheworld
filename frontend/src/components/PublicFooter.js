@@ -1,8 +1,11 @@
 import { Link } from "react-router-dom";
 import { useLanguage } from "../i18n/LanguageContext";
+import { openCookieSettings } from "../lib/cookieConsent";
 import { contactDetails, getEmailHref, getPhoneHref, getWhatsAppHref } from "../lib/contact";
 
 const PRIVACY_POLICY_HREF = "/Around_The_World_Privacy_Policy.pdf";
+const TERMS_CONDITIONS_HREF = "/Around_The_World_Terms_and_Conditions.pdf";
+const COOKIE_POLICY_HREF = "/Around_The_World_Cookie_Policy.pdf";
 const FOOTER_YEAR = 2026;
 const FOOTER_ADDRESS = "თბილისი: სამამულო ომის გმირების ქუჩა #97";
 const SECONDARY_PHONE = "+995 568 94 22 81";
@@ -28,9 +31,23 @@ export default function PublicFooter() {
     { label: isEnglish ? "About us" : "ჩვენს შესახებ", href: "/about" },
     { label: isEnglish ? "Contact" : "კონტაქტი", href: "/contact" },
     {
+      label: isEnglish ? "Terms & Conditions" : "წესები და პირობები",
+      href: TERMS_CONDITIONS_HREF,
+      external: true,
+    },
+    {
       label: isEnglish ? "Privacy Policy" : "კონფიდენციალურობის პოლიტიკა",
       href: PRIVACY_POLICY_HREF,
       external: true,
+    },
+    {
+      label: isEnglish ? "Cookie Policy" : "ქუქიების პოლიტიკა",
+      href: COOKIE_POLICY_HREF,
+      external: true,
+    },
+    {
+      label: isEnglish ? "Cookie Settings" : "ქუქიების მართვა",
+      action: "cookie-settings",
     },
   ];
   const socialLinks = [
@@ -80,7 +97,16 @@ export default function PublicFooter() {
 
           <FooterColumn title={isEnglish ? "Other Pages" : "სხვა გვერდები"}>
             {legalLinks.map((link) =>
-              link.external ? (
+              link.action === "cookie-settings" ? (
+                <button
+                  key={link.label}
+                  type="button"
+                  onClick={openCookieSettings}
+                  className={`${FOOTER_LINK_CLASS} text-left`}
+                >
+                  {link.label}
+                </button>
+              ) : link.external ? (
                 <a
                   key={link.href}
                   href={link.href}

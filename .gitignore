@@ -29,6 +29,9 @@ uploads/bookings/
 **/uploads/bookings/
 **/bookings/*/files/
 **/*.pdf
+!frontend/public/Around_The_World_Privacy_Policy.pdf
+!frontend/public/Around_The_World_Terms_and_Conditions.pdf
+!frontend/public/Around_The_World_Cookie_Policy.pdf
 
 # dependencies/build/cache
 node_modules/

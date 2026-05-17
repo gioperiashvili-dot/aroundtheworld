@@ -1,9 +1,9 @@
+import { lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import BookingSearchTabs from "../components/BookingSearchTabs";
 import Navbar from "../components/Navbar";
 import PartnersStrip from "../components/PartnersStrip";
 import PublicFooter from "../components/PublicFooter";
-import ReviewsSection from "../components/ReviewsSection";
 import SEO, { PAGE_SEO } from "../components/SEO";
 import { useLanguage } from "../i18n/LanguageContext";
 import toursCardImage from "../assets/background/background-1.webp";
@@ -15,6 +15,8 @@ import {
   buildOrganizationStructuredData,
   buildWebsiteStructuredData,
 } from "../lib/structuredData";
+
+const ReviewsSection = lazy(() => import("../components/ReviewsSection"));
 
 export default function HomePage({ seoPage = "home" }) {
   const navigate = useNavigate();
@@ -113,7 +115,9 @@ export default function HomePage({ seoPage = "home" }) {
         </section>
 
         <div className="mt-8">
-          <ReviewsSection relatedType="site" />
+          <Suspense fallback={null}>
+            <ReviewsSection relatedType="site" />
+          </Suspense>
         </div>
       </main>
 

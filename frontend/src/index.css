@@ -16,6 +16,7 @@
   --aw-accent-hover: #ffd447;
   --aw-border: rgba(255, 255, 255, 0.12);
   --aw-shadow: 0 30px 90px -58px rgba(0, 0, 0, 0.95);
+  --page-loader-cycle: 1550ms;
   --text-primary: var(--aw-text);
   --text-muted: var(--aw-muted);
   --surface-page: var(--aw-bg);
@@ -56,6 +57,187 @@ body {
 
 #root {
   min-height: 100vh;
+}
+
+.page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(245, 184, 0, 0.11), transparent 28rem),
+    linear-gradient(135deg, #0f1111 0%, #111111 48%, #171717 100%);
+  color: var(--aw-text);
+}
+
+.page-loader__panel {
+  display: grid;
+  width: min(86vw, 26rem);
+  gap: 1rem;
+  place-items: center;
+  text-align: center;
+}
+
+.page-loader__flightpath {
+  --page-loader-track: min(72vw, 20rem);
+  --page-loader-travel: calc(var(--page-loader-track) + 4.5rem);
+  --page-loader-midpoint: min(39vw, 10.8rem);
+  position: relative;
+  width: var(--page-loader-track);
+  height: 3.5rem;
+  overflow: hidden;
+  border-radius: 999px;
+}
+
+.page-loader__trail,
+.page-loader__plane {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  will-change: transform, opacity;
+}
+
+.page-loader__trail {
+  width: 9rem;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(245, 184, 0, 0), rgba(245, 184, 0, 0.72));
+  box-shadow: 0 0 18px rgba(245, 184, 0, 0.28);
+  transform: translate3d(-10rem, -50%, 0);
+  animation: pageLoaderTrail var(--page-loader-cycle) cubic-bezier(0.45, 0, 0.2, 1)
+    infinite;
+}
+
+.page-loader__plane {
+  width: 3rem;
+  color: var(--aw-accent);
+  filter: drop-shadow(0 0 16px rgba(245, 184, 0, 0.34));
+  transform: translate3d(-4rem, -50%, 0);
+  animation: pageLoaderFlight var(--page-loader-cycle) cubic-bezier(0.45, 0, 0.2, 1)
+    infinite;
+}
+
+.page-loader__plane svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.page-loader__brand {
+  position: relative;
+  margin: 0;
+  min-height: 2.25rem;
+  color: rgba(247, 247, 247, 0.96);
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 6vw, 2.05rem);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.page-loader__brand-text {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(0 100% 0 0);
+  animation: pageLoaderType var(--page-loader-cycle) steps(11, end) infinite;
+}
+
+.page-loader__brand::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 0.3rem;
+  transform: translateY(0.18em);
+  background: var(--aw-accent);
+  box-shadow: 0 0 14px rgba(245, 184, 0, 0.36);
+  animation: pageLoaderCursor 760ms steps(1, end) infinite;
+}
+
+@keyframes pageLoaderFlight {
+  0% {
+    opacity: 0;
+    transform: translate3d(-4rem, -50%, 0) rotate(-3deg) scale(0.94);
+  }
+
+  12%,
+  74% {
+    opacity: 1;
+  }
+
+  52% {
+    transform: translate3d(var(--page-loader-midpoint), -58%, 0) rotate(2deg) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--page-loader-travel), -50%, 0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes pageLoaderTrail {
+  0% {
+    opacity: 0;
+    transform: translate3d(-10rem, -50%, 0);
+  }
+
+  18%,
+  68% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(var(--page-loader-travel) - 7.2rem), -50%, 0);
+  }
+}
+
+@keyframes pageLoaderType {
+  0%,
+  12% {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  72%,
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes pageLoaderCursor {
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0.18;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-loader__trail,
+  .page-loader__plane,
+  .page-loader__brand-text,
+  .page-loader__brand::after {
+    animation: none;
+  }
+
+  .page-loader__trail {
+    display: none;
+  }
+
+  .page-loader__plane {
+    opacity: 1;
+    transform: translate3d(min(34vw, 9rem), -50%, 0);
+  }
+
+  .page-loader__brand-text {
+    clip-path: inset(0 0 0 0);
+  }
 }
 
 .homepage-feature-card {
