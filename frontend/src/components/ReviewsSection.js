@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFirebaseAuth } from "../auth/FirebaseAuthContext";
 import { useLanguage } from "../i18n/LanguageContext";
-import giorgiAvatar from "../assets/dpp/G.webp";
-import vitoAvatar from "../assets/dpp/V.webp";
-import zuraAvatar from "../assets/dpp/Z.webp";
+import giorgiAvatar from "../assets/dpp/G-96.webp";
+import vitoAvatar from "../assets/dpp/V-96.webp";
+import zuraAvatar from "../assets/dpp/Z-96.webp";
 import { fetchReviews, submitReview } from "../lib/api";
 import { formatDateTimeLabel, getFriendlyApiError } from "../lib/formatters";
 

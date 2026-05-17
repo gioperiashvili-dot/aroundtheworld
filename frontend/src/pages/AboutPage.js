@@ -3,8 +3,8 @@ import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
 import backgroundFour from "../assets/background/background-4-page.webp";
 import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE_192.webp";
-import skyscannerLogo from "../assets/partners/skyscanner.png";
-import tripadvisorLogo from "../assets/partners/tripadvisor-300.webp";
+import skyscannerLogo from "../assets/partners/skyscanner-320.webp";
+import tripadvisorLogo from "../assets/partners/tripadvisor-220.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 
 const ABOUT_CONTENT = {
@@ -269,8 +269,8 @@ const PARTNER_LOGOS = [
     key: "tripadvisor",
     name: "TripAdvisor",
     logo: tripadvisorLogo,
-    width: 300,
-    height: 169,
+    width: 220,
+    height: 124,
     labelKey: "hotelsRestaurants",
   },
 ];

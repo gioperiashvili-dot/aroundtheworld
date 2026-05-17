@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useFirebaseAuth } from "../auth/FirebaseAuthContext";
 import PublicPageShell from "../components/PublicPageShell";
@@ -60,7 +60,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { language } = useLanguage();
-  const { authConfigured, currentUser, googleLogin, loading, login } =
+  const { authConfigured, currentUser, ensureAuthReady, googleLogin, loading, login } =
     useFirebaseAuth();
   const text = LOGIN_TEXT[language] || LOGIN_TEXT.ka;
   const redirectPath = getRedirectPath(location);
@@ -71,6 +71,10 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    void ensureAuthReady().catch(() => {});
+  }, [ensureAuthReady]);
 
   if (!loading && currentUser) {
     return <Navigate to={redirectPath} replace />;

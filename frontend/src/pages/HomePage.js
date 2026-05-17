@@ -94,8 +94,8 @@ export default function HomePage({ seoPage = "home" }) {
               <img
                 src={item.image}
                 alt=""
-                width="800"
-                height="533"
+                width="720"
+                height="480"
                 loading="lazy"
                 decoding="async"
                 className="absolute inset-0 h-full w-full object-cover opacity-72 transition duration-500 group-hover:scale-105 group-hover:opacity-88"

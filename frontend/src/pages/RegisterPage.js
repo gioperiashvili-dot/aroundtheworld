@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useFirebaseAuth } from "../auth/FirebaseAuthContext";
 import PublicPageShell from "../components/PublicPageShell";
@@ -51,7 +51,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function RegisterPage() {
   const navigate = useNavigate();
   const { language } = useLanguage();
-  const { authConfigured, currentUser, googleLogin, loading, register } =
+  const { authConfigured, currentUser, ensureAuthReady, googleLogin, loading, register } =
     useFirebaseAuth();
   const text = REGISTER_TEXT[language] || REGISTER_TEXT.ka;
   const [form, setForm] = useState({
@@ -62,6 +62,10 @@ export default function RegisterPage() {
   const [submitting, setSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    void ensureAuthReady().catch(() => {});
+  }, [ensureAuthReady]);
 
   if (!loading && currentUser) {
     return <Navigate to="/profile" replace />;

@@ -304,12 +304,6 @@ html.dark .homepage-feature-card:hover .homepage-feature-card__description {
   color: rgba(255, 255, 255, 0.9);
 }
 
-.home-hero-slide {
-  object-position: center center;
-  transform: translateZ(0);
-  will-change: opacity;
-}
-
 button,
 input,
 textarea {

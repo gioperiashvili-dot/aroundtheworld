@@ -1,8 +1,8 @@
 import { useLanguage } from "../i18n/LanguageContext";
-import gpiHoldingLogo from "../assets/partners/GPIHOLDING.png";
+import gpiHoldingLogo from "../assets/partners/GPIHOLDING-240.webp";
 import imediLLogo from "../assets/partners/imediL.png";
-import skyscannerLogo from "../assets/partners/skyscanner.png";
-import tripadvisorLogo from "../assets/partners/tripadvisor-300.webp";
+import skyscannerLogo from "../assets/partners/skyscanner-320.webp";
+import tripadvisorLogo from "../assets/partners/tripadvisor-220.webp";
 
 const GROUPS = [
   {
@@ -12,7 +12,7 @@ const GROUPS = [
     },
     logos: [
       { name: "Skyscanner", src: skyscannerLogo, width: 320, height: 97 },
-      { name: "TripAdvisor", src: tripadvisorLogo, width: 300, height: 169 },
+      { name: "TripAdvisor", src: tripadvisorLogo, width: 220, height: 124 },
     ],
   },
   {
@@ -21,7 +21,7 @@ const GROUPS = [
       en: "Partner Insurance",
     },
     logos: [
-      { name: "GPI Holding", src: gpiHoldingLogo, width: 842, height: 595 },
+      { name: "GPI Holding", src: gpiHoldingLogo, width: 240, height: 170 },
       { name: "Imedi L", src: imediLLogo, width: 275, height: 183 },
     ],
   },

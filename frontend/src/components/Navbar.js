@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useFirebaseAuth } from "../auth/FirebaseAuthContext";
-import TourSearchModal from "./TourSearchModal";
-import logoMain from "../assets/AroundTheWorld_160.webp";
+import logoMain from "../assets/AroundTheWorld_128.png";
 import { useLanguage } from "../i18n/LanguageContext";
+
+const TourSearchModal = lazy(() => import("./TourSearchModal"));
 
 const LANGUAGE_OPTIONS = [
   {
@@ -166,7 +167,11 @@ export default function Navbar({ variant = "page" }) {
         </div>
       ) : null}
 
-      <TourSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      {isSearchOpen ? (
+        <Suspense fallback={null}>
+          <TourSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+        </Suspense>
+      ) : null}
     </nav>
   );
 }
@@ -182,8 +187,8 @@ function BrandLink({ compact = false, navSubtitle }) {
         <img
           src={logoMain}
           alt="Around The World"
-          width="160"
-          height="160"
+          width="128"
+          height="128"
           decoding="async"
           className={`w-auto object-contain ${compact ? "h-12 sm:h-14" : "h-14"}`}
         />
