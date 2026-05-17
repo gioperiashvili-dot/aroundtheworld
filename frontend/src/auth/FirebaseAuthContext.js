@@ -9,8 +9,8 @@ import {
 } from "react";
 
 const FirebaseAuthContext = createContext(null);
-const AUTH_DEFER_MS = 2800;
-const AUTH_IDLE_TIMEOUT_MS = 2200;
+const AUTH_DEFER_MS = 6000;
+const AUTH_IDLE_TIMEOUT_MS = 3500;
 let firebaseAuthSdkPromise = null;
 
 function hasFirebaseEnvConfig() {
@@ -80,7 +80,7 @@ export function FirebaseAuthProvider({ children }) {
   const unsubscribeRef = useRef(null);
   const isMountedRef = useRef(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(initialAuthConfigured);
+  const [loading, setLoading] = useState(false);
   const [authConfigured, setAuthConfigured] = useState(initialAuthConfigured);
 
   useEffect(() => {

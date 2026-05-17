@@ -1,4 +1,4 @@
-export const PAGE_LOADER_CYCLE_MS = 1550;
+export const PAGE_LOADER_CYCLE_MS = 950;
 export const PAGE_LOADER_REDUCED_MOTION_MS = 400;
 
 export function prefersReducedPageLoaderMotion() {

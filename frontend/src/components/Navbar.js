@@ -258,7 +258,7 @@ function getMobileNavLinkClass(isActive) {
 }
 
 function Controls({ language, setLanguage, t, mobile = false }) {
-  const { currentUser, loading, logout } = useFirebaseAuth();
+  const { currentUser, ensureAuthReady, loading, logout } = useFirebaseAuth();
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const accountLabels = ACCOUNT_LABELS[language] || ACCOUNT_LABELS.ka;
 
@@ -269,6 +269,18 @@ function Controls({ language, setLanguage, t, mobile = false }) {
   const handleLogout = async () => {
     setIsAccountMenuOpen(false);
     await logout();
+  };
+
+  const handleAccountToggle = () => {
+    setIsAccountMenuOpen((currentState) => {
+      const nextState = !currentState;
+
+      if (nextState) {
+        void ensureAuthReady().catch(() => {});
+      }
+
+      return nextState;
+    });
   };
 
   return (
@@ -289,7 +301,7 @@ function Controls({ language, setLanguage, t, mobile = false }) {
       <div className="relative flex-shrink-0">
         <button
           type="button"
-          onClick={() => setIsAccountMenuOpen((currentState) => !currentState)}
+          onClick={handleAccountToggle}
           disabled={loading}
           className={
             mobile

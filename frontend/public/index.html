@@ -30,9 +30,18 @@
     <link
       rel="preload"
       as="image"
+      href="%PUBLIC_URL%/images/home-hero-720.webp"
+      media="(max-width: 640px)"
+      fetchpriority="high"
+      type="image/webp"
+    />
+    <link
+      rel="preload"
+      as="image"
       href="%PUBLIC_URL%/images/home-hero-960.webp"
       imagesrcset="%PUBLIC_URL%/images/home-hero-960.webp 960w, %PUBLIC_URL%/images/home-hero-1440.webp 1440w"
-      imagesizes="(min-width: 1024px) 1440px, 100vw"
+      imagesizes="(min-width: 1024px) 1440px, 960px"
+      media="(min-width: 641px)"
       fetchpriority="high"
       type="image/webp"
     />
@@ -66,7 +75,7 @@
     </script>
     <style>
       .initial-page-loader {
-        --loader-cycle: 1550ms;
+        --loader-cycle: 950ms;
         position: fixed;
         inset: 0;
         display: grid;

@@ -45,19 +45,27 @@ export default function HomePage({ seoPage = "home" }) {
 
           <div className="relative mt-7 overflow-hidden bg-black shadow-[0_26px_90px_-54px_rgba(0,0,0,0.95)]">
             <div className="relative h-[22rem] sm:h-[28rem] lg:h-[31rem] xl:h-[34rem]">
-              <img
-                src="/images/home-hero-960.webp"
-                srcSet="/images/home-hero-960.webp 960w, /images/home-hero-1440.webp 1440w"
-                sizes="(min-width: 1024px) 1440px, 100vw"
-                alt=""
-                width="1440"
-                height="960"
-                loading="eager"
-                decoding="async"
-                fetchPriority="high"
-                className="absolute inset-0 h-full w-full object-cover"
-                aria-hidden="true"
-              />
+              <picture>
+                <source
+                  media="(max-width: 640px)"
+                  srcSet="/images/home-hero-720.webp"
+                  width="720"
+                  height="480"
+                />
+                <img
+                  src="/images/home-hero-960.webp"
+                  srcSet="/images/home-hero-960.webp 960w, /images/home-hero-1440.webp 1440w"
+                  sizes="(min-width: 1024px) 1440px, 960px"
+                  alt=""
+                  width="1440"
+                  height="960"
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
+                  className="absolute inset-0 h-full w-full object-cover"
+                  aria-hidden="true"
+                />
+              </picture>
               <div className="absolute inset-0 bg-black/54" />
               <div className="absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(180deg,rgba(0,0,0,0)_0%,rgba(0,0,0,0.62)_100%)]" />
 

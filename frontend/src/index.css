@@ -16,7 +16,7 @@
   --aw-accent-hover: #ffd447;
   --aw-border: rgba(255, 255, 255, 0.12);
   --aw-shadow: 0 30px 90px -58px rgba(0, 0, 0, 0.95);
-  --page-loader-cycle: 1550ms;
+  --page-loader-cycle: 950ms;
   --text-primary: var(--aw-text);
   --text-muted: var(--aw-muted);
   --surface-page: var(--aw-bg);

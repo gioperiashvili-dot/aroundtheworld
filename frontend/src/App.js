@@ -56,12 +56,27 @@ function useInitialLoaderCycle() {
 function ProtectedRoute({ children }) {
   const location = useLocation();
   const { currentUser, ensureAuthReady, loading } = useFirebaseAuth();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
-    void ensureAuthReady().catch(() => {});
+    let isActive = true;
+
+    setIsCheckingAuth(true);
+
+    ensureAuthReady()
+      .catch(() => {})
+      .finally(() => {
+        if (isActive) {
+          setIsCheckingAuth(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
   }, [ensureAuthReady]);
 
-  if (loading) {
+  if (loading || isCheckingAuth) {
     return <RouteLoadingFallback />;
   }
 
