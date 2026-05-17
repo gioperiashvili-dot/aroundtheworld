@@ -3,7 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useFirebaseAuth } from "../auth/FirebaseAuthContext";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { buildCanonicalUrl } from "../components/SEO";
-import backgroundOne from "../assets/background/background-1.webp";
+import backgroundOne from "../assets/background/background-5.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 import { getAuthErrorMessage } from "../lib/authMessages";
 

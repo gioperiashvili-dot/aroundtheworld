@@ -1,10 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import HomeHeroSlider from "./HomeHeroSlider";
 import Navbar from "./Navbar";
 import PublicFooter from "./PublicFooter";
-import { getPublicBackgroundSlides } from "../lib/publicBackgrounds";
-
-const SLIDER_INTERVAL_MS = 6200;
 
 export default function PublicPageShell({
   backgroundImage,
@@ -16,11 +11,6 @@ export default function PublicPageShell({
   tightHero = false,
   children,
 }) {
-  const slides = useMemo(
-    () => getPublicBackgroundSlides(backgroundImage),
-    [backgroundImage]
-  );
-  const [activeSlide, setActiveSlide] = useState(0);
   const hasHeroAsideContent = Boolean(heroAside) || highlights.length > 0;
   const heroHeightClassName = compactHero
     ? tightHero
@@ -33,33 +23,21 @@ export default function PublicPageShell({
       : "-mt-8 md:-mt-10"
     : "-mt-16";
 
-  useEffect(() => {
-    setActiveSlide(0);
-  }, [slides]);
-
-  useEffect(() => {
-    if (slides.length < 2) {
-      return undefined;
-    }
-
-    const intervalId = window.setInterval(() => {
-      setActiveSlide((currentIndex) => (currentIndex + 1) % slides.length);
-    }, SLIDER_INTERVAL_MS);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [slides]);
-
   return (
     <div className="relative isolate min-h-screen overflow-hidden bg-[var(--aw-bg)] text-white transition-colors">
       <div className="pointer-events-none absolute inset-0">
-        <HomeHeroSlider
-          slides={slides}
-          activeIndex={activeSlide}
-          onSelect={setActiveSlide}
-          showControls={false}
-        />
+        {backgroundImage ? (
+          <img
+            src={backgroundImage}
+            alt=""
+            width="1440"
+            height="960"
+            loading="eager"
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover"
+            aria-hidden="true"
+          />
+        ) : null}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,17,17,0.24)_0%,rgba(17,17,17,0.42)_38%,rgba(17,17,17,0.84)_100%)]" />
       </div>
 

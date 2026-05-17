@@ -5,7 +5,7 @@ import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
 import TravelImage from "../components/TravelImage";
-import backgroundThree from "../assets/background/background-3.webp";
+import backgroundThree from "../assets/background/background-3-page.webp";
 import giorgiAvatar from "../assets/dpp/G.webp";
 import vitoAvatar from "../assets/dpp/V.webp";
 import zuraAvatar from "../assets/dpp/Z.webp";
@@ -316,8 +316,11 @@ function ReviewAvatar({ review, className }) {
       <img
         src={avatarSrc}
         alt=""
+        width="48"
+        height="48"
         className={`${className} shrink-0 rounded-full object-cover`}
         loading="lazy"
+        decoding="async"
         referrerPolicy={avatarSrc.startsWith("http") ? "no-referrer" : undefined}
         onError={() => setImageFailed(true)}
       />

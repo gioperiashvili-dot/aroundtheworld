@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useFirebaseAuth } from "../auth/FirebaseAuthContext";
 import TourSearchModal from "./TourSearchModal";
-import logoMain from "../assets/AroundTheWorld.png";
+import logoMain from "../assets/AroundTheWorld_160.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 
 const LANGUAGE_OPTIONS = [
@@ -182,8 +182,8 @@ function BrandLink({ compact = false, navSubtitle }) {
         <img
           src={logoMain}
           alt="Around The World"
-          width="128"
-          height="128"
+          width="160"
+          height="160"
           decoding="async"
           className={`w-auto object-contain ${compact ? "h-12 sm:h-14" : "h-14"}`}
         />

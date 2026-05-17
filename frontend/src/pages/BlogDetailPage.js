@@ -8,7 +8,7 @@ import SEO, {
   truncateSeoText,
 } from "../components/SEO";
 import TravelImage from "../components/TravelImage";
-import backgroundFour from "../assets/background/background-4.webp";
+import backgroundFour from "../assets/background/background-4-page.webp";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 import { fetchBlogBySlug } from "../lib/api";
 import { formatCalendarDate, getFriendlyApiError } from "../lib/formatters";

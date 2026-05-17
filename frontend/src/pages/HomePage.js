@@ -6,11 +6,10 @@ import PartnersStrip from "../components/PartnersStrip";
 import PublicFooter from "../components/PublicFooter";
 import SEO, { PAGE_SEO } from "../components/SEO";
 import { useLanguage } from "../i18n/LanguageContext";
-import toursCardImage from "../assets/background/background-1.webp";
-import tipsCardImage from "../assets/background/background-5.webp";
-import planCardImage from "../assets/background/background-6.webp";
-import heroImage from "../assets/background/background-7.webp";
-import visaCardImage from "../assets/background/visa-services.webp";
+import toursCardImage from "../assets/background/background-1-card.webp";
+import tipsCardImage from "../assets/background/background-5-card.webp";
+import planCardImage from "../assets/background/background-6-card.webp";
+import visaCardImage from "../assets/background/visa-services-card.webp";
 import {
   buildOrganizationStructuredData,
   buildWebsiteStructuredData,
@@ -47,10 +46,12 @@ export default function HomePage({ seoPage = "home" }) {
           <div className="relative mt-7 overflow-hidden bg-black shadow-[0_26px_90px_-54px_rgba(0,0,0,0.95)]">
             <div className="relative h-[22rem] sm:h-[28rem] lg:h-[31rem] xl:h-[34rem]">
               <img
-                src={heroImage}
+                src="/images/home-hero-960.webp"
+                srcSet="/images/home-hero-960.webp 960w, /images/home-hero-1440.webp 1440w"
+                sizes="(min-width: 1024px) 1440px, 100vw"
                 alt=""
-                width="1920"
-                height="1275"
+                width="1440"
+                height="960"
                 loading="eager"
                 decoding="async"
                 fetchPriority="high"
@@ -93,6 +94,8 @@ export default function HomePage({ seoPage = "home" }) {
               <img
                 src={item.image}
                 alt=""
+                width="800"
+                height="533"
                 loading="lazy"
                 decoding="async"
                 className="absolute inset-0 h-full w-full object-cover opacity-72 transition duration-500 group-hover:scale-105 group-hover:opacity-88"

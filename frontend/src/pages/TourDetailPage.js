@@ -12,7 +12,7 @@ import SEO, {
 } from "../components/SEO";
 import TourDescription from "../components/TourDescription";
 import TravelImage from "../components/TravelImage";
-import backgroundOne from "../assets/background/background-1.webp";
+import backgroundOne from "../assets/background/background-1-page.webp";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 import { fetchTourById, submitTourBookingRequest } from "../lib/api";
 import {

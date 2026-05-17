@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
-import backgroundOne from "../assets/background/background-1.webp";
+import backgroundOne from "../assets/background/visa-services-page.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 
 export default function VisaServicesPage() {

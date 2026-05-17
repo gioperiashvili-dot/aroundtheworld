@@ -2,7 +2,7 @@ import { useLanguage } from "../i18n/LanguageContext";
 import gpiHoldingLogo from "../assets/partners/GPIHOLDING.png";
 import imediLLogo from "../assets/partners/imediL.png";
 import skyscannerLogo from "../assets/partners/skyscanner.png";
-import tripadvisorLogo from "../assets/partners/tripadvisor.png";
+import tripadvisorLogo from "../assets/partners/tripadvisor-300.webp";
 
 const GROUPS = [
   {
@@ -11,8 +11,8 @@ const GROUPS = [
       en: "Accredited Member",
     },
     logos: [
-      { name: "Skyscanner", src: skyscannerLogo },
-      { name: "TripAdvisor", src: tripadvisorLogo },
+      { name: "Skyscanner", src: skyscannerLogo, width: 320, height: 97 },
+      { name: "TripAdvisor", src: tripadvisorLogo, width: 300, height: 169 },
     ],
   },
   {
@@ -21,8 +21,8 @@ const GROUPS = [
       en: "Partner Insurance",
     },
     logos: [
-      { name: "GPI Holding", src: gpiHoldingLogo },
-      { name: "Imedi L", src: imediLLogo },
+      { name: "GPI Holding", src: gpiHoldingLogo, width: 842, height: 595 },
+      { name: "Imedi L", src: imediLLogo, width: 275, height: 183 },
     ],
   },
 ];
@@ -53,6 +53,8 @@ export default function PartnersStrip({ className = "" }) {
                   <img
                     src={logo.src}
                     alt={logo.name}
+                    width={logo.width}
+                    height={logo.height}
                     loading="lazy"
                     decoding="async"
                     className="max-h-12 w-auto max-w-full object-contain"

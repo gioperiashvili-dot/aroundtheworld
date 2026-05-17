@@ -3,7 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useFirebaseAuth } from "../auth/FirebaseAuthContext";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { buildCanonicalUrl } from "../components/SEO";
-import backgroundThree from "../assets/background/background-3.webp";
+import backgroundThree from "../assets/background/background-3-page.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 import {
   ensureUserProfile,

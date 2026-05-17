@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
-import backgroundFour from "../assets/background/background-4.webp";
-import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE_512.png";
+import backgroundFour from "../assets/background/background-4-page.webp";
+import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE_192.webp";
 import skyscannerLogo from "../assets/partners/skyscanner.png";
-import tripadvisorLogo from "../assets/partners/tripadvisor.png";
+import tripadvisorLogo from "../assets/partners/tripadvisor-300.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 
 const ABOUT_CONTENT = {
@@ -261,12 +261,16 @@ const PARTNER_LOGOS = [
     key: "skyscanner",
     name: "Skyscanner",
     logo: skyscannerLogo,
+    width: 320,
+    height: 97,
     labelKey: "flights",
   },
   {
     key: "tripadvisor",
     name: "TripAdvisor",
     logo: tripadvisorLogo,
+    width: 300,
+    height: 169,
     labelKey: "hotelsRestaurants",
   },
 ];
@@ -293,6 +297,8 @@ export default function AboutPage() {
               <img
                 src={logoMain}
                 alt="Around The World"
+                width="192"
+                height="192"
                 loading="lazy"
                 decoding="async"
                 className="h-full w-full object-contain"
@@ -518,6 +524,8 @@ function PartnerCard({ partner, label }) {
         <img
           src={partner.logo}
           alt={partner.name}
+          width={partner.width}
+          height={partner.height}
           loading="lazy"
           decoding="async"
           className="h-12 w-full max-w-[13rem] object-contain"

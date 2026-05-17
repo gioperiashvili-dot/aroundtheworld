@@ -1,7 +1,7 @@
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
-import backgroundOne from "../assets/background/background-1.webp";
-import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE_512.png";
+import backgroundOne from "../assets/background/background-1-page.webp";
+import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE_192.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 import { contactDetails, getEmailHref, getPhoneHref, getWhatsAppHref } from "../lib/contact";
 
@@ -65,8 +65,8 @@ export default function ContactPage() {
               <img
                 src={logoMain}
                 alt="Around The World"
-                width="512"
-                height="512"
+                width="192"
+                height="192"
                 loading="lazy"
                 decoding="async"
                 className="h-auto w-44 max-w-full object-contain sm:w-52 md:w-60"

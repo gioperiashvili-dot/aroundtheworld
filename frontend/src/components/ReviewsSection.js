@@ -364,8 +364,11 @@ function ReviewAvatar({ review, className }) {
       <img
         src={avatarSrc}
         alt=""
+        width="44"
+        height="44"
         className={`${className} shrink-0 rounded-full object-cover`}
         loading="lazy"
+        decoding="async"
         referrerPolicy={avatarSrc.startsWith("http") ? "no-referrer" : undefined}
         onError={() => setImageFailed(true)}
       />

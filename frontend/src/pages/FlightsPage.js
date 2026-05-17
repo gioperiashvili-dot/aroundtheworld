@@ -5,7 +5,7 @@ import EmptyState from "../components/EmptyState";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
-import backgroundTwo from "../assets/background/background-2.webp";
+import backgroundTwo from "../assets/background/background-7.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 import { fetchFlights, submitFlightBookingRequest } from "../lib/api";
 import {
@@ -1408,6 +1408,10 @@ function AirlineAvatar({ carrier = {}, fallbackLabel, className = "" }) {
       <img
         src={logoUrl}
         alt={carrier.label || fallbackLabel}
+        width="48"
+        height="48"
+        loading="lazy"
+        decoding="async"
         onError={() => setImageFailed(true)}
         className={`h-12 w-12 rounded-full border-2 border-[#242424] bg-white object-contain p-1 shadow-sm ${className}`}
       />
