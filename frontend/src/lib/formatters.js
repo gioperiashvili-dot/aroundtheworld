@@ -157,19 +157,48 @@ export function formatDateTimeLabel(value, language = "en") {
   });
 }
 
-export function formatCurrencyValue(value, currency = "USD", language = "en") {
+function getCurrencySymbol(currency) {
+  const normalizedCurrency = String(currency || "GEL").trim().toUpperCase();
+
+  if (normalizedCurrency === "GEL") {
+    return "\u20be";
+  }
+
+  if (normalizedCurrency === "USD") {
+    return "$";
+  }
+
+  if (normalizedCurrency === "EUR") {
+    return "\u20ac";
+  }
+
+  return "";
+}
+
+export function formatCurrencyValue(value, currency = "GEL", language = "en") {
   if (typeof value !== "number") {
     return language === "ka" ? "მონაცემი არ არის" : "N/A";
+  }
+
+  const normalizedCurrency = String(currency || "GEL").trim().toUpperCase();
+  const roundedValue = Math.round(value);
+  const amount = roundedValue.toLocaleString(getLocale(language), {
+    maximumFractionDigits: 0,
+  });
+  const symbol = getCurrencySymbol(normalizedCurrency);
+
+  if (symbol) {
+    return `${symbol}${amount}`;
   }
 
   try {
     return new Intl.NumberFormat(getLocale(language), {
       style: "currency",
-      currency,
+      currency: normalizedCurrency,
       maximumFractionDigits: 0,
     }).format(value);
   } catch (_error) {
-    return `${value.toFixed(2)} ${currency}`;
+    return `${amount} ${normalizedCurrency}`;
   }
 }
 

@@ -4,9 +4,13 @@ const router = express.Router();
 const { createAdminSession, requireAdmin } = require("../services/adminAuth");
 const {
   ALLOWED_IMAGE_MIME_TYPES,
+  MAX_HOTEL_IMAGE_UPLOAD_BYTES,
   MAX_UPLOAD_BYTES,
+  deleteTourHotelImageFile,
+  getTourHotelImageFileTarget,
   optimizeBlogImage,
   optimizeTourImage,
+  saveTourHotelImage,
 } = require("../services/uploads");
 const {
   MAX_BLOG_PAYLOAD_BYTES,
@@ -30,11 +34,14 @@ const {
   uploadBookingFile,
 } = require("../services/bookings");
 const {
+  MAX_TOUR_HOTEL_IMAGES,
   MAX_TOUR_IMAGES,
+  addTourHotelImages,
   createTour,
   deleteTour,
   getTourById,
   getTours,
+  removeTourHotelImage,
   updateTour,
 } = require("../services/tours");
 const {
@@ -44,12 +51,19 @@ const {
 } = require("../services/reviews");
 
 const TOUR_IMAGE_FIELD_NAMES = new Set(["images", "image", "images[]"]);
+const HOTEL_IMAGE_FIELD_NAMES = new Set(["images", "image", "images[]"]);
 const TOUR_IMAGE_TYPE_DETAILS =
   "\u10E1\u10E3\u10E0\u10D0\u10D7\u10D8\u10E1 \u10E2\u10D8\u10DE\u10D8 \u10D0\u10E0\u10D0\u10E1\u10EC\u10DD\u10E0\u10D8\u10D0. \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D4\u10D7 JPG, PNG \u10D0\u10DC WebP \u10E4\u10D0\u10D8\u10DA\u10D8.";
 const TOUR_IMAGE_LIMIT_DETAILS =
   `\u10E2\u10E3\u10E0\u10D6\u10D4 \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10E3\u10DB ${MAX_TOUR_IMAGES} \u10E4\u10DD\u10E2\u10DD\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0 \u10E8\u10D4\u10D8\u10EB\u10DA\u10D4\u10D1\u10D0.`;
 const TOUR_IMAGE_FIELD_DETAILS =
   '\u10E2\u10E3\u10E0\u10D8\u10E1 \u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D8\u10E1 \u10D5\u10D4\u10DA\u10D8 \u10E3\u10DC\u10D3\u10D0 \u10D8\u10E7\u10DD\u10E1 "images".';
+const HOTEL_IMAGE_TYPE_DETAILS =
+  "\u10DB\u10EE\u10DD\u10DA\u10DD\u10D3 JPG, JPEG, PNG \u10D0\u10DC WebP \u10E4\u10DD\u10E0\u10DB\u10D0\u10E2\u10D8\u10E1 \u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10E1 \u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8\u10D0 \u10D3\u10D0\u10E8\u10D5\u10D4\u10D1\u10E3\u10DA\u10D8.";
+const HOTEL_IMAGE_LIMIT_DETAILS =
+  `\u10D4\u10E0\u10D7 \u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10D6\u10D4 \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10E3\u10DB ${MAX_TOUR_HOTEL_IMAGES} \u10E4\u10DD\u10E2\u10DD\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0 \u10E8\u10D4\u10D8\u10EB\u10DA\u10D4\u10D1\u10D0.`;
+const HOTEL_IMAGE_FIELD_DETAILS =
+  '\u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10E1 \u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D8\u10E1 \u10D5\u10D4\u10DA\u10D8 \u10E3\u10DC\u10D3\u10D0 \u10D8\u10E7\u10DD\u10E1 "images".';
 
 function getBodySize(body) {
   try {
@@ -86,11 +100,11 @@ function imageFileFilter(_req, file, callback) {
   return callback(null, true);
 }
 
-function createImageUpload(maxFiles) {
+function createImageUpload(maxFiles, maxBytes = MAX_UPLOAD_BYTES) {
   return multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: MAX_UPLOAD_BYTES,
+      fileSize: maxBytes,
       files: maxFiles,
     },
     fileFilter: imageFileFilter,
@@ -99,6 +113,10 @@ function createImageUpload(maxFiles) {
 
 const upload = createImageUpload(1);
 const tourImagesUpload = createImageUpload(MAX_TOUR_IMAGES);
+const tourHotelImagesUpload = createImageUpload(
+  MAX_TOUR_HOTEL_IMAGES,
+  MAX_HOTEL_IMAGE_UPLOAD_BYTES
+);
 
 function sendImageUploadError(uploadError, res, options = {}) {
   const isTooLarge =
@@ -130,7 +148,7 @@ function sendImageUploadError(uploadError, res, options = {}) {
           ? options.unexpectedError || "Invalid upload field"
         : uploadError.message || "Upload failed",
     details: isTooLarge
-      ? "The selected image must be 5MB or smaller."
+      ? options.fileTooLargeDetails || "The selected image must be 5MB or smaller."
       : isTooMany
         ? options.tooManyDetails || "Choose a valid JPEG, PNG, or WebP image."
         : isUnexpected
@@ -155,6 +173,24 @@ function getUnexpectedTourUploadFields(req) {
       files
         .map((file) => String(file.fieldname || "").trim())
         .filter((fieldName) => fieldName && !TOUR_IMAGE_FIELD_NAMES.has(fieldName))
+    ),
+  ];
+}
+
+function getHotelUploadFiles(req) {
+  const files = Array.isArray(req.files) ? req.files : [];
+
+  return files.filter((file) => HOTEL_IMAGE_FIELD_NAMES.has(file.fieldname));
+}
+
+function getUnexpectedHotelUploadFields(req) {
+  const files = Array.isArray(req.files) ? req.files : [];
+
+  return [
+    ...new Set(
+      files
+        .map((file) => String(file.fieldname || "").trim())
+        .filter((fieldName) => fieldName && !HOTEL_IMAGE_FIELD_NAMES.has(fieldName))
     ),
   ];
 }
@@ -328,6 +364,152 @@ router.post("/uploads/blogs", (req, res) => {
       });
     }
   });
+});
+
+router.post("/tours/:tourId/hotels/:hotelId/images", (req, res) => {
+  tourHotelImagesUpload.any()(req, res, async (uploadError) => {
+    if (uploadError) {
+      return sendImageUploadError(uploadError, res, {
+        tooManyCode: "TOO_MANY_HOTEL_IMAGES",
+        tooManyError: "Too many hotel images",
+        tooManyDetails: HOTEL_IMAGE_LIMIT_DETAILS,
+        unexpectedCode: "INVALID_HOTEL_IMAGE_FIELD",
+        unexpectedError: "Invalid hotel image field",
+        unexpectedDetails: HOTEL_IMAGE_FIELD_DETAILS,
+        invalidTypeDetails: HOTEL_IMAGE_TYPE_DETAILS,
+        fileTooLargeDetails: "\u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D6\u10DD\u10DB\u10D0 \u10EB\u10D0\u10DA\u10D8\u10D0\u10DC \u10D3\u10D8\u10D3\u10D8\u10D0.",
+      });
+    }
+
+    const savedImages = [];
+
+    try {
+      const unexpectedFields = getUnexpectedHotelUploadFields(req);
+
+      if (unexpectedFields.length > 0) {
+        return res.status(400).json({
+          ok: false,
+          code: "INVALID_HOTEL_IMAGE_FIELD",
+          error: "Invalid hotel image field",
+          details: HOTEL_IMAGE_FIELD_DETAILS,
+          fields: unexpectedFields,
+        });
+      }
+
+      const files = getHotelUploadFiles(req);
+
+      if (!files.length) {
+        return res.status(400).json({
+          ok: false,
+          code: "IMAGE_REQUIRED",
+          error: "Image file required",
+          details: "Choose at least one JPG, JPEG, PNG, or WebP hotel image.",
+        });
+      }
+
+      const tour = await getTourById(req.params.tourId);
+
+      if (!tour) {
+        return res.status(404).json({
+          ok: false,
+          code: "TOUR_NOT_FOUND",
+          error: "Tour not found",
+          details: "Save the tour before uploading hotel images.",
+        });
+      }
+
+      const hotel = Array.isArray(tour.hotels)
+        ? tour.hotels.find((item) => item.id === String(req.params.hotelId))
+        : null;
+
+      if (!hotel) {
+        return res.status(404).json({
+          ok: false,
+          code: "HOTEL_NOT_FOUND",
+          error: "Hotel not found",
+          details: "Save this hotel on the tour before uploading images.",
+        });
+      }
+
+      const existingImageCount = Array.isArray(hotel.images)
+        ? hotel.images.length
+        : 0;
+
+      if (existingImageCount + files.length > MAX_TOUR_HOTEL_IMAGES) {
+        return res.status(400).json({
+          ok: false,
+          code: "TOO_MANY_HOTEL_IMAGES",
+          error: "Too many hotel images",
+          details: HOTEL_IMAGE_LIMIT_DETAILS,
+        });
+      }
+
+      for (const file of files) {
+        savedImages.push(await saveTourHotelImage(file, tour.id, hotel.id));
+      }
+
+      const imageUrls = savedImages.map((image) => image.imageUrl);
+      const result = await addTourHotelImages(tour.id, hotel.id, imageUrls);
+
+      return res.status(201).json({
+        ok: true,
+        imageUrl: imageUrls[0] || "",
+        imageUrls,
+        tour: result.tour,
+        hotel: result.hotel,
+      });
+    } catch (error) {
+      await Promise.all(
+        savedImages.map((image) =>
+          deleteTourHotelImageFile(req.params.tourId, req.params.hotelId, image.imageUrl)
+            .catch(() => null)
+        )
+      );
+
+      return res.status(error.statusCode || 500).json({
+        ok: false,
+        code: error.code || "HOTEL_IMAGE_UPLOAD_FAILED",
+        error: error.message || "Unable to upload hotel image",
+        details: error.details || "Please try another hotel image.",
+      });
+    }
+  });
+});
+
+router.delete("/tours/:tourId/hotels/:hotelId/images", async (req, res) => {
+  try {
+    const imagePath = String(req.body?.imagePath || "").trim();
+    const target = getTourHotelImageFileTarget(
+      req.params.tourId,
+      req.params.hotelId,
+      imagePath
+    );
+    const result = await removeTourHotelImage(
+      req.params.tourId,
+      req.params.hotelId,
+      target.publicPath
+    );
+    const fileResult = await deleteTourHotelImageFile(
+      req.params.tourId,
+      req.params.hotelId,
+      target.publicPath
+    );
+
+    return res.json({
+      ok: true,
+      imagePath: target.publicPath,
+      deleted: fileResult.deleted,
+      tour: result.tour,
+      hotel: result.hotel,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      ok: false,
+      code: error.code || "HOTEL_IMAGE_DELETE_FAILED",
+      error: error.message || "Unable to delete hotel image",
+      details: error.details || "Please try again in a moment.",
+    });
+  }
 });
 
 router.get("/tours", async (_req, res) => {

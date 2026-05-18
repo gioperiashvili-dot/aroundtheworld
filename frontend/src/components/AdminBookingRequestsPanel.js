@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../i18n/LanguageContext";
-import { formatDateTimeLabel } from "../lib/formatters";
+import { formatCurrencyValue, formatDateTimeLabel } from "../lib/formatters";
 
 const STATUS_OPTIONS = [
   "pending",
@@ -22,6 +22,11 @@ const BOOKING_CATEGORY_OPTIONS = [
   "transfer",
   "insurance",
   "other",
+];
+const CURRENCY_OPTIONS = [
+  { value: "GEL", ka: "\u10DA\u10D0\u10E0\u10D8", en: "GEL" },
+  { value: "USD", ka: "\u10D0\u10E8\u10E8 \u10D3\u10DD\u10DA\u10D0\u10E0\u10D8", en: "USD" },
+  { value: "EUR", ka: "\u10D4\u10D5\u10E0\u10DD", en: "EUR" },
 ];
 
 const LABELS = {
@@ -152,6 +157,16 @@ function formatAdminDate(value, language) {
   return value ? formatDateTimeLabel(value, language) : "";
 }
 
+function formatAdminMoney(value, currency, language) {
+  const amount = Number(value);
+
+  if (!Number.isFinite(amount)) {
+    return value;
+  }
+
+  return formatCurrencyValue(amount, currency || "GEL", language);
+}
+
 function isTourBasedRequest(request) {
   return Boolean(
     request?.tourId ||
@@ -173,7 +188,7 @@ function createConversionDraft(request) {
     title: request?.tourTitle || "",
     category: getDefaultCategory(request),
     totalPrice: "",
-    currency: "USD",
+    currency: request?.currency || "GEL",
     paidAmount: "",
     startDate: "",
     endDate: "",
@@ -638,15 +653,29 @@ export default function AdminBookingRequestsPanel({
                               disabled={isBusy}
                               required
                             />
-                            <ConversionInput
-                              label={labels.currency}
-                              value={conversionDraft.currency}
-                              onChange={(value) =>
-                                updateConversionDraft(request.id, "currency", value)
-                              }
-                              disabled={isBusy}
-                              required
-                            />
+                            <label className="block space-y-2">
+                              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                {labels.currency}
+                              </span>
+                              <select
+                                value={conversionDraft.currency}
+                                onChange={(event) =>
+                                  updateConversionDraft(
+                                    request.id,
+                                    "currency",
+                                    event.target.value
+                                  )
+                                }
+                                disabled={isBusy}
+                                className="w-full rounded-[1.15rem] border border-[#eadfcc] bg-[#fffdf8] px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-[#c26b45] focus:ring-4 focus:ring-[#c26b45]/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-orange-200 dark:focus:ring-orange-200/20"
+                              >
+                                {CURRENCY_OPTIONS.map((option) => (
+                                  <option key={option.value} value={option.value}>
+                                    {language === "ka" ? option.ka : option.en}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
                             <ConversionInput
                               label={labels.paidAmount}
                               type="number"
@@ -667,7 +696,11 @@ export default function AdminBookingRequestsPanel({
                               <span className="font-semibold text-slate-700 dark:text-slate-200">
                                 {labels.remainingAmount}:{" "}
                                 {Number.isFinite(paymentPreview.remainingAmount)
-                                  ? paymentPreview.remainingAmount
+                                  ? formatAdminMoney(
+                                      paymentPreview.remainingAmount,
+                                      conversionDraft.currency,
+                                      language
+                                    )
                                   : 0}
                               </span>
                               <span className="font-semibold text-slate-700 dark:text-slate-200">

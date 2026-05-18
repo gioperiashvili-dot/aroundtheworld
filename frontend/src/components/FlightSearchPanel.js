@@ -1268,7 +1268,8 @@ function DateField({
                   ? t("flights.datePicker.pricesUnavailable")
                   : t("flights.datePicker.pricesCurrencyFallback").replace(
                       "{currency}",
-                      priceCalendarCurrency || "USD"
+                      priceCalendarCurrency ||
+                        getPriceCalendarCurrency("", language)
                     )}
             </div>
           ) : null}

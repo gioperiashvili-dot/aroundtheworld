@@ -226,7 +226,7 @@ function normalizeBookingPayload(payload, requestData) {
   const defaultCategory = isTourBasedRequest(requestData) ? "tour-package" : "";
   const title = normalizeText(payload.title || requestData.tourTitle, 300);
   const category = normalizeText(payload.category || defaultCategory, 80);
-  const currency = normalizeText(payload.currency || "USD", 10).toUpperCase();
+  const currency = normalizeText(payload.currency || "GEL", 10).toUpperCase();
 
   if (!title) {
     throw createBookingRequestError(

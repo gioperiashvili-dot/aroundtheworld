@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../i18n/LanguageContext";
-import { formatDateTimeLabel } from "../lib/formatters";
+import { formatCurrencyValue, formatDateTimeLabel } from "../lib/formatters";
 
 const BOOKING_STATUS_OPTIONS = ["active", "completed", "cancelled"];
 const ALL_STATUS_FILTER = "all";
 const STATUS_FILTER_OPTIONS = [ALL_STATUS_FILTER, ...BOOKING_STATUS_OPTIONS];
 const MAX_BOOKING_PDF_BYTES = 10 * 1024 * 1024;
+const CURRENCY_OPTIONS = [
+  { value: "GEL", ka: "\u10DA\u10D0\u10E0\u10D8", en: "GEL" },
+  { value: "USD", ka: "\u10D0\u10E8\u10E8 \u10D3\u10DD\u10DA\u10D0\u10E0\u10D8", en: "USD" },
+  { value: "EUR", ka: "\u10D4\u10D5\u10E0\u10DD", en: "EUR" },
+];
 
 const LABELS = {
   ka: {
@@ -139,6 +144,16 @@ function formatAdminDate(value, language) {
   return value ? formatDateTimeLabel(value, language) : "";
 }
 
+function formatAdminMoney(value, currency, language) {
+  const amount = Number(value);
+
+  if (!Number.isFinite(amount)) {
+    return value;
+  }
+
+  return formatCurrencyValue(amount, currency || "GEL", language);
+}
+
 function normalizeIncludes(value) {
   if (Array.isArray(value)) {
     return value
@@ -172,7 +187,7 @@ function createDraft(booking) {
     adminNote: booking?.adminNote || "",
     paidAmount: booking?.paidAmount ?? "",
     totalPrice: booking?.totalPrice ?? "",
-    currency: booking?.currency || "USD",
+    currency: booking?.currency || "GEL",
     includes: toIncludesTextarea(booking?.includes),
     description: booking?.description || "",
     startDate: toDateInputValue(booking?.startDate),
@@ -569,9 +584,23 @@ export default function AdminBookingsPanel({
                     <BookingMeta label={labels.category} value={booking.category} />
                     <BookingMeta label={labels.startDate} value={booking.startDate} />
                     <BookingMeta label={labels.endDate} value={booking.endDate} />
-                    <BookingMeta label={labels.totalPrice} value={booking.totalPrice} />
+                    <BookingMeta
+                      label={labels.totalPrice}
+                      value={formatAdminMoney(
+                        booking.totalPrice,
+                        booking.currency,
+                        language
+                      )}
+                    />
                     <BookingMeta label={labels.currency} value={booking.currency} />
-                    <BookingMeta label={labels.paidAmount} value={booking.paidAmount} />
+                    <BookingMeta
+                      label={labels.paidAmount}
+                      value={formatAdminMoney(
+                        booking.paidAmount,
+                        booking.currency,
+                        language
+                      )}
+                    />
                     <BookingMeta
                       label={labels.paidPercent}
                       value={
@@ -582,7 +611,11 @@ export default function AdminBookingsPanel({
                     />
                     <BookingMeta
                       label={labels.remainingAmount}
-                      value={booking.remainingAmount}
+                      value={formatAdminMoney(
+                        booking.remainingAmount,
+                        booking.currency,
+                        language
+                      )}
                     />
                     <BookingMeta
                       label={labels.originalRequestId}
@@ -694,14 +727,25 @@ export default function AdminBookingsPanel({
                         }
                         disabled={isBusy}
                       />
-                      <BookingInput
-                        label={labels.currency}
-                        value={draft.currency}
-                        onChange={(value) =>
-                          updateDraft(booking.id, "currency", value)
-                        }
-                        disabled={isBusy}
-                      />
+                      <label className="block space-y-2">
+                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                          {labels.currency}
+                        </span>
+                        <select
+                          value={draft.currency}
+                          onChange={(event) =>
+                            updateDraft(booking.id, "currency", event.target.value)
+                          }
+                          disabled={isBusy}
+                          className="w-full rounded-[1.15rem] border border-[#eadfcc] bg-[#fffdf8] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#c26b45] focus:ring-4 focus:ring-[#c26b45]/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-orange-200 dark:focus:ring-orange-200/20"
+                        >
+                          {CURRENCY_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {language === "ka" ? option.ka : option.en}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
                       <BookingInput
                         label={labels.startDate}
                         type="date"
@@ -724,7 +768,11 @@ export default function AdminBookingsPanel({
                         <span className="font-semibold text-slate-700 dark:text-slate-200">
                           {labels.remainingAmount}:{" "}
                           {Number.isFinite(paymentPreview.remainingAmount)
-                            ? paymentPreview.remainingAmount
+                            ? formatAdminMoney(
+                                paymentPreview.remainingAmount,
+                                draft.currency,
+                                language
+                              )
                             : 0}
                         </span>
                         <span className="font-semibold text-slate-700 dark:text-slate-200">

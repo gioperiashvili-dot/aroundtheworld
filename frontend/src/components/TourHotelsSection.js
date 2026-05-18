@@ -116,24 +116,54 @@ export default function TourHotelsSection({ hotels = [], language = "ka" }) {
 
 function TourHotelCard({ hotel, text }) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const hasImages = hotel.images.length > 0;
-  const hasMultipleImages = hotel.images.length > 1;
-  const activeImage = hotel.images[activeIndex] || hotel.images[0] || "";
+  const [failedImages, setFailedImages] = useState(() => new Set());
+  const availableImages = useMemo(
+    () => hotel.images.filter((image) => !failedImages.has(image)),
+    [failedImages, hotel.images]
+  );
+  const hasImages = availableImages.length > 0;
+  const hasMultipleImages = availableImages.length > 1;
+  const activeImage =
+    availableImages[Math.min(activeIndex, Math.max(availableImages.length - 1, 0))] ||
+    "";
 
   useEffect(() => {
     setActiveIndex(0);
+    setFailedImages(new Set());
   }, [hotel.id]);
+
+  useEffect(() => {
+    setActiveIndex((currentIndex) =>
+      Math.min(currentIndex, Math.max(availableImages.length - 1, 0))
+    );
+  }, [availableImages.length]);
 
   const goToPrevious = () => {
     setActiveIndex((currentIndex) =>
-      currentIndex === 0 ? hotel.images.length - 1 : currentIndex - 1
+      currentIndex === 0 ? availableImages.length - 1 : currentIndex - 1
     );
   };
 
   const goToNext = () => {
     setActiveIndex((currentIndex) =>
-      currentIndex >= hotel.images.length - 1 ? 0 : currentIndex + 1
+      currentIndex >= availableImages.length - 1 ? 0 : currentIndex + 1
     );
+  };
+
+  const handleImageError = () => {
+    if (!activeImage) {
+      return;
+    }
+
+    setFailedImages((currentImages) => {
+      if (currentImages.has(activeImage)) {
+        return currentImages;
+      }
+
+      const nextImages = new Set(currentImages);
+      nextImages.add(activeImage);
+      return nextImages;
+    });
   };
 
   return (
@@ -147,6 +177,7 @@ function TourHotelCard({ hotel, text }) {
             height="600"
             loading="lazy"
             decoding="async"
+            onError={handleImageError}
             className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           />
         ) : (
@@ -173,7 +204,7 @@ function TourHotelCard({ hotel, text }) {
             </div>
 
             <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-2 rounded-full bg-black/55 px-3 py-2 backdrop-blur">
-              {hotel.images.map((image, index) => (
+              {availableImages.map((image, index) => (
                 <button
                   key={`${image}-${index}`}
                   type="button"

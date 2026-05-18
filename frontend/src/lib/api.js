@@ -371,6 +371,40 @@ export async function uploadAdminTourImages(token, imageFiles = []) {
   return response.data;
 }
 
+export async function uploadTourHotelImages(token, tourId, hotelId, imageFiles = []) {
+  const formData = new FormData();
+
+  imageFiles.forEach((imageFile) => {
+    formData.append("images", imageFile);
+  });
+
+  const response = await apiClient.post(
+    `/api/admin/tours/${encodeURIComponent(tourId)}/hotels/${encodeURIComponent(
+      hotelId
+    )}/images`,
+    formData,
+    getAdminConfig(token)
+  );
+
+  return response.data;
+}
+
+export async function deleteTourHotelImage(token, tourId, hotelId, imagePath) {
+  const response = await apiClient.delete(
+    `/api/admin/tours/${encodeURIComponent(tourId)}/hotels/${encodeURIComponent(
+      hotelId
+    )}/images`,
+    {
+      ...getAdminConfig(token),
+      data: {
+        imagePath,
+      },
+    }
+  );
+
+  return response.data;
+}
+
 export async function uploadAdminBlogImage(token, imageFile) {
   const formData = new FormData();
   formData.append("image", imageFile);

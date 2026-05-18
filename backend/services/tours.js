@@ -5,6 +5,7 @@ const { createTourSlug, normalizeTourSlug } = require("./tourSlugs");
 
 const toursFilePath = path.resolve(__dirname, "../data/tours.json");
 const MAX_TOUR_IMAGES = 10;
+const MAX_TOUR_HOTEL_IMAGES = 12;
 let writeQueue = Promise.resolve();
 
 function createToursError(statusCode, error, details) {
@@ -30,6 +31,10 @@ function normalizeImage(value) {
   }
 
   const trimmedValue = value.trim();
+
+  if (/^uploads\//i.test(trimmedValue)) {
+    return `/${trimmedValue}`;
+  }
 
   if (trimmedValue.startsWith("/")) {
     return trimmedValue;
@@ -181,16 +186,13 @@ function normalizeHotelRecord(record, index) {
     typeof record.name === "string"
       ? record.name.trim()
       : normalizeLocalizedField(record.name);
-  const hasName =
-    typeof name === "string"
-      ? Boolean(name)
-      : Boolean(name.ka || name.en);
-
-  if (!hasName) {
-    return null;
-  }
-
   const stars = Number(record.stars);
+  const hotelImages = normalizeImages([
+    ...(Array.isArray(record.images) ? record.images : []),
+    record.image,
+    record.imageUrl,
+    record.coverImage,
+  ]);
   const normalizedHotel = {
     id: String(record.id || `hotel-${index + 1}`).trim() || `hotel-${index + 1}`,
     name,
@@ -204,8 +206,20 @@ function normalizeHotelRecord(record, index) {
         : normalizeLocalizedField(record.mealPlan),
     stars: Number.isFinite(stars) && stars > 0 ? Math.min(Math.round(stars), 5) : null,
     link: normalizeHotelLink(record.link),
-    images: normalizeImages(record.images),
+    images: hotelImages.slice(0, MAX_TOUR_HOTEL_IMAGES),
   };
+
+  const hasHotelContent =
+    hasLocalizedOrPlainText(normalizedHotel.name) ||
+    hasLocalizedOrPlainText(normalizedHotel.location) ||
+    hasLocalizedOrPlainText(normalizedHotel.mealPlan) ||
+    Boolean(normalizedHotel.stars) ||
+    Boolean(normalizedHotel.link) ||
+    normalizedHotel.images.length > 0;
+
+  if (!hasHotelContent) {
+    return null;
+  }
 
   if (!hasLocalizedOrPlainText(normalizedHotel.location)) {
     delete normalizedHotel.location;
@@ -250,6 +264,52 @@ function normalizeTourHotels(value) {
   return value
     .map(normalizeHotelRecord)
     .filter(Boolean);
+}
+
+function normalizeUploadPublicPath(value) {
+  const source = String(value || "").trim();
+
+  if (!source) {
+    return "";
+  }
+
+  try {
+    if (/^https?:\/\//i.test(source)) {
+      return new URL(source).pathname;
+    }
+  } catch (_error) {
+    return source;
+  }
+
+  if (/^uploads\//i.test(source)) {
+    return `/${source}`;
+  }
+
+  return source;
+}
+
+function getTourAndHotelIndexes(tours, tourId, hotelId) {
+  const tourIndex = tours.findIndex((tour) => tour.id === String(tourId));
+
+  if (tourIndex === -1) {
+    throw createToursError(404, "Tour not found", "The requested tour does not exist.");
+  }
+
+  const hotels = Array.isArray(tours[tourIndex].hotels) ? tours[tourIndex].hotels : [];
+  const hotelIndex = hotels.findIndex((hotel) => hotel.id === String(hotelId));
+
+  if (hotelIndex === -1) {
+    throw createToursError(
+      404,
+      "Hotel not found",
+      "Save this hotel on the tour before uploading images."
+    );
+  }
+
+  return {
+    tourIndex,
+    hotelIndex,
+  };
 }
 
 function getTourSlugSource(record) {
@@ -323,7 +383,7 @@ function normalizeTourRecord(record) {
     destination: normalizeLocalizedField(record?.destination),
     description: normalizeLocalizedField(record?.description),
     price: Number.isFinite(Number(record?.price)) ? Number(record.price) : null,
-    currency: String(record?.currency || "USD").trim().toUpperCase() || "USD",
+    currency: String(record?.currency || "GEL").trim().toUpperCase() || "GEL",
     duration: normalizeLocalizedField(record?.duration),
     dates: normalizeDates(record?.dates),
     included: normalizeLocalizedListField(record?.included),
@@ -497,6 +557,96 @@ async function updateTour(id, input) {
   });
 }
 
+async function addTourHotelImages(tourId, hotelId, imagePaths = []) {
+  const incomingImages = normalizeImages(imagePaths);
+
+  if (incomingImages.length === 0) {
+    throw createToursError(
+      400,
+      "Hotel images are required",
+      "Choose at least one hotel image before uploading."
+    );
+  }
+
+  return queueWrite(async () => {
+    const tours = await readToursFile();
+    const { tourIndex, hotelIndex } = getTourAndHotelIndexes(tours, tourId, hotelId);
+    const tour = tours[tourIndex];
+    const hotels = Array.isArray(tour.hotels) ? [...tour.hotels] : [];
+    const hotel = {
+      ...hotels[hotelIndex],
+      images: Array.isArray(hotels[hotelIndex].images)
+        ? [...hotels[hotelIndex].images]
+        : [],
+    };
+    const nextImages = normalizeImages([...hotel.images, ...incomingImages]);
+
+    if (nextImages.length > MAX_TOUR_HOTEL_IMAGES) {
+      throw createToursError(
+        400,
+        "Too many hotel images",
+        `A hotel can have at most ${MAX_TOUR_HOTEL_IMAGES} images.`
+      );
+    }
+
+    hotel.images = nextImages;
+    hotels[hotelIndex] = hotel;
+    tours[tourIndex] = {
+      ...tour,
+      hotels,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await writeToursFile(tours);
+
+    return {
+      tour: tours[tourIndex],
+      hotel,
+    };
+  });
+}
+
+async function removeTourHotelImage(tourId, hotelId, imagePath) {
+  const targetPath = normalizeUploadPublicPath(imagePath);
+
+  if (!targetPath) {
+    throw createToursError(
+      400,
+      "Hotel image path is required",
+      "Choose a hotel image before deleting."
+    );
+  }
+
+  return queueWrite(async () => {
+    const tours = await readToursFile();
+    const { tourIndex, hotelIndex } = getTourAndHotelIndexes(tours, tourId, hotelId);
+    const tour = tours[tourIndex];
+    const hotels = Array.isArray(tour.hotels) ? [...tour.hotels] : [];
+    const hotel = {
+      ...hotels[hotelIndex],
+      images: Array.isArray(hotels[hotelIndex].images)
+        ? hotels[hotelIndex].images.filter(
+            (image) => normalizeUploadPublicPath(image) !== targetPath
+          )
+        : [],
+    };
+
+    hotels[hotelIndex] = hotel;
+    tours[tourIndex] = {
+      ...tour,
+      hotels,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await writeToursFile(tours);
+
+    return {
+      tour: tours[tourIndex],
+      hotel,
+    };
+  });
+}
+
 async function deleteTour(id) {
   return queueWrite(async () => {
     const tours = await readToursFile();
@@ -513,11 +663,14 @@ async function deleteTour(id) {
 }
 
 module.exports = {
+  MAX_TOUR_HOTEL_IMAGES,
   MAX_TOUR_IMAGES,
+  addTourHotelImages,
   createTour,
   deleteTour,
   getTourById,
   getTourByIdOrSlug,
   getTours,
+  removeTourHotelImage,
   updateTour,
 };

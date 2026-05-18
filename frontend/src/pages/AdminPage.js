@@ -18,6 +18,7 @@ import {
   deleteAdminBookingFile,
   deleteAdminReview,
   deleteAdminTour,
+  deleteTourHotelImage,
   downloadAdminBookingFile,
   fetchAdminBookings,
   fetchAdminBookingRequests,
@@ -25,6 +26,7 @@ import {
   fetchAdminTours,
   uploadAdminBookingFile,
   uploadAdminTourImages,
+  uploadTourHotelImages,
   updateAdminBooking,
   updateAdminBookingRequest,
   updateAdminTour,
@@ -50,6 +52,8 @@ import {
 const TOKEN_STORAGE_KEY = "around-the-world-admin-token";
 const EXPIRY_STORAGE_KEY = "around-the-world-admin-expiry";
 const IMAGE_UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
+const HOTEL_IMAGE_UPLOAD_MAX_BYTES = 8 * 1024 * 1024;
+const MAX_TOUR_HOTEL_IMAGES = 12;
 const ALLOWED_IMAGE_UPLOAD_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 const ADMIN_BOOKING_REQUEST_MESSAGES = {
@@ -165,6 +169,18 @@ function createEmptyLocalizedItem() {
   };
 }
 
+function createEmptyHotelFormRow(id = "hotel-1") {
+  return {
+    id,
+    name: "",
+    location: "",
+    mealPlan: "",
+    stars: "",
+    link: "",
+    images: [],
+  };
+}
+
 function createEmptyForm() {
   return {
     titleKa: "",
@@ -174,6 +190,7 @@ function createEmptyForm() {
     descriptionKa: "",
     descriptionEn: "",
     price: "",
+    currency: "GEL",
     durationKa: "",
     durationEn: "",
     dates: "",
@@ -183,6 +200,7 @@ function createEmptyForm() {
     images: [],
     included: [createEmptyLocalizedItem()],
     notIncluded: [createEmptyLocalizedItem()],
+    hotels: [],
   };
 }
 
@@ -226,6 +244,7 @@ function toFormValues(tour) {
     descriptionKa: tour?.description?.ka || "",
     descriptionEn: tour?.description?.en || "",
     price: tour?.price ?? "",
+    currency: tour?.currency || "GEL",
     durationKa: tour?.duration?.ka || "",
     durationEn: tour?.duration?.en || "",
     dates: Array.isArray(tour?.dates) ? tour.dates.join(", ") : "",
@@ -235,6 +254,7 @@ function toFormValues(tour) {
     images: galleryImages.filter((image) => image !== coverImage),
     included: toLocalizedItemRows(tour?.included),
     notIncluded: toLocalizedItemRows(tour?.notIncluded),
+    hotels: toHotelFormRows(tour?.hotels),
   };
 }
 
@@ -252,6 +272,100 @@ function toGalleryFormValues(images = []) {
     image: galleryImages[0] || "",
     images: galleryImages.slice(1),
   };
+}
+
+function getAdminHotelTextValue(value, language = "ka") {
+  if (typeof value === "string") {
+    return value.trim();
+  }
+
+  if (!value || typeof value !== "object") {
+    return "";
+  }
+
+  return (
+    String(value[language] || "").trim() ||
+    String(value.ka || "").trim() ||
+    String(value.en || "").trim()
+  );
+}
+
+function toHotelFormRows(hotels = []) {
+  if (!Array.isArray(hotels)) {
+    return [];
+  }
+
+  return hotels
+    .map((hotel, index) => ({
+      id: String(hotel?.id || `hotel-${index + 1}`).trim() || `hotel-${index + 1}`,
+      name: getAdminHotelTextValue(hotel?.name),
+      location: getAdminHotelTextValue(hotel?.location),
+      mealPlan: getAdminHotelTextValue(hotel?.mealPlan),
+      stars: hotel?.stars ? String(hotel.stars) : "",
+      link: String(hotel?.link || "").trim(),
+      images: normalizeTourImageSources(Array.isArray(hotel?.images) ? hotel.images : []),
+    }))
+    .filter((hotel) =>
+      hotel.name ||
+      hotel.location ||
+      hotel.mealPlan ||
+      hotel.stars ||
+      hotel.link ||
+      hotel.images.length > 0
+    );
+}
+
+function createNextHotelId(hotels = []) {
+  const usedIds = new Set(hotels.map((hotel) => String(hotel?.id || "").trim()));
+  let index = hotels.length + 1;
+  let nextId = `hotel-${index}`;
+
+  while (usedIds.has(nextId)) {
+    index += 1;
+    nextId = `hotel-${index}`;
+  }
+
+  return nextId;
+}
+
+function buildHotelsPayload(hotels = []) {
+  return hotels
+    .map((hotel) => {
+      const stars = Number(hotel.stars);
+      const normalizedHotel = {
+        id: String(hotel.id || "").trim(),
+        name: String(hotel.name || "").trim(),
+        location: String(hotel.location || "").trim(),
+        mealPlan: String(hotel.mealPlan || "").trim(),
+        stars: Number.isFinite(stars) && stars >= 1 && stars <= 5 ? Math.round(stars) : "",
+        link: String(hotel.link || "").trim(),
+        images: normalizeTourImageSources(
+          Array.isArray(hotel.images) ? hotel.images : []
+        ).slice(0, MAX_TOUR_HOTEL_IMAGES),
+      };
+
+      return normalizedHotel;
+    })
+    .filter((hotel) =>
+      hotel.name ||
+      hotel.location ||
+      hotel.mealPlan ||
+      hotel.stars ||
+      hotel.link ||
+      hotel.images.length > 0
+    );
+}
+
+function getPersistedHotelIds(tours = [], editingId = "") {
+  const tour = tours.find((item) => item.id === editingId);
+
+  if (!tour || !Array.isArray(tour.hotels)) {
+    return [];
+  }
+
+  return tour.hotels
+    .map((hotel) => String(hotel?.id || "").trim())
+    .filter(Boolean);
 }
 
 function getTourImageLimitMessage(language) {
@@ -417,6 +531,7 @@ export default function AdminPage() {
   const [reviewActionId, setReviewActionId] = useState("");
   const [bookingRequestActionId, setBookingRequestActionId] = useState("");
   const [bookingActionId, setBookingActionId] = useState("");
+  const [hotelImageActionId, setHotelImageActionId] = useState("");
   const [activeAdminTab, setActiveAdminTab] = useState(ADMIN_TAB_IDS.dashboard);
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [imageFiles, setImageFiles] = useState([]);
@@ -600,6 +715,7 @@ export default function AdminPage() {
     setForm(createEmptyForm());
     setImageFiles([]);
     setImageInputKey((currentKey) => currentKey + 1);
+    setHotelImageActionId("");
 
     if (typeof window !== "undefined") {
       window.localStorage.removeItem(TOKEN_STORAGE_KEY);
@@ -731,6 +847,7 @@ export default function AdminPage() {
     setForm(createEmptyForm());
     setSlugManuallyEdited(false);
     setImageFiles([]);
+    setHotelImageActionId("");
     setImageInputKey((currentKey) => currentKey + 1);
   };
 
@@ -776,6 +893,10 @@ export default function AdminPage() {
       return t("admin.errors.priceInvalid");
     }
 
+    if (!String(form.currency || "").trim()) {
+      return language === "en" ? "Currency is required." : "\u10D5\u10D0\u10DA\u10E3\u10E2\u10D0 \u10D0\u10E3\u10EA\u10D8\u10DA\u10D4\u10D1\u10D4\u10DA\u10D8\u10D0.";
+    }
+
     if (!form.slug.trim()) {
       return getTourSlugRequiredMessage(language);
     }
@@ -792,6 +913,39 @@ export default function AdminPage() {
 
     if (galleryImageCount > MAX_TOUR_IMAGES) {
       return getTourImageLimitMessage(language);
+    }
+
+    const duplicateHotelIds = new Set();
+    const duplicateHotel = (Array.isArray(form.hotels) ? form.hotels : []).find(
+      (hotel) => {
+        const hotelId = String(hotel?.id || "").trim();
+
+        if (!hotelId) {
+          return true;
+        }
+
+        if (duplicateHotelIds.has(hotelId)) {
+          return true;
+        }
+
+        duplicateHotelIds.add(hotelId);
+        return false;
+      }
+    );
+
+    if (duplicateHotel) {
+      return language === "en"
+        ? "Each hotel needs a unique id."
+        : "\u10E7\u10D5\u10D4\u10DA\u10D0 \u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10E1 \u10E3\u10DC\u10D3\u10D0 \u10F0\u10E5\u10DD\u10DC\u10D3\u10D4\u10E1 \u10E3\u10DC\u10D8\u10D9\u10D0\u10DA\u10E3\u10E0\u10D8 ID.";
+    }
+
+    const hotelWithTooManyImages = (Array.isArray(form.hotels) ? form.hotels : [])
+      .find((hotel) => Array.isArray(hotel?.images) && hotel.images.length > MAX_TOUR_HOTEL_IMAGES);
+
+    if (hotelWithTooManyImages) {
+      return language === "en"
+        ? `A hotel can have at most ${MAX_TOUR_HOTEL_IMAGES} images.`
+        : `\u10D4\u10E0\u10D7 \u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10D6\u10D4 \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10E3\u10DB ${MAX_TOUR_HOTEL_IMAGES} \u10E4\u10DD\u10E2\u10DD\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0 \u10E8\u10D4\u10D8\u10EB\u10DA\u10D4\u10D1\u10D0.`;
     }
 
     return null;
@@ -814,6 +968,7 @@ export default function AdminPage() {
         en: form.descriptionEn.trim(),
       },
       price: Number(form.price),
+      currency: String(form.currency || "GEL").trim().toUpperCase(),
       duration: {
         ka: form.durationKa.trim(),
         en: form.durationEn.trim(),
@@ -825,6 +980,7 @@ export default function AdminPage() {
       slug: normalizeTourSlug(form.slug),
       image: galleryImages[0] || "",
       images: galleryImages,
+      hotels: buildHotelsPayload(form.hotels),
     };
   };
 
@@ -978,6 +1134,272 @@ export default function AdminPage() {
         [section]: nextRows.length > 0 ? nextRows : [createEmptyLocalizedItem()],
       };
     });
+  };
+
+  const updateHotelRows = (updater) => {
+    setForm((previousForm) => {
+      const hotels = Array.isArray(previousForm.hotels) ? previousForm.hotels : [];
+
+      return {
+        ...previousForm,
+        hotels: updater(hotels),
+      };
+    });
+  };
+
+  const handleAddHotel = () => {
+    updateHotelRows((hotels) => [
+      ...hotels,
+      createEmptyHotelFormRow(createNextHotelId(hotels)),
+    ]);
+    setError("");
+    setSuccess("");
+  };
+
+  const handleRemoveHotel = (hotelId) => {
+    updateHotelRows((hotels) => hotels.filter((hotel) => hotel.id !== hotelId));
+    setError("");
+    setSuccess("");
+  };
+
+  const handleHotelFieldChange = (hotelId, field, value) => {
+    updateHotelRows((hotels) =>
+      hotels.map((hotel) =>
+        hotel.id === hotelId
+          ? {
+              ...hotel,
+              [field]: field === "id" ? value.replace(/[^A-Za-z0-9_-]/g, "") : value,
+            }
+          : hotel
+      )
+    );
+  };
+
+  const getHotelUploadErrorMessage = (requestError) => {
+    const statusCode = requestError.response?.status;
+    const apiCode = requestError.response?.data?.code;
+    const apiDetails = requestError.response?.data?.details;
+
+    if (statusCode === 401) {
+      return t("admin.errors.loginFailed");
+    }
+
+    if (apiCode === "INVALID_FILE_TYPE" || apiCode === "IMAGE_VALIDATION_FAILED") {
+      return apiDetails ||
+        (language === "en"
+          ? "Only JPG, JPEG, PNG, or WebP hotel images are allowed."
+          : "\u10DB\u10EE\u10DD\u10DA\u10DD\u10D3 JPG, JPEG, PNG \u10D0\u10DC WebP \u10E4\u10DD\u10E0\u10DB\u10D0\u10E2\u10D8\u10E1 \u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10E1 \u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8\u10D0 \u10D3\u10D0\u10E8\u10D5\u10D4\u10D1\u10E3\u10DA\u10D8.");
+    }
+
+    if (apiCode === "FILE_TOO_LARGE" || statusCode === 413) {
+      return t("admin.errors.fileTooLarge");
+    }
+
+    if (apiCode === "TOO_MANY_HOTEL_IMAGES") {
+      return apiDetails ||
+        (language === "en"
+          ? `A hotel can have at most ${MAX_TOUR_HOTEL_IMAGES} images.`
+          : `\u10D4\u10E0\u10D7 \u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10D6\u10D4 \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10E3\u10DB ${MAX_TOUR_HOTEL_IMAGES} \u10E4\u10DD\u10E2\u10DD\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0 \u10E8\u10D4\u10D8\u10EB\u10DA\u10D4\u10D1\u10D0.`);
+    }
+
+    if (apiCode === "HOTEL_NOT_FOUND") {
+      return apiDetails ||
+        (language === "en"
+          ? "Save this hotel before uploading images."
+          : "\u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0\u10DB\u10D3\u10D4 \u10E8\u10D4\u10D8\u10DC\u10D0\u10EE\u10D4\u10D7 \u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD.");
+    }
+
+    return apiDetails ||
+      (language === "en"
+        ? "Hotel image action failed."
+        : "\u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10E1 \u10E4\u10DD\u10E2\u10DD\u10E1 \u10DB\u10DD\u10E5\u10DB\u10D4\u10D3\u10D4\u10D1\u10D0 \u10D5\u10D4\u10E0 \u10DB\u10DD\u10EE\u10D4\u10E0\u10EE\u10D3\u10D0.");
+  };
+
+  const handleHotelImagesUpload = async (hotelId, files) => {
+    const nextFiles = Array.from(files || []);
+    const currentHotel = (Array.isArray(form.hotels) ? form.hotels : []).find(
+      (hotel) => hotel.id === hotelId
+    );
+
+    if (!editingId) {
+      setError(
+        language === "en"
+          ? "Hotel photo upload will be available after saving the tour."
+          : "\u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0 \u10E8\u10D4\u10E1\u10D0\u10EB\u10DA\u10D4\u10D1\u10D4\u10DA\u10D8 \u10D8\u10E5\u10DC\u10D4\u10D1\u10D0 \u10E2\u10E3\u10E0\u10D8\u10E1 \u10E8\u10D4\u10DC\u10D0\u10EE\u10D5\u10D8\u10E1 \u10E8\u10D4\u10DB\u10D3\u10D4\u10D2."
+      );
+      setSuccess("");
+      return false;
+    }
+
+    if (!currentHotel) {
+      setError(
+        language === "en"
+          ? "Choose a saved hotel before uploading images."
+          : "\u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0\u10DB\u10D3\u10D4 \u10D0\u10D8\u10E0\u10E9\u10D8\u10D4\u10D7 \u10E8\u10D4\u10DC\u10D0\u10EE\u10E3\u10DA\u10D8 \u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD."
+      );
+      setSuccess("");
+      return false;
+    }
+
+    if (nextFiles.length === 0) {
+      return false;
+    }
+
+    if (
+      (Array.isArray(currentHotel.images) ? currentHotel.images.length : 0) +
+        nextFiles.length >
+      MAX_TOUR_HOTEL_IMAGES
+    ) {
+      setError(
+        language === "en"
+          ? `A hotel can have at most ${MAX_TOUR_HOTEL_IMAGES} images.`
+          : `\u10D4\u10E0\u10D7 \u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10D6\u10D4 \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10E3\u10DB ${MAX_TOUR_HOTEL_IMAGES} \u10E4\u10DD\u10E2\u10DD\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0 \u10E8\u10D4\u10D8\u10EB\u10DA\u10D4\u10D1\u10D0.`
+      );
+      setSuccess("");
+      return false;
+    }
+
+    if (nextFiles.some((nextFile) => !ALLOWED_IMAGE_UPLOAD_TYPES.has(nextFile.type))) {
+      setError(
+        language === "en"
+          ? "Only JPG, JPEG, PNG, or WebP hotel images are allowed."
+          : "\u10DB\u10EE\u10DD\u10DA\u10DD\u10D3 JPG, JPEG, PNG \u10D0\u10DC WebP \u10E4\u10DD\u10E0\u10DB\u10D0\u10E2\u10D8\u10E1 \u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10E1 \u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8\u10D0 \u10D3\u10D0\u10E8\u10D5\u10D4\u10D1\u10E3\u10DA\u10D8."
+      );
+      setSuccess("");
+      return false;
+    }
+
+    if (nextFiles.some((nextFile) => nextFile.size > HOTEL_IMAGE_UPLOAD_MAX_BYTES)) {
+      setError(t("admin.errors.fileTooLarge"));
+      setSuccess("");
+      return false;
+    }
+
+    setHotelImageActionId(hotelId);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await uploadTourHotelImages(token, editingId, hotelId, nextFiles);
+      const nextHotel = response?.hotel;
+
+      updateHotelRows((hotels) =>
+        hotels.map((hotel) =>
+          hotel.id === hotelId
+            ? {
+                ...hotel,
+                images: normalizeTourImageSources(
+                  Array.isArray(nextHotel?.images)
+                    ? nextHotel.images
+                    : [
+                        ...(Array.isArray(hotel.images) ? hotel.images : []),
+                        ...(Array.isArray(response?.imageUrls)
+                          ? response.imageUrls
+                          : [response?.imageUrl].filter(Boolean)),
+                      ]
+                ),
+              }
+            : hotel
+        )
+      );
+      setTours((previousTours) =>
+        previousTours.map((tour) =>
+          tour.id === editingId && response?.tour ? response.tour : tour
+        )
+      );
+      setSuccess(
+        language === "en"
+          ? "Hotel images uploaded."
+          : "\u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10E1 \u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8 \u10D0\u10D8\u10E2\u10D5\u10D8\u10E0\u10D7\u10D0."
+      );
+      return true;
+    } catch (requestError) {
+      if (requestError.response?.status === 401) {
+        clearSession();
+      }
+
+      setError(getHotelUploadErrorMessage(requestError));
+      return false;
+    } finally {
+      setHotelImageActionId("");
+    }
+  };
+
+  const handleRemoveHotelImage = async (hotelId, imagePath) => {
+    const normalizedPath = String(imagePath || "").trim();
+    const isVpsHotelImage =
+      normalizedPath.startsWith("/uploads/tours/hotels/") ||
+      normalizedPath.startsWith("uploads/tours/hotels/") ||
+      /^https?:\/\/[^/]+\/uploads\/tours\/hotels\//i.test(normalizedPath);
+
+    if (!editingId || !isVpsHotelImage) {
+      updateHotelRows((hotels) =>
+        hotels.map((hotel) =>
+          hotel.id === hotelId
+            ? {
+                ...hotel,
+                images: (Array.isArray(hotel.images) ? hotel.images : []).filter(
+                  (image) => image !== imagePath
+                ),
+              }
+            : hotel
+        )
+      );
+      setError("");
+      setSuccess("");
+      return true;
+    }
+
+    setHotelImageActionId(`${hotelId}:${imagePath}`);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await deleteTourHotelImage(
+        token,
+        editingId,
+        hotelId,
+        imagePath
+      );
+      const nextHotel = response?.hotel;
+
+      updateHotelRows((hotels) =>
+        hotels.map((hotel) =>
+          hotel.id === hotelId
+            ? {
+                ...hotel,
+                images: normalizeTourImageSources(
+                  Array.isArray(nextHotel?.images)
+                    ? nextHotel.images
+                    : (Array.isArray(hotel.images) ? hotel.images : []).filter(
+                        (image) => image !== imagePath
+                      )
+                ),
+              }
+            : hotel
+        )
+      );
+      setTours((previousTours) =>
+        previousTours.map((tour) =>
+          tour.id === editingId && response?.tour ? response.tour : tour
+        )
+      );
+      setSuccess(
+        language === "en"
+          ? "Hotel image deleted."
+          : "\u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10E1 \u10E4\u10DD\u10E2\u10DD \u10EC\u10D0\u10D8\u10E8\u10D0\u10DA\u10D0."
+      );
+      return true;
+    } catch (requestError) {
+      if (requestError.response?.status === 401) {
+        clearSession();
+      }
+
+      setError(getHotelUploadErrorMessage(requestError));
+      return false;
+    } finally {
+      setHotelImageActionId("");
+    }
   };
 
   const handleTourFormChange = (event) => {
@@ -1535,6 +1957,8 @@ export default function AdminPage() {
               imageFileNames={imageFiles.map((imageFile) => imageFile.name)}
               imagePreviewUrls={imagePreviewUrls}
               imageInputKey={imageInputKey}
+              hotelImageActionId={hotelImageActionId}
+              persistedHotelIds={getPersistedHotelIds(tours, editingId)}
               onFormChange={handleTourFormChange}
               onImageFileChange={handleImageFileChange}
               onClearImageFile={clearSelectedImageFile}
@@ -1544,6 +1968,11 @@ export default function AdminPage() {
               onLocalizedItemChange={handleLocalizedItemChange}
               onAddLocalizedItem={addLocalizedItem}
               onRemoveLocalizedItem={removeLocalizedItem}
+              onAddHotel={handleAddHotel}
+              onRemoveHotel={handleRemoveHotel}
+              onHotelFieldChange={handleHotelFieldChange}
+              onHotelImagesUpload={handleHotelImagesUpload}
+              onRemoveHotelImage={handleRemoveHotelImage}
               onSubmit={handleSubmit}
               onReset={resetForm}
               onEditTour={(tour) => {
@@ -1746,20 +2175,27 @@ function ToursAdminSection({
   editing,
   form,
   galleryImages,
+  hotelImageActionId,
   imageFileNames,
   imageInputKey,
   imagePreviewUrls,
   language,
   loading,
+  persistedHotelIds,
   onAddLocalizedItem,
   onClearImageFile,
   onDeleteTour,
   onEditTour,
   onFormChange,
+  onAddHotel,
+  onHotelFieldChange,
+  onHotelImagesUpload,
   onImageFileChange,
   onLocalizedItemChange,
   onMakeCoverImage,
   onRemoveGalleryImage,
+  onRemoveHotel,
+  onRemoveHotelImage,
   onRemoveLocalizedItem,
   onRemovePendingImage,
   onReset,
@@ -1775,6 +2211,8 @@ function ToursAdminSection({
         editing={editing}
         saving={saving}
         galleryImages={galleryImages}
+        hotelImageActionId={hotelImageActionId}
+        persistedHotelIds={persistedHotelIds}
         imageFileNames={imageFileNames}
         imagePreviewUrls={imagePreviewUrls}
         imageInputKey={imageInputKey}
@@ -1787,6 +2225,11 @@ function ToursAdminSection({
         onLocalizedItemChange={onLocalizedItemChange}
         onAddLocalizedItem={onAddLocalizedItem}
         onRemoveLocalizedItem={onRemoveLocalizedItem}
+        onAddHotel={onAddHotel}
+        onRemoveHotel={onRemoveHotel}
+        onHotelFieldChange={onHotelFieldChange}
+        onHotelImagesUpload={onHotelImagesUpload}
+        onRemoveHotelImage={onRemoveHotelImage}
         onSubmit={onSubmit}
         onReset={onReset}
       />

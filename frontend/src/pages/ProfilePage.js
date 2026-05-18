@@ -773,7 +773,7 @@ function LoadingBlock({ label, compact = false }) {
 
 function formatBookingMoney(value, currency, language) {
   if (typeof value === "number") {
-    return formatCurrencyValue(value, currency || "USD", language);
+    return formatCurrencyValue(value, currency || "GEL", language);
   }
 
   return String(value || "").trim();

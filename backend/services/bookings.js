@@ -283,7 +283,7 @@ function mapBooking(documentSnapshot) {
     endDate: data.endDate || "",
     status: data.status || "",
     totalPrice: data.totalPrice || 0,
-    currency: data.currency || "",
+    currency: data.currency || "GEL",
     paidAmount: data.paidAmount || 0,
     paidPercent: data.paidPercent || 0,
     remainingAmount: data.remainingAmount || 0,
@@ -375,7 +375,7 @@ function buildPaymentUpdate(existingData, payload) {
     : normalizeNumber(existingData.paidAmount || 0);
   const currency = hasCurrency
     ? paymentUpdate.currency
-    : normalizeText(existingData.currency, 10).toUpperCase();
+    : normalizeText(existingData.currency || "GEL", 10).toUpperCase();
 
   if (!Number.isFinite(totalPrice) || totalPrice <= 0) {
     throw createBookingError(

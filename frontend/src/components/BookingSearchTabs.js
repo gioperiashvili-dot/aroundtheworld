@@ -14,9 +14,9 @@ import { useLanguage } from "../i18n/LanguageContext";
 const BOOKING_TABS = ["oneWay", "roundTrip", "hotel", "restaurant"];
 const FLIGHT_TABS = new Set(["oneWay", "roundTrip"]);
 const CURRENCY_OPTIONS = [
-  { value: "GEL", label: "GEL / ₾" },
-  { value: "USD", label: "USD / $" },
-  { value: "EUR", label: "EUR / €" },
+  { value: "GEL", ka: "\u10DA\u10D0\u10E0\u10D8 / \u20be", en: "GEL / \u20be" },
+  { value: "USD", ka: "\u10D0\u10E8\u10E8 \u10D3\u10DD\u10DA\u10D0\u10E0\u10D8 / $", en: "USD / $" },
+  { value: "EUR", ka: "\u10D4\u10D5\u10E0\u10DD / \u20ac", en: "EUR / \u20ac" },
 ];
 
 function getDefaultCurrency(language) {
@@ -307,7 +307,7 @@ export default function BookingSearchTabs({
             >
               {CURRENCY_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
-                  {option.label}
+                  {language === "ka" ? option.ka : option.en}
                 </option>
               ))}
             </select>

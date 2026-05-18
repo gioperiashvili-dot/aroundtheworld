@@ -46,6 +46,71 @@ const TOUR_SLUG_TEXT = {
   },
 };
 
+const CURRENCY_TEXT = {
+  ka: {
+    label: "\u10D5\u10D0\u10DA\u10E3\u10E2\u10D0",
+    options: {
+      GEL: "\u10DA\u10D0\u10E0\u10D8",
+      USD: "\u10D0\u10E8\u10E8 \u10D3\u10DD\u10DA\u10D0\u10E0\u10D8",
+      EUR: "\u10D4\u10D5\u10E0\u10DD",
+    },
+  },
+  en: {
+    label: "Currency",
+    options: {
+      GEL: "GEL",
+      USD: "USD",
+      EUR: "EUR",
+    },
+  },
+};
+const CURRENCY_OPTIONS = ["GEL", "USD", "EUR"];
+
+const HOTEL_MANAGER_TEXT = {
+  ka: {
+    title: "\u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10D4\u10D1\u10D8\u10E1 \u10D5\u10D0\u10E0\u10D8\u10D0\u10DC\u10E2\u10D4\u10D1\u10D8",
+    helper:
+      "\u10D3\u10D0\u10D0\u10DB\u10D0\u10E2\u10D4\u10D7 \u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10D4\u10D1\u10D8, \u10EA\u10D5\u10D4\u10DC\u10D4\u10D1\u10D8\u10E1 \u10DE\u10D8\u10E0\u10DD\u10D1\u10D4\u10D1\u10D8 \u10D3\u10D0 \u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8 \u10E2\u10E3\u10E0\u10D8\u10E1 \u10D3\u10D4\u10E2\u10D0\u10DA\u10E3\u10E0 \u10D2\u10D5\u10D4\u10E0\u10D3\u10D6\u10D4 \u10E1\u10D0\u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10DA\u10D0\u10D3.",
+    addHotel: "+ \u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10E1 \u10D3\u10D0\u10DB\u10D0\u10E2\u10D4\u10D1\u10D0",
+    removeHotel: "\u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0",
+    id: "ID",
+    name: "\u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10E1 \u10E1\u10D0\u10EE\u10D4\u10DA\u10D8",
+    location: "\u10DA\u10DD\u10D9\u10D0\u10EA\u10D8\u10D0",
+    mealPlan: "\u10D9\u10D5\u10D4\u10D1\u10D0",
+    stars: "\u10D5\u10D0\u10E0\u10E1\u10D9\u10D5\u10DA\u10D0\u10D5\u10D4\u10D1\u10D8",
+    link: "\u10D1\u10DB\u10E3\u10DA\u10D8",
+    images: "\u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10E1 \u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8",
+    chooseImages: "\u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0",
+    uploadAfterSave:
+      "\u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0 \u10E8\u10D4\u10E1\u10D0\u10EB\u10DA\u10D4\u10D1\u10D4\u10DA\u10D8 \u10D8\u10E5\u10DC\u10D4\u10D1\u10D0 \u10E2\u10E3\u10E0\u10D8\u10E1 \u10E8\u10D4\u10DC\u10D0\u10EE\u10D5\u10D8\u10E1 \u10E8\u10D4\u10DB\u10D3\u10D4\u10D2.",
+    uploadHelper:
+      "\u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10E3\u10DB 12 \u10E4\u10DD\u10E2\u10DD \u10D4\u10E0\u10D7 \u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10D6\u10D4. JPG, JPEG, PNG \u10D0\u10DC WebP.",
+    removeImage: "\u10E4\u10DD\u10E2\u10DD\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0",
+    noHotels:
+      "\u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10D4\u10D1\u10D8 \u10EF\u10D4\u10E0 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1 \u10D3\u10D0\u10DB\u10D0\u10E2\u10D4\u10D1\u10E3\u10DA\u10D8.",
+    uploading: "\u10D8\u10E2\u10D5\u10D8\u10E0\u10D7\u10D4\u10D1\u10D0...",
+  },
+  en: {
+    title: "Hotel Options",
+    helper: "Add hotels, meal plans, and photos for the public tour detail page.",
+    addHotel: "+ Add hotel",
+    removeHotel: "Remove hotel",
+    id: "ID",
+    name: "Hotel name",
+    location: "Location",
+    mealPlan: "Meal plan",
+    stars: "Stars",
+    link: "Link",
+    images: "Hotel images",
+    chooseImages: "Upload images",
+    uploadAfterSave: "Photo upload will be available after saving the tour.",
+    uploadHelper: "Maximum 12 photos per hotel. JPG, JPEG, PNG, or WebP.",
+    removeImage: "Remove image",
+    noHotels: "No hotels added yet.",
+    uploading: "Uploading...",
+  },
+};
+
 function getTourImageText(language, key) {
   return TOUR_IMAGE_TEXT[language]?.[key] || TOUR_IMAGE_TEXT.en[key] || key;
 }
@@ -54,11 +119,21 @@ function getTourSlugText(language, key) {
   return TOUR_SLUG_TEXT[language]?.[key] || TOUR_SLUG_TEXT.en[key] || key;
 }
 
+function getCurrencyText(language) {
+  return CURRENCY_TEXT[language] || CURRENCY_TEXT.en;
+}
+
+function getHotelManagerText(language, key) {
+  return HOTEL_MANAGER_TEXT[language]?.[key] || HOTEL_MANAGER_TEXT.en[key] || key;
+}
+
 export default function AdminTourForm({
   form,
   editing,
   saving,
   galleryImages = [],
+  hotelImageActionId = "",
+  persistedHotelIds = [],
   imageFileNames = [],
   imagePreviewUrls = [],
   imageInputKey,
@@ -71,6 +146,11 @@ export default function AdminTourForm({
   onLocalizedItemChange,
   onAddLocalizedItem,
   onRemoveLocalizedItem,
+  onAddHotel,
+  onRemoveHotel,
+  onHotelFieldChange,
+  onHotelImagesUpload,
+  onRemoveHotelImage,
   onSubmit,
   onReset,
 }) {
@@ -93,6 +173,7 @@ export default function AdminTourForm({
     ) || t("admin.previewSubtitle");
   const previewImages = [...galleryImages, ...imagePreviewUrls];
   const hasSelectedImages = imagePreviewUrls.length > 0;
+  const currencyText = getCurrencyText(language);
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
@@ -320,6 +401,25 @@ export default function AdminTourForm({
 
           <label className="space-y-2">
             <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              {currencyText.label}
+            </span>
+            <select
+              name="currency"
+              value={form.currency || "GEL"}
+              onChange={onChange}
+              disabled={saving}
+              className={inputClassName}
+            >
+              {CURRENCY_OPTIONS.map((currency) => (
+                <option key={currency} value={currency}>
+                  {currencyText.options[currency]}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="space-y-2">
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
               {getTourSlugText(language, "label")}
             </span>
             <input
@@ -480,6 +580,20 @@ export default function AdminTourForm({
             t={t}
           />
         </div>
+
+        <HotelOptionsEditor
+          hotels={form.hotels}
+          language={language}
+          saving={saving}
+          editing={editing}
+          persistedHotelIds={persistedHotelIds}
+          hotelImageActionId={hotelImageActionId}
+          onAddHotel={onAddHotel}
+          onRemoveHotel={onRemoveHotel}
+          onHotelFieldChange={onHotelFieldChange}
+          onHotelImagesUpload={onHotelImagesUpload}
+          onRemoveHotelImage={onRemoveHotelImage}
+        />
 
         <button
           type="submit"
@@ -644,5 +758,233 @@ function LocalizedItemsEditor({
         {addLabel}
       </button>
     </section>
+  );
+}
+
+function HotelOptionsEditor({
+  hotels = [],
+  language,
+  saving,
+  editing,
+  persistedHotelIds = [],
+  hotelImageActionId,
+  onAddHotel,
+  onRemoveHotel,
+  onHotelFieldChange,
+  onHotelImagesUpload,
+  onRemoveHotelImage,
+}) {
+  const visibleHotels = Array.isArray(hotels) ? hotels : [];
+  const persistedIds = new Set(persistedHotelIds);
+
+  return (
+    <section className="space-y-4 rounded-[1.6rem] border border-[#efe4d4] bg-[#faf4ea] p-4 dark:border-white/10 dark:bg-slate-800/70">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h4 className="[font-family:var(--font-display)] text-xl font-semibold text-slate-950 dark:text-white">
+            {getHotelManagerText(language, "title")}
+          </h4>
+          <p className="mt-2 text-xs leading-6 text-slate-600 dark:text-slate-400">
+            {getHotelManagerText(language, "helper")}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={onAddHotel}
+          disabled={saving}
+          className="shrink-0 rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 dark:disabled:bg-slate-700 dark:disabled:text-slate-300"
+        >
+          {getHotelManagerText(language, "addHotel")}
+        </button>
+      </div>
+
+      {visibleHotels.length === 0 ? (
+        <div className="rounded-[1.25rem] border border-dashed border-[#d9c8ae] bg-white px-4 py-5 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+          {getHotelManagerText(language, "noHotels")}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {visibleHotels.map((hotel, hotelIndex) => {
+            const images = Array.isArray(hotel.images) ? hotel.images : [];
+            const isUploading = hotelImageActionId === hotel.id;
+            const canUploadImages = editing && persistedIds.has(hotel.id);
+
+            return (
+              <article
+                key={hotel.id || hotelIndex}
+                className="space-y-4 rounded-[1.35rem] border border-[#efe4d4] bg-white p-4 dark:border-slate-700 dark:bg-slate-900"
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                    {getHotelManagerText(language, "title")} #{hotelIndex + 1}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => onRemoveHotel?.(hotel.id)}
+                    disabled={saving}
+                    className="self-start rounded-full bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-rose-500/10 dark:text-rose-200 dark:hover:bg-rose-500/20 sm:self-auto"
+                  >
+                    {getHotelManagerText(language, "removeHotel")}
+                  </button>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <HotelInput
+                    label={getHotelManagerText(language, "id")}
+                    value={hotel.id}
+                    disabled={saving || persistedIds.has(hotel.id)}
+                    onChange={(value) => onHotelFieldChange?.(hotel.id, "id", value)}
+                  />
+                  <HotelInput
+                    label={getHotelManagerText(language, "name")}
+                    value={hotel.name}
+                    disabled={saving}
+                    onChange={(value) => onHotelFieldChange?.(hotel.id, "name", value)}
+                  />
+                  <HotelInput
+                    label={getHotelManagerText(language, "location")}
+                    value={hotel.location}
+                    disabled={saving}
+                    onChange={(value) =>
+                      onHotelFieldChange?.(hotel.id, "location", value)
+                    }
+                  />
+                  <HotelInput
+                    label={getHotelManagerText(language, "mealPlan")}
+                    value={hotel.mealPlan}
+                    disabled={saving}
+                    onChange={(value) =>
+                      onHotelFieldChange?.(hotel.id, "mealPlan", value)
+                    }
+                  />
+
+                  <label className="space-y-2">
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                      {getHotelManagerText(language, "stars")}
+                    </span>
+                    <select
+                      value={hotel.stars || ""}
+                      onChange={(event) =>
+                        onHotelFieldChange?.(hotel.id, "stars", event.target.value)
+                      }
+                      disabled={saving}
+                      className={inputClassName}
+                    >
+                      <option value="">-</option>
+                      {[1, 2, 3, 4, 5].map((stars) => (
+                        <option key={stars} value={stars}>
+                          {stars}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <HotelInput
+                    label={getHotelManagerText(language, "link")}
+                    value={hotel.link}
+                    disabled={saving}
+                    placeholder="https://..."
+                    onChange={(value) => onHotelFieldChange?.(hotel.id, "link", value)}
+                  />
+                </div>
+
+                <div className="space-y-3 rounded-[1.15rem] border border-[#efe4d4] bg-[#faf4ea] p-3 dark:border-white/10 dark:bg-slate-800/70">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                        {getHotelManagerText(language, "images")}
+                      </p>
+                      <p className="mt-1 text-xs leading-6 text-slate-600 dark:text-slate-400">
+                        {canUploadImages
+                          ? getHotelManagerText(language, "uploadHelper")
+                          : getHotelManagerText(language, "uploadAfterSave")}
+                      </p>
+                    </div>
+
+                    <label className={`inline-flex shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      canUploadImages && !saving
+                        ? "cursor-pointer bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
+                        : "cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-300"
+                    }`}>
+                      {isUploading
+                        ? getHotelManagerText(language, "uploading")
+                        : getHotelManagerText(language, "chooseImages")}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        multiple
+                        disabled={!canUploadImages || saving || isUploading}
+                        onChange={(event) => {
+                          const files = Array.from(event.target.files || []);
+                          void onHotelImagesUpload?.(hotel.id, files);
+                          event.target.value = "";
+                        }}
+                        className="sr-only"
+                      />
+                    </label>
+                  </div>
+
+                  {images.length > 0 ? (
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {images.map((image) => {
+                        const isDeleting = hotelImageActionId === `${hotel.id}:${image}`;
+
+                        return (
+                          <div
+                            key={image}
+                            className="overflow-hidden rounded-[1rem] border border-[#efe4d4] bg-white dark:border-slate-700 dark:bg-slate-900"
+                          >
+                            <TravelImage
+                              image={image}
+                              title={hotel.name}
+                              subtitle={hotel.location}
+                              variant="tour"
+                              className="h-28"
+                            />
+                            <div className="space-y-2 p-3">
+                              <p className="truncate text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                {image}
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => onRemoveHotelImage?.(hotel.id, image)}
+                                disabled={saving || isDeleting}
+                                className="rounded-full bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-rose-500/10 dark:text-rose-200 dark:hover:bg-rose-500/20"
+                              >
+                                {isDeleting
+                                  ? getHotelManagerText(language, "uploading")
+                                  : getHotelManagerText(language, "removeImage")}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function HotelInput({ label, value, disabled, placeholder = "", onChange }) {
+  return (
+    <label className="space-y-2">
+      <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+        {label}
+      </span>
+      <input
+        value={value || ""}
+        placeholder={placeholder}
+        onChange={(event) => onChange(event.target.value)}
+        disabled={disabled}
+        className={inputClassName}
+      />
+    </label>
   );
 }
