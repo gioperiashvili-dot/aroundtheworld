@@ -51,6 +51,40 @@
       "/uploads/tours/tour-1778454693275-c10ce4f47dbd4080.webp",
       "/uploads/tours/tour-1778454693275-7d2fd4dcc5836e96.webp"
     ],
+    "hotels": [
+      {
+        "id": "stratos-hotel",
+        "name": "Stratos Hotel",
+        "location": "Halkidiki",
+        "mealPlan": "BB",
+        "link": "https://www.booking.com/Share-UJAcP3c",
+        "images": []
+      },
+      {
+        "id": "naias-beach-hotel",
+        "name": "Naias Beach Hotel",
+        "location": "Halkidiki",
+        "mealPlan": "BB",
+        "link": "https://www.booking.com/Share-DJioBav",
+        "images": []
+      },
+      {
+        "id": "flegra-palace",
+        "name": "Flegra Palace",
+        "location": "Halkidiki",
+        "mealPlan": "BB",
+        "link": "https://www.booking.com/Share-7FHoA4J",
+        "images": []
+      },
+      {
+        "id": "alia-palace-hotel",
+        "name": "Alia Palace Hotel",
+        "location": "Halkidiki",
+        "mealPlan": "HB",
+        "link": "https://www.booking.com/Share-rGc3Fw",
+        "images": []
+      }
+    ],
     "createdAt": "2026-05-10T23:11:34.273Z",
     "updatedAt": "2026-05-10T23:11:34.273Z"
   },

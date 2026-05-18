@@ -24,6 +24,8 @@ google-credentials*.json
 credentials.json
 
 # uploads / private files
+backend/tmp/*.json
+!backend/tmp/manual-booking.example.json
 backend/uploads/bookings/
 uploads/bookings/
 **/uploads/bookings/

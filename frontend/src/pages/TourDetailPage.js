@@ -11,6 +11,7 @@ import SEO, {
   buildTourSeoDescription,
 } from "../components/SEO";
 import TourDescription from "../components/TourDescription";
+import TourHotelsSection from "../components/TourHotelsSection";
 import TravelImage from "../components/TravelImage";
 import backgroundOne from "../assets/background/background-1-page.webp";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
@@ -515,6 +516,10 @@ export default function TourDetailPage() {
             ) : null}
           </aside>
         </section>
+      ) : null}
+
+      {!loading && !error && tour ? (
+        <TourHotelsSection hotels={tour.hotels} language={language} />
       ) : null}
 
       {!loading && !error && tour ? (

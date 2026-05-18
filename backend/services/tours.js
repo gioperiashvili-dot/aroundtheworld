@@ -157,6 +157,101 @@ function normalizeLocalizedListField(value) {
   };
 }
 
+function normalizeHotelLink(value) {
+  if (typeof value !== "string" || !value.trim()) {
+    return "";
+  }
+
+  const trimmedValue = value.trim();
+
+  try {
+    const parsedUrl = new URL(trimmedValue);
+    return ["http:", "https:"].includes(parsedUrl.protocol) ? parsedUrl.toString() : "";
+  } catch (_error) {
+    return "";
+  }
+}
+
+function normalizeHotelRecord(record, index) {
+  if (!record || typeof record !== "object" || Array.isArray(record)) {
+    return null;
+  }
+
+  const name =
+    typeof record.name === "string"
+      ? record.name.trim()
+      : normalizeLocalizedField(record.name);
+  const hasName =
+    typeof name === "string"
+      ? Boolean(name)
+      : Boolean(name.ka || name.en);
+
+  if (!hasName) {
+    return null;
+  }
+
+  const stars = Number(record.stars);
+  const normalizedHotel = {
+    id: String(record.id || `hotel-${index + 1}`).trim() || `hotel-${index + 1}`,
+    name,
+    location:
+      typeof record.location === "string"
+        ? record.location.trim()
+        : normalizeLocalizedField(record.location),
+    mealPlan:
+      typeof record.mealPlan === "string"
+        ? record.mealPlan.trim()
+        : normalizeLocalizedField(record.mealPlan),
+    stars: Number.isFinite(stars) && stars > 0 ? Math.min(Math.round(stars), 5) : null,
+    link: normalizeHotelLink(record.link),
+    images: normalizeImages(record.images),
+  };
+
+  if (!hasLocalizedOrPlainText(normalizedHotel.location)) {
+    delete normalizedHotel.location;
+  }
+
+  if (!hasLocalizedOrPlainText(normalizedHotel.mealPlan)) {
+    delete normalizedHotel.mealPlan;
+  }
+
+  if (!normalizedHotel.stars) {
+    delete normalizedHotel.stars;
+  }
+
+  if (!normalizedHotel.link) {
+    delete normalizedHotel.link;
+  }
+
+  if (normalizedHotel.images.length === 0) {
+    normalizedHotel.images = [];
+  }
+
+  return normalizedHotel;
+}
+
+function hasLocalizedOrPlainText(value) {
+  if (typeof value === "string") {
+    return Boolean(value.trim());
+  }
+
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  return Boolean(String(value.ka || "").trim() || String(value.en || "").trim());
+}
+
+function normalizeTourHotels(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map(normalizeHotelRecord)
+    .filter(Boolean);
+}
+
 function getTourSlugSource(record) {
   const title = normalizeLocalizedField(record?.title);
   const destination = normalizeLocalizedField(record?.destination);
@@ -219,8 +314,9 @@ function ensureUniqueTourSlugs(tours) {
 function normalizeTourRecord(record) {
   const tourImages = getTourImages(record);
   const slug = normalizeTourSlug(record?.slug) || createTourSlug(getTourSlugSource(record));
+  const hotels = normalizeTourHotels(record?.hotels);
 
-  return {
+  const normalizedTour = {
     id: String(record?.id || ""),
     slug,
     title: normalizeLocalizedField(record?.title),
@@ -238,6 +334,12 @@ function normalizeTourRecord(record) {
     createdAt: record?.createdAt || null,
     updatedAt: record?.updatedAt || null,
   };
+
+  if (hotels.length > 0) {
+    normalizedTour.hotels = hotels;
+  }
+
+  return normalizedTour;
 }
 
 function validateTourInput(input) {

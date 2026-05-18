@@ -34,6 +34,10 @@ export function resolveApiUrl(value) {
 export function resolvePublicAssetUrl(value) {
   const source = String(value || "").trim();
 
+  if (source.startsWith("uploads/")) {
+    return resolveApiUrl(`/${source}`);
+  }
+
   if (!source.startsWith("/uploads/")) {
     return source;
   }

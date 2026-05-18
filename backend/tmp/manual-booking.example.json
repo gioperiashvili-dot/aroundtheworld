@@ -1,0 +1,22 @@
+{
+  "uid": "UHH1WJaaF6Toqv7yaiZUaMxJ5hH2",
+  "customerEmail": "",
+  "customerName": "",
+  "phone": "",
+  "title": "ისრაელის ინდივიდუალური ტურ პაკეტი",
+  "tourTitle": "ისრაელის ინდივიდუალური ტურ პაკეტი",
+  "category": "custom",
+  "description": "ინდივიდუალურად შედგენილი ისრაელის ტურისტული პაკეტი: ავიაბილეთები, სასტუმრო და სამოგზაურო დოკუმენტები.",
+  "status": "active",
+  "totalPrice": 0,
+  "currency": "USD",
+  "paidAmount": 0,
+  "includes": [
+    "ავიაბილეთები",
+    "სასტუმრო",
+    "სამოგზაურო დოკუმენტები"
+  ],
+  "adminNote": "Manual custom booking created for Israel package.",
+  "startDate": "",
+  "endDate": ""
+}
