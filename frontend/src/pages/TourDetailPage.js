@@ -13,7 +13,6 @@ import SEO, {
 import TourDescription from "../components/TourDescription";
 import TourHotelsSection from "../components/TourHotelsSection";
 import TravelImage from "../components/TravelImage";
-import backgroundOne from "../assets/background/background-1-page.webp";
 import { getLocalized, useLanguage } from "../i18n/LanguageContext";
 import { fetchTourById, submitTourBookingRequest } from "../lib/api";
 import {
@@ -380,7 +379,6 @@ export default function TourDetailPage() {
 
   return (
     <PublicPageShell
-      backgroundImage={backgroundOne}
       eyebrow={t("tours.detailLabel")}
       title={title || t("tours.heading")}
       description={destination || t("tours.heroDescription")}

@@ -3,7 +3,6 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useFirebaseAuth } from "../auth/FirebaseAuthContext";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { buildCanonicalUrl } from "../components/SEO";
-import backgroundThree from "../assets/background/background-3-page.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 import {
   ensureUserProfile,
@@ -354,7 +353,6 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <PublicPageShell
-        backgroundImage={backgroundThree}
         eyebrow={text.eyebrow}
         title={text.title}
         description={text.description}
@@ -371,7 +369,6 @@ export default function ProfilePage() {
 
   return (
     <PublicPageShell
-      backgroundImage={backgroundThree}
       eyebrow={text.eyebrow}
       title={text.title}
       description={text.description}

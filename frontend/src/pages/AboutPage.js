@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
-import backgroundFour from "../assets/background/background-4-page.webp";
 import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE_192.webp";
 import skyscannerLogo from "../assets/partners/skyscanner-320.webp";
 import tripadvisorLogo from "../assets/partners/tripadvisor-220.webp";
@@ -281,7 +280,6 @@ export default function AboutPage() {
 
   return (
     <PublicPageShell
-      backgroundImage={backgroundFour}
       eyebrow={content.eyebrow}
       title={content.title}
       description={content.description}

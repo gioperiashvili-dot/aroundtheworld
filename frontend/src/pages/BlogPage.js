@@ -5,7 +5,6 @@ import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
 import TravelImage from "../components/TravelImage";
-import backgroundThree from "../assets/background/background-3-page.webp";
 import giorgiAvatar from "../assets/dpp/G-96.webp";
 import vitoAvatar from "../assets/dpp/V-96.webp";
 import zuraAvatar from "../assets/dpp/Z-96.webp";
@@ -107,7 +106,6 @@ export default function BlogPage() {
 
   return (
     <PublicPageShell
-      backgroundImage={backgroundThree}
       eyebrow={heroContent.eyebrow}
       title={heroContent.title}
       description={heroContent.description}

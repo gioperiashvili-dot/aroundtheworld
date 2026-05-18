@@ -36,37 +36,16 @@ export default function HomePage({ seoPage = "home" }) {
   ];
 
   return (
-    <div className="relative isolate min-h-screen overflow-hidden bg-[#111111] text-white transition-colors">
+    <div className="aw-page-background relative isolate min-h-screen overflow-x-hidden text-white transition-colors">
       <SEO {...seoMetadata} structuredData={structuredData} />
 
       <section className="relative z-10 px-3 py-4 sm:px-5 sm:py-7 lg:py-10">
         <div className="mx-auto w-full max-w-[1500px] bg-[#171717] px-4 pb-8 pt-4 shadow-[0_34px_110px_-48px_rgba(0,0,0,0.95)] sm:px-6 sm:pb-10 sm:pt-5 lg:px-8">
           <Navbar variant="home" />
 
-          <div className="relative mt-7 overflow-hidden bg-black shadow-[0_26px_90px_-54px_rgba(0,0,0,0.95)]">
+          <div className="aw-hero-gradient relative mt-7 overflow-hidden bg-black shadow-[0_26px_90px_-54px_rgba(0,0,0,0.95)]">
             <div className="relative h-[22rem] sm:h-[28rem] lg:h-[31rem] xl:h-[34rem]">
-              <picture>
-                <source
-                  media="(max-width: 640px)"
-                  srcSet="/images/home-hero-720.webp"
-                  width="720"
-                  height="480"
-                />
-                <img
-                  src="/images/home-hero-960.webp"
-                  srcSet="/images/home-hero-960.webp 960w, /images/home-hero-1440.webp 1440w"
-                  sizes="(min-width: 1024px) 1440px, 960px"
-                  alt=""
-                  width="1440"
-                  height="960"
-                  loading="eager"
-                  decoding="async"
-                  fetchPriority="high"
-                  className="absolute inset-0 h-full w-full object-cover"
-                  aria-hidden="true"
-                />
-              </picture>
-              <div className="absolute inset-0 bg-black/54" />
+              <div className="absolute inset-0 bg-black/24" />
               <div className="absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(180deg,rgba(0,0,0,0)_0%,rgba(0,0,0,0.62)_100%)]" />
 
               <div className="relative z-10 flex h-full flex-col items-center justify-center px-5 text-center">

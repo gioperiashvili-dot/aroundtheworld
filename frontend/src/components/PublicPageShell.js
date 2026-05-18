@@ -2,7 +2,6 @@ import Navbar from "./Navbar";
 import PublicFooter from "./PublicFooter";
 
 export default function PublicPageShell({
-  backgroundImage,
   title,
   description,
   highlights = [],
@@ -24,21 +23,9 @@ export default function PublicPageShell({
     : "-mt-16";
 
   return (
-    <div className="relative isolate min-h-screen overflow-hidden bg-[var(--aw-bg)] text-white transition-colors">
+    <div className="aw-page-background relative isolate min-h-screen overflow-x-hidden text-white transition-colors">
       <div className="pointer-events-none absolute inset-0">
-        {backgroundImage ? (
-          <img
-            src={backgroundImage}
-            alt=""
-            width="1440"
-            height="960"
-            loading="eager"
-            decoding="async"
-            className="absolute inset-0 h-full w-full object-cover"
-            aria-hidden="true"
-          />
-        ) : null}
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,17,17,0.24)_0%,rgba(17,17,17,0.42)_38%,rgba(17,17,17,0.84)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,8,8,0.08)_0%,rgba(7,8,8,0.26)_42%,rgba(7,8,8,0.58)_100%)]" />
       </div>
 
       <section className="relative z-10">

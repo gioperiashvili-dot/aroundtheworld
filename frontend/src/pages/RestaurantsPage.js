@@ -6,7 +6,6 @@ import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
 import RestaurantCard from "../components/RestaurantCard";
 import SEO, { PAGE_SEO } from "../components/SEO";
-import backgroundOne from "../assets/background/background-6.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 import { fetchRestaurants } from "../lib/api";
 import { getFriendlyApiError } from "../lib/formatters";
@@ -88,7 +87,6 @@ export default function RestaurantsPage() {
 
   return (
     <PublicPageShell
-      backgroundImage={backgroundOne}
       eyebrow={heroContent.eyebrow}
       title={heroContent.title}
       description={t("restaurants.heroDescription")}

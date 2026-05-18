@@ -1,6 +1,5 @@
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
-import backgroundOne from "../assets/background/background-1-page.webp";
 import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE_192.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 import { contactDetails, getEmailHref, getPhoneHref, getWhatsAppHref } from "../lib/contact";
@@ -52,7 +51,6 @@ export default function ContactPage() {
 
   return (
     <PublicPageShell
-      backgroundImage={backgroundOne}
       eyebrow={t("contact.eyebrow")}
       title={t("contact.title")}
       description={t("contact.description")}

@@ -5,7 +5,6 @@ import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
 import TourCard from "../components/TourCard";
-import backgroundTwo from "../assets/background/background-2-page.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 import { fetchTours } from "../lib/api";
 import { getFriendlyApiError } from "../lib/formatters";
@@ -217,7 +216,6 @@ export default function ToursPage() {
 
   return (
     <PublicPageShell
-      backgroundImage={backgroundTwo}
       eyebrow={heroContent.eyebrow}
       title={heroContent.title}
       description={heroContent.description}

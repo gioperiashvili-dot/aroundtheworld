@@ -59,6 +59,21 @@ body {
   min-height: 100vh;
 }
 
+.aw-page-background {
+  background:
+    radial-gradient(circle at top left, rgba(245, 184, 0, 0.14), transparent 34rem),
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.06), transparent 28rem),
+    radial-gradient(circle at 50% 120%, rgba(245, 184, 0, 0.08), transparent 32rem),
+    linear-gradient(135deg, #070808 0%, #101312 45%, #17140c 100%);
+}
+
+.aw-hero-gradient {
+  background:
+    radial-gradient(circle at 50% 28%, rgba(245, 184, 0, 0.2), transparent 24rem),
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.08), transparent 18rem),
+    linear-gradient(135deg, #080909 0%, #111412 55%, #211a09 100%);
+}
+
 .page-loader {
   position: fixed;
   inset: 0;

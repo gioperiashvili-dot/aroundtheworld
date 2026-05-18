@@ -5,7 +5,6 @@ import EmptyState from "../components/EmptyState";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
-import backgroundTwo from "../assets/background/background-7.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 import { fetchFlights, submitFlightBookingRequest } from "../lib/api";
 import {
@@ -776,7 +775,6 @@ export default function FlightsPage() {
 
   return (
     <PublicPageShell
-      backgroundImage={backgroundTwo}
       eyebrow={heroContent.eyebrow}
       title={heroContent.title}
       description={t("flights.heroDescription")}

@@ -6,7 +6,6 @@ import HotelCard from "../components/HotelCard";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
-import backgroundOne from "../assets/background/background-4-page.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 import { fetchHotels } from "../lib/api";
 import { getFriendlyApiError } from "../lib/formatters";
@@ -110,7 +109,6 @@ export default function HotelsPage() {
 
   return (
     <PublicPageShell
-      backgroundImage={backgroundOne}
       eyebrow={heroContent.eyebrow}
       title={heroContent.title}
       description={t("hotels.heroDescription")}

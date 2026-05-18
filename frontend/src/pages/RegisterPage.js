@@ -3,7 +3,6 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useFirebaseAuth } from "../auth/FirebaseAuthContext";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { buildCanonicalUrl } from "../components/SEO";
-import backgroundTwo from "../assets/background/background-6.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 import { getAuthErrorMessage } from "../lib/authMessages";
 
@@ -134,7 +133,6 @@ export default function RegisterPage() {
 
   return (
     <PublicPageShell
-      backgroundImage={backgroundTwo}
       eyebrow={text.eyebrow}
       title={text.title}
       description={text.description}
