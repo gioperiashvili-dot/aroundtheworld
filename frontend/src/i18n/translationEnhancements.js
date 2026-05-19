@@ -710,6 +710,8 @@ Object.assign(translationEnhancements.ka.tours, {
     errors: {
       required: "შეავსეთ სახელი, ელ. ფოსტა და ტელეფონი.",
       email: "შეიყვანეთ სწორი ელ. ფოსტა.",
+      terms:
+        "გთხოვთ, მოთხოვნის გაგზავნამდე გაეცნოთ და დაეთანხმოთ წესებს და პირობებს.",
       sendFailed: "მოთხოვნის გაგზავნა ვერ მოხერხდა. სცადეთ ხელახლა.",
       emailNotConfigured:
         "მოთხოვნის გაგზავნა დროებით მიუწვდომელია. გთხოვთ დაგვიკავშირდეთ info@aroundworld.ge-ზე.",
@@ -741,6 +743,8 @@ Object.assign(translationEnhancements.en.tours, {
     errors: {
       required: "Please enter your name, email, and phone.",
       email: "Please enter a valid email address.",
+      terms:
+        "Please read and accept the Terms & Conditions before submitting your request.",
       sendFailed: "We could not send your request. Please try again.",
       emailNotConfigured:
         "Request sending is temporarily unavailable. Please contact info@aroundworld.ge.",
@@ -980,6 +984,8 @@ Object.assign(translationEnhancements.ka.flights, {
     errors: {
       required: "შეავსეთ სახელი, ელ. ფოსტა და ტელეფონი.",
       email: "შეიყვანეთ სწორი ელ. ფოსტა.",
+      terms:
+        "გთხოვთ, მოთხოვნის გაგზავნამდე გაეცნოთ და დაეთანხმოთ წესებს და პირობებს.",
       sendFailed: "მოთხოვნის გაგზავნა ვერ მოხერხდა. სცადეთ ხელახლა.",
       emailNotConfigured:
         "მოთხოვნის გაგზავნა დროებით მიუწვდომელია. გთხოვთ დაგვიკავშირდეთ info@aroundworld.ge-ზე.",
@@ -1018,6 +1024,8 @@ Object.assign(translationEnhancements.en.flights, {
     errors: {
       required: "Please enter your name, email, and phone.",
       email: "Please enter a valid email address.",
+      terms:
+        "Please read and accept the Terms & Conditions before submitting your request.",
       sendFailed: "We could not send your request. Please try again.",
       emailNotConfigured:
         "Request sending is temporarily unavailable. Please contact info@aroundworld.ge.",

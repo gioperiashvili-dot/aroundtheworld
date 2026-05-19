@@ -15,6 +15,7 @@ import {
   formatDateTimeLabel,
   getFriendlyApiError,
 } from "../lib/formatters";
+import { aroundWorldPageBackground } from "../lib/pageBackgrounds";
 
 const LOCAL_REVIEW_AVATARS = {
   "zura karsanauli": zuraAvatar,
@@ -109,6 +110,7 @@ export default function BlogPage() {
       eyebrow={heroContent.eyebrow}
       title={heroContent.title}
       description={heroContent.description}
+      backgroundImage={aroundWorldPageBackground}
       compactHero
     >
       <SEO {...PAGE_SEO.blog} />

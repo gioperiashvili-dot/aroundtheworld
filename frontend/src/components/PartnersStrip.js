@@ -7,8 +7,8 @@ import tripadvisorLogo from "../assets/partners/tripadvisor-220.webp";
 const GROUPS = [
   {
     title: {
-      ka: "აკრედიტებული წევრი",
-      en: "Accredited Member",
+      ka: "სერვის პარტნიორები",
+      en: "service partners",
     },
     logos: [
       { name: "Skyscanner", src: skyscannerLogo, width: 320, height: 97 },

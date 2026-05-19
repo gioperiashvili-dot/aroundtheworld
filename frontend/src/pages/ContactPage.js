@@ -3,6 +3,7 @@ import SEO, { PAGE_SEO } from "../components/SEO";
 import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE_192.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 import { contactDetails, getEmailHref, getPhoneHref, getWhatsAppHref } from "../lib/contact";
+import { aroundWorldPageBackground } from "../lib/pageBackgrounds";
 
 export default function ContactPage() {
   const { t } = useLanguage();
@@ -54,6 +55,7 @@ export default function ContactPage() {
       eyebrow={t("contact.eyebrow")}
       title={t("contact.title")}
       description={t("contact.description")}
+      backgroundImage={aroundWorldPageBackground}
     >
       <SEO {...PAGE_SEO.contact} />
       <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">

@@ -1,11 +1,14 @@
 import { Link } from "react-router-dom";
+import footerLogo from "../assets/AroundTheWorld_128.png";
 import { useLanguage } from "../i18n/LanguageContext";
 import { openCookieSettings } from "../lib/cookieConsent";
 import { contactDetails, getEmailHref, getPhoneHref, getWhatsAppHref } from "../lib/contact";
+import {
+  COOKIE_POLICY_HREF,
+  PRIVACY_POLICY_HREF,
+  TERMS_CONDITIONS_HREF,
+} from "../lib/legalDocuments";
 
-const PRIVACY_POLICY_HREF = "/Around_The_World_Privacy_Policy.pdf";
-const TERMS_CONDITIONS_HREF = "/Around_The_World_Terms_and_Conditions.pdf";
-const COOKIE_POLICY_HREF = "/Around_The_World_Cookie_Policy.pdf";
 const FOOTER_YEAR = 2026;
 const FOOTER_ADDRESS = "თბილისი: სამამულო ომის გმირების ქუჩა #97";
 const SECONDARY_PHONE = "+995 568 94 22 81";
@@ -62,9 +65,20 @@ export default function PublicFooter() {
       <div className="overflow-hidden rounded-t-[2.25rem] border border-white/10 bg-[var(--aw-panel)] text-white shadow-[0_34px_120px_-56px_rgba(0,0,0,0.95)]">
         <div className="grid gap-10 border-b border-white/10 px-6 py-10 sm:px-8 lg:grid-cols-[1.2fr_0.8fr_0.9fr_1.15fr] lg:px-10">
           <div>
-            <h2 className="[font-family:var(--font-display)] text-2xl font-semibold">
-              Around The World
-            </h2>
+            <div className="flex items-center gap-4">
+              <img
+                src={footerLogo}
+                alt="Around The World"
+                width="128"
+                height="128"
+                loading="lazy"
+                decoding="async"
+                className="h-14 w-14 shrink-0 object-contain"
+              />
+              <h2 className="[font-family:var(--font-display)] text-2xl font-semibold">
+                Around The World
+              </h2>
+            </div>
             <p className="mt-4 max-w-sm text-sm leading-7 text-slate-300">
               {isEnglish
                 ? "Plan your trip easily with Around The World."

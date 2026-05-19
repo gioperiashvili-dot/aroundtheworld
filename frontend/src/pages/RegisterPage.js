@@ -5,6 +5,7 @@ import PublicPageShell from "../components/PublicPageShell";
 import SEO, { buildCanonicalUrl } from "../components/SEO";
 import { useLanguage } from "../i18n/LanguageContext";
 import { getAuthErrorMessage } from "../lib/authMessages";
+import { aroundWorldPageBackground } from "../lib/pageBackgrounds";
 
 const REGISTER_TEXT = {
   ka: {
@@ -136,6 +137,7 @@ export default function RegisterPage() {
       eyebrow={text.eyebrow}
       title={text.title}
       description={text.description}
+      backgroundImage={aroundWorldPageBackground}
       compactHero
     >
       <SEO

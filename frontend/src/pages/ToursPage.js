@@ -8,6 +8,7 @@ import TourCard from "../components/TourCard";
 import { useLanguage } from "../i18n/LanguageContext";
 import { fetchTours } from "../lib/api";
 import { getFriendlyApiError } from "../lib/formatters";
+import { aroundWorldPageBackground } from "../lib/pageBackgrounds";
 import { buildBreadcrumbStructuredData } from "../lib/structuredData";
 
 function normalize(value) {
@@ -219,6 +220,7 @@ export default function ToursPage() {
       eyebrow={heroContent.eyebrow}
       title={heroContent.title}
       description={heroContent.description}
+      backgroundImage={aroundWorldPageBackground}
       highlights={Array.isArray(heroContent.highlights) ? heroContent.highlights : []}
       compactHero
     >

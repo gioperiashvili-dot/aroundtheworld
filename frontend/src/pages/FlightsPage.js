@@ -5,6 +5,8 @@ import EmptyState from "../components/EmptyState";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
+import TermsConsentCheckbox from "../components/TermsConsentCheckbox";
+import TermsPreviewModal from "../components/TermsPreviewModal";
 import { useLanguage } from "../i18n/LanguageContext";
 import { fetchFlights, submitFlightBookingRequest } from "../lib/api";
 import {
@@ -17,6 +19,7 @@ import {
   formatTimeLabel,
   getFriendlyApiError,
 } from "../lib/formatters";
+import { buildTermsConsentPayload } from "../lib/legalDocuments";
 import { buildWebPageStructuredData } from "../lib/structuredData";
 
 const SORT_OPTIONS = ["recommended", "cheapest", "fastest", "earliest"];
@@ -593,6 +596,8 @@ export default function FlightsPage() {
   });
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
   const [bookingError, setBookingError] = useState("");
+  const [bookingTermsAccepted, setBookingTermsAccepted] = useState(false);
+  const [isTermsPreviewOpen, setIsTermsPreviewOpen] = useState(false);
   const [isBookingSuccessOpen, setIsBookingSuccessOpen] = useState(false);
 
   const runSearch = useCallback(
@@ -676,11 +681,13 @@ export default function FlightsPage() {
   const openBookingModal = (flight) => {
     setBookingFlight(flight);
     setBookingError("");
+    setBookingTermsAccepted(false);
   };
 
   const closeBookingModal = useCallback(() => {
     setBookingFlight(null);
     setBookingError("");
+    setBookingTermsAccepted(false);
   }, []);
 
   const closeBookingSuccessModal = useCallback(() => {
@@ -699,6 +706,22 @@ export default function FlightsPage() {
       setBookingError("");
     }
   };
+
+  const handleBookingTermsChange = (checked) => {
+    setBookingTermsAccepted(checked);
+
+    if (bookingError) {
+      setBookingError("");
+    }
+  };
+
+  const openTermsPreview = useCallback(() => {
+    setIsTermsPreviewOpen(true);
+  }, []);
+
+  const closeTermsPreview = useCallback(() => {
+    setIsTermsPreviewOpen(false);
+  }, []);
 
   const handleBookingSubmit = async (event) => {
     event.preventDefault();
@@ -728,6 +751,11 @@ export default function FlightsPage() {
       return;
     }
 
+    if (!bookingTermsAccepted) {
+      setBookingError(t("flights.bookingRequest.errors.terms"));
+      return;
+    }
+
     setBookingSubmitting(true);
     setBookingError("");
 
@@ -736,10 +764,12 @@ export default function FlightsPage() {
         ...trimmedForm,
         selectedFlight: buildSelectedFlightPayload(bookingFlight, lastSearch, language, t),
         language,
+        ...buildTermsConsentPayload(),
       });
 
       setBookingFlight(null);
       setIsBookingSuccessOpen(true);
+      setBookingTermsAccepted(false);
       setBookingForm({
         customerName: "",
         customerEmail: "",
@@ -749,7 +779,9 @@ export default function FlightsPage() {
     } catch (requestError) {
       const apiCode = requestError.response?.data?.code;
       setBookingError(
-        apiCode === "EMAIL_NOT_CONFIGURED"
+        apiCode === "TERMS_NOT_ACCEPTED"
+          ? t("flights.bookingRequest.errors.terms")
+          : apiCode === "EMAIL_NOT_CONFIGURED"
           ? t("flights.bookingRequest.errors.emailNotConfigured")
           : getFriendlyApiError(
               requestError,
@@ -905,11 +937,14 @@ export default function FlightsPage() {
             flight={bookingFlight}
             form={bookingForm}
             error={bookingError}
+            termsAccepted={bookingTermsAccepted}
             isSubmitting={bookingSubmitting}
             lastSearch={lastSearch}
             language={language}
             t={t}
             onChange={handleBookingFieldChange}
+            onTermsChange={handleBookingTermsChange}
+            onOpenTermsPreview={openTermsPreview}
             onClose={closeBookingModal}
             onSubmit={handleBookingSubmit}
           />
@@ -918,6 +953,11 @@ export default function FlightsPage() {
         {isBookingSuccessOpen ? (
           <BookingSuccessModal t={t} onClose={closeBookingSuccessModal} />
         ) : null}
+
+        <TermsPreviewModal
+          isOpen={isTermsPreviewOpen}
+          onClose={closeTermsPreview}
+        />
 
       </section>
     </PublicPageShell>
@@ -1530,11 +1570,14 @@ function BookingRequestModal({
   flight,
   form,
   error,
+  termsAccepted,
   isSubmitting,
   lastSearch,
   language,
   t,
   onChange,
+  onTermsChange,
+  onOpenTermsPreview,
   onClose,
   onSubmit,
 }) {
@@ -1562,6 +1605,8 @@ function BookingRequestModal({
         .join(", "),
     },
   ].filter((item) => String(item.value || "").trim());
+  const termsError =
+    error === t("flights.bookingRequest.errors.terms") ? error : "";
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -1696,7 +1741,15 @@ function BookingRequestModal({
               {t("flights.bookingRequest.priceWarning")}
             </p>
 
-            {error ? (
+            <TermsConsentCheckbox
+              id="flight-booking-terms-consent"
+              checked={termsAccepted}
+              onChange={onTermsChange}
+              error={termsError}
+              onOpenTermsPreview={onOpenTermsPreview}
+            />
+
+            {error && !termsError ? (
               <p className="rounded-[1.1rem] bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 dark:bg-rose-500/10 dark:text-rose-200">
                 {error}
               </p>

@@ -37,6 +37,10 @@ const BOOKING_REQUEST_MESSAGES = {
   sendFailed:
     "We could not send your booking request right now. Please try again later.",
   payloadTooLarge: "Booking request payload is too large.",
+  termsRequired: {
+    ka: "მოთხოვნის გასაგზავნად აუცილებელია წესებსა და პირობებზე თანხმობა.",
+    en: "Terms and Conditions acceptance is required to submit the request.",
+  },
 };
 
 const SUPPORTED_CABINS = new Set([
@@ -222,6 +226,16 @@ function hasRequiredText(value) {
 
 function isPlainObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function hasAcceptedTerms(payload) {
+  return payload?.termsAccepted === true;
+}
+
+function getTermsRequiredMessage(language) {
+  return language === "ka"
+    ? BOOKING_REQUEST_MESSAGES.termsRequired.ka
+    : BOOKING_REQUEST_MESSAGES.termsRequired.en;
 }
 
 function normalizeCurrencyCode(value) {
@@ -650,6 +664,22 @@ router.post("/booking-request", async (req, res) => {
     const errorResponse = buildBookingRequestError({
       code: "VALIDATION_ERROR",
       message: BOOKING_REQUEST_MESSAGES.validation,
+      statusCode: 400,
+    });
+
+    return res.status(errorResponse.statusCode).json(errorResponse.body);
+  }
+
+  if (!hasAcceptedTerms(payload)) {
+    logFlightDiagnostic(
+      "booking request validation failed",
+      { reason: "terms not accepted" },
+      "warn"
+    );
+
+    const errorResponse = buildBookingRequestError({
+      code: "TERMS_NOT_ACCEPTED",
+      message: getTermsRequiredMessage(payload.language),
       statusCode: 400,
     });
 

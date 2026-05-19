@@ -6,6 +6,7 @@ import PartnersStrip from "../components/PartnersStrip";
 import PublicFooter from "../components/PublicFooter";
 import SEO, { PAGE_SEO } from "../components/SEO";
 import { useLanguage } from "../i18n/LanguageContext";
+import aroundWorldBg from "../assets/background/aroundworld-bg.png";
 import toursCardImage from "../assets/background/background-1-card.webp";
 import tipsCardImage from "../assets/background/background-5-card.webp";
 import planCardImage from "../assets/background/background-6-card.webp";
@@ -45,21 +46,33 @@ export default function HomePage({ seoPage = "home" }) {
 
           <div className="aw-hero-gradient relative mt-7 overflow-hidden bg-black shadow-[0_26px_90px_-54px_rgba(0,0,0,0.95)]">
             <div className="relative h-[22rem] sm:h-[28rem] lg:h-[31rem] xl:h-[34rem]">
-              <div className="absolute inset-0 bg-black/24" />
-              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(180deg,rgba(0,0,0,0)_0%,rgba(0,0,0,0.62)_100%)]" />
+              <img
+                src={aroundWorldBg}
+                alt=""
+                width="1536"
+                height="1024"
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
+                className="absolute inset-0 h-full w-full object-cover"
+                aria-hidden="true"
+              />
+              <div className="absolute inset-0 bg-black/62 sm:bg-black/54" />
+              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.76)_0%,rgba(0,0,0,0.5)_44%,rgba(0,0,0,0.22)_100%)] sm:bg-[linear-gradient(90deg,rgba(0,0,0,0.66)_0%,rgba(0,0,0,0.42)_44%,rgba(0,0,0,0.14)_100%)]" />
+              <div className="absolute inset-x-0 bottom-0 h-2/3 bg-[linear-gradient(180deg,rgba(0,0,0,0)_0%,rgba(0,0,0,0.7)_100%)]" />
 
               <div className="relative z-10 flex h-full flex-col items-center justify-center px-5 text-center">
-              {homeTitle ? (
-                <h1 className="[font-family:var(--font-display)] max-w-[72rem] text-4xl font-black leading-tight text-white md:text-5xl lg:text-6xl">
-                  {homeTitle}
-                </h1>
-              ) : null}
+                {homeTitle ? (
+                  <h1 className="[font-family:var(--font-display)] max-w-[72rem] text-4xl font-black leading-tight text-white [text-shadow:0_4px_24px_rgba(0,0,0,0.75),0_1px_2px_rgba(0,0,0,0.9)] md:text-5xl lg:text-6xl">
+                    {homeTitle}
+                  </h1>
+                ) : null}
 
-              {homeDescription ? (
-                <p className="mx-auto mt-4 max-w-3xl text-base font-medium leading-8 text-white/88 md:text-xl">
-                  {homeDescription}
-                </p>
-              ) : null}
+                {homeDescription ? (
+                  <p className="mx-auto mt-4 max-w-3xl text-base font-medium leading-8 text-white/92 [text-shadow:0_4px_24px_rgba(0,0,0,0.75),0_1px_2px_rgba(0,0,0,0.9)] md:text-xl">
+                    {homeDescription}
+                  </p>
+                ) : null}
               </div>
             </div>
           </div>

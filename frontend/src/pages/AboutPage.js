@@ -5,6 +5,7 @@ import logoMain from "../assets/AroundTheWorld_Logo_BGREMOVE_192.webp";
 import skyscannerLogo from "../assets/partners/skyscanner-320.webp";
 import tripadvisorLogo from "../assets/partners/tripadvisor-220.webp";
 import { useLanguage } from "../i18n/LanguageContext";
+import { aroundWorldPageBackground } from "../lib/pageBackgrounds";
 
 const ABOUT_CONTENT = {
   ka: {
@@ -283,6 +284,7 @@ export default function AboutPage() {
       eyebrow={content.eyebrow}
       title={content.title}
       description={content.description}
+      backgroundImage={aroundWorldPageBackground}
       heroAside={<AboutHeroAside content={content.heroAside} />}
       compactHero
     >

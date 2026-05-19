@@ -2,10 +2,13 @@ import Navbar from "./Navbar";
 import PublicFooter from "./PublicFooter";
 
 export default function PublicPageShell({
+  backgroundImage = "",
   title,
   description,
   highlights = [],
   heroAside = null,
+  heroBody = null,
+  heroAlignTop = false,
   compactHero = false,
   tightHero = false,
   children,
@@ -21,10 +24,37 @@ export default function PublicPageShell({
       ? "-mt-2 md:-mt-3"
       : "-mt-8 md:-mt-10"
     : "-mt-16";
+  const backgroundImageHeightClassName = compactHero
+    ? tightHero
+      ? "h-[28rem] md:h-[31rem]"
+      : "h-[32rem] md:h-[36rem]"
+    : "h-[42rem] md:h-[48rem]";
+  const hasBackgroundImage = Boolean(backgroundImage);
+  const heroTextShadowClassName = hasBackgroundImage
+    ? "[text-shadow:0_4px_24px_rgba(0,0,0,0.75),0_1px_2px_rgba(0,0,0,0.9)]"
+    : "";
 
   return (
     <div className="aw-page-background relative isolate min-h-screen overflow-x-hidden text-white transition-colors">
       <div className="pointer-events-none absolute inset-0">
+        {hasBackgroundImage ? (
+          <div className={`absolute inset-x-0 top-0 overflow-hidden ${backgroundImageHeightClassName}`}>
+            <img
+              src={backgroundImage}
+              alt=""
+              width="1536"
+              height="1024"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+              className="h-full w-full object-cover object-center"
+              aria-hidden="true"
+            />
+            <div className="absolute inset-0 bg-black/64 sm:bg-black/56" />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.74)_0%,rgba(0,0,0,0.46)_44%,rgba(0,0,0,0.18)_100%)]" />
+            <div className="absolute inset-x-0 bottom-0 h-2/3 bg-[linear-gradient(180deg,rgba(0,0,0,0)_0%,rgba(7,8,8,0.88)_100%)]" />
+          </div>
+        ) : null}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,8,8,0.08)_0%,rgba(7,8,8,0.26)_42%,rgba(7,8,8,0.58)_100%)]" />
       </div>
 
@@ -35,7 +65,9 @@ export default function PublicPageShell({
           <Navbar variant="page" />
 
           <div
-            className={`grid flex-1 gap-6 lg:items-end ${
+            className={`grid flex-1 gap-6 ${
+              heroAlignTop ? "lg:items-start" : "lg:items-end"
+            } ${
               hasHeroAsideContent ? "lg:grid-cols-[1.05fr_0.95fr]" : "lg:grid-cols-1"
             } ${
               compactHero ? "mt-7" : "mt-10"
@@ -47,15 +79,16 @@ export default function PublicPageShell({
               }`}
             >
               {title ? (
-                <h1 className="[font-family:var(--font-display)] max-w-full text-4xl font-semibold leading-tight text-white md:text-5xl lg:text-6xl">
+                <h1 className={`[font-family:var(--font-display)] max-w-full text-4xl font-semibold leading-tight text-white md:text-5xl lg:text-6xl ${heroTextShadowClassName}`}>
                   {title}
                 </h1>
               ) : null}
               {description ? (
-                <p className="max-w-3xl text-base leading-8 text-white/88 md:text-lg">
+                <p className={`max-w-3xl text-base leading-8 text-white/90 md:text-lg ${heroTextShadowClassName}`}>
                   {description}
                 </p>
               ) : null}
+              {heroBody}
             </div>
 
             {heroAside ? (

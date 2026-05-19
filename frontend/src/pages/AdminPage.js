@@ -176,6 +176,8 @@ function createEmptyHotelFormRow(id = "hotel-1") {
     location: "",
     mealPlan: "",
     stars: "",
+    rating: "",
+    reviewCount: "",
     link: "",
     images: [],
   };
@@ -302,6 +304,11 @@ function toHotelFormRows(hotels = []) {
       location: getAdminHotelTextValue(hotel?.location),
       mealPlan: getAdminHotelTextValue(hotel?.mealPlan),
       stars: hotel?.stars ? String(hotel.stars) : "",
+      rating: hotel?.rating !== undefined && hotel?.rating !== null ? String(hotel.rating) : "",
+      reviewCount:
+        hotel?.reviewCount !== undefined && hotel?.reviewCount !== null
+          ? String(hotel.reviewCount)
+          : "",
       link: String(hotel?.link || "").trim(),
       images: normalizeTourImageSources(Array.isArray(hotel?.images) ? hotel.images : []),
     }))
@@ -310,6 +317,8 @@ function toHotelFormRows(hotels = []) {
       hotel.location ||
       hotel.mealPlan ||
       hotel.stars ||
+      hotel.rating ||
+      hotel.reviewCount ||
       hotel.link ||
       hotel.images.length > 0
     );
@@ -332,12 +341,20 @@ function buildHotelsPayload(hotels = []) {
   return hotels
     .map((hotel) => {
       const stars = Number(hotel.stars);
+      const rating = Number.parseFloat(String(hotel.rating || "").replace(",", "."));
+      const reviewCount = Number.parseInt(hotel.reviewCount, 10);
       const normalizedHotel = {
         id: String(hotel.id || "").trim(),
         name: String(hotel.name || "").trim(),
         location: String(hotel.location || "").trim(),
         mealPlan: String(hotel.mealPlan || "").trim(),
         stars: Number.isFinite(stars) && stars >= 1 && stars <= 5 ? Math.round(stars) : "",
+        rating:
+          Number.isFinite(rating) && rating >= 0 && rating <= 10
+            ? Math.round(rating * 10) / 10
+            : "",
+        reviewCount:
+          Number.isInteger(reviewCount) && reviewCount >= 0 ? reviewCount : "",
         link: String(hotel.link || "").trim(),
         images: normalizeTourImageSources(
           Array.isArray(hotel.images) ? hotel.images : []
@@ -351,6 +368,8 @@ function buildHotelsPayload(hotels = []) {
       hotel.location ||
       hotel.mealPlan ||
       hotel.stars ||
+      hotel.rating ||
+      hotel.reviewCount ||
       hotel.link ||
       hotel.images.length > 0
     );
@@ -946,6 +965,48 @@ export default function AdminPage() {
       return language === "en"
         ? `A hotel can have at most ${MAX_TOUR_HOTEL_IMAGES} images.`
         : `\u10D4\u10E0\u10D7 \u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10D6\u10D4 \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10E3\u10DB ${MAX_TOUR_HOTEL_IMAGES} \u10E4\u10DD\u10E2\u10DD\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0 \u10E8\u10D4\u10D8\u10EB\u10DA\u10D4\u10D1\u10D0.`;
+    }
+
+    const invalidHotelRating = (Array.isArray(form.hotels) ? form.hotels : []).find(
+      (hotel) => {
+        const ratingText = String(hotel?.rating || "").trim();
+
+        if (!ratingText) {
+          return false;
+        }
+
+        const rating = Number.parseFloat(ratingText.replace(",", "."));
+        return !Number.isFinite(rating) || rating < 0 || rating > 10;
+      }
+    );
+
+    if (invalidHotelRating) {
+      return language === "en"
+        ? "Hotel rating must be a number from 0 to 10."
+        : "\u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10E1 \u10E0\u10D4\u10D8\u10E2\u10D8\u10DC\u10D2\u10D8 \u10E3\u10DC\u10D3\u10D0 \u10D8\u10E7\u10DD\u10E1 0-\u10D3\u10D0\u10DC 10-\u10DB\u10D3\u10D4 \u10E0\u10D8\u10EA\u10EE\u10D5\u10D8.";
+    }
+
+    const invalidHotelReviewCount = (Array.isArray(form.hotels) ? form.hotels : []).find(
+      (hotel) => {
+        const reviewCountText = String(hotel?.reviewCount || "").trim();
+
+        if (!reviewCountText) {
+          return false;
+        }
+
+        const reviewCount = Number.parseInt(reviewCountText, 10);
+        return (
+          !Number.isInteger(reviewCount) ||
+          reviewCount < 0 ||
+          String(reviewCount) !== reviewCountText
+        );
+      }
+    );
+
+    if (invalidHotelReviewCount) {
+      return language === "en"
+        ? "Hotel review count must be an integer that is 0 or greater."
+        : "\u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10E1 \u10E8\u10D4\u10E4\u10D0\u10E1\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10E0\u10D0\u10DD\u10D3\u10D4\u10DC\u10DD\u10D1\u10D0 \u10E3\u10DC\u10D3\u10D0 \u10D8\u10E7\u10DD\u10E1 0 \u10D0\u10DC \u10DB\u10D4\u10E2\u10D8 \u10DB\u10D7\u10D4\u10DA\u10D8 \u10E0\u10D8\u10EA\u10EE\u10D5\u10D8.";
     }
 
     return null;

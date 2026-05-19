@@ -72,6 +72,15 @@ function normalizeTourSummary(selectedTour = {}) {
   };
 }
 
+function normalizeTermsConsent(payload = {}) {
+  return {
+    accepted: payload.termsAccepted === true ? "yes" : "no",
+    acceptedAt: normalizeText(payload.termsAcceptedAt),
+    version: normalizeText(payload.termsVersion),
+    url: normalizeText(payload.termsUrl),
+  };
+}
+
 function formatTextList(label, values, lines) {
   lines.push(`${label}:`);
 
@@ -85,7 +94,7 @@ function formatTextList(label, values, lines) {
   });
 }
 
-function buildTextEmail({ customer, tour, language }) {
+function buildTextEmail({ customer, tour, terms, language }) {
   const note =
     language === "ka"
       ? "ტურის ფასი და ხელმისაწვდომობა შეიძლება შეიცვალოს. საბოლოო პირობები უნდა დადასტურდეს დაჯავშნამდე."
@@ -104,6 +113,15 @@ function buildTextEmail({ customer, tour, language }) {
   if (customer.message) {
     lines.push(`Message: ${customer.message}`);
   }
+
+  lines.push(
+    "",
+    "Terms consent:",
+    `Terms accepted: ${terms.accepted}`,
+    `Accepted at: ${terms.acceptedAt || "Unavailable"}`,
+    `Terms version: ${terms.version || "Unavailable"}`,
+    `Terms URL: ${terms.url || "Unavailable"}`
+  );
 
   lines.push(
     "",
@@ -154,7 +172,7 @@ function listBlock(title, values) {
     </section>`;
 }
 
-function buildHtmlEmail({ customer, tour, language }) {
+function buildHtmlEmail({ customer, tour, terms, language }) {
   const title =
     language === "ka"
       ? "ახალი ტურის დაჯავშნის მოთხოვნა"
@@ -174,6 +192,14 @@ function buildHtmlEmail({ customer, tour, language }) {
         ${row("Email", customer.email)}
         ${row("Phone", customer.phone)}
         ${row("Message", customer.message)}
+      </table>
+
+      <h3 style="margin:20px 0 8px;">Terms consent</h3>
+      <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+        ${row("Terms accepted", terms.accepted)}
+        ${row("Accepted at", terms.acceptedAt)}
+        ${row("Terms version", terms.version)}
+        ${row("Terms URL", terms.url)}
       </table>
 
       <h3 style="margin:20px 0 8px;">Selected tour</h3>
@@ -206,6 +232,7 @@ async function sendTourBookingRequestEmail(payload) {
     message: normalizeText(payload.customerMessage, MAX_LONG_TEXT_LENGTH),
   };
   const tour = normalizeTourSummary(payload.selectedTour);
+  const terms = normalizeTermsConsent(payload);
   const subject =
     language === "ka"
       ? "ახალი ტურის დაჯავშნის მოთხოვნა | Around The World"
@@ -214,8 +241,8 @@ async function sendTourBookingRequestEmail(payload) {
   return sendBookingEmail({
     replyTo: customer.email,
     subject,
-    text: buildTextEmail({ customer, tour, language }),
-    html: buildHtmlEmail({ customer, tour, language }),
+    text: buildTextEmail({ customer, tour, terms, language }),
+    html: buildHtmlEmail({ customer, tour, terms, language }),
   });
 }
 

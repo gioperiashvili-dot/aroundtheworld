@@ -187,6 +187,11 @@ function normalizeHotelRecord(record, index) {
       ? record.name.trim()
       : normalizeLocalizedField(record.name);
   const stars = Number(record.stars);
+  const rating = Number.parseFloat(String(record.rating ?? "").replace(",", "."));
+  const reviewCountText = String(record.reviewCount ?? "").trim();
+  const reviewCount = /^\d+$/.test(reviewCountText)
+    ? Number.parseInt(reviewCountText, 10)
+    : Number.NaN;
   const hotelImages = normalizeImages([
     ...(Array.isArray(record.images) ? record.images : []),
     record.image,
@@ -205,6 +210,12 @@ function normalizeHotelRecord(record, index) {
         ? record.mealPlan.trim()
         : normalizeLocalizedField(record.mealPlan),
     stars: Number.isFinite(stars) && stars > 0 ? Math.min(Math.round(stars), 5) : null,
+    rating:
+      Number.isFinite(rating) && rating >= 0 && rating <= 10
+        ? Math.round(rating * 10) / 10
+        : null,
+    reviewCount:
+      Number.isInteger(reviewCount) && reviewCount >= 0 ? reviewCount : null,
     link: normalizeHotelLink(record.link),
     images: hotelImages.slice(0, MAX_TOUR_HOTEL_IMAGES),
   };
@@ -214,6 +225,8 @@ function normalizeHotelRecord(record, index) {
     hasLocalizedOrPlainText(normalizedHotel.location) ||
     hasLocalizedOrPlainText(normalizedHotel.mealPlan) ||
     Boolean(normalizedHotel.stars) ||
+    normalizedHotel.rating !== null ||
+    normalizedHotel.reviewCount !== null ||
     Boolean(normalizedHotel.link) ||
     normalizedHotel.images.length > 0;
 
@@ -231,6 +244,14 @@ function normalizeHotelRecord(record, index) {
 
   if (!normalizedHotel.stars) {
     delete normalizedHotel.stars;
+  }
+
+  if (normalizedHotel.rating === null) {
+    delete normalizedHotel.rating;
+  }
+
+  if (normalizedHotel.reviewCount === null) {
+    delete normalizedHotel.reviewCount;
   }
 
   if (!normalizedHotel.link) {

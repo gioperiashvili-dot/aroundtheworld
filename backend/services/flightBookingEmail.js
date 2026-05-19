@@ -107,7 +107,16 @@ function buildFlightSummary(selectedFlight = {}) {
   };
 }
 
-function buildTextEmail({ customer, flight, language }) {
+function normalizeTermsConsent(payload = {}) {
+  return {
+    accepted: payload.termsAccepted === true ? "yes" : "no",
+    acceptedAt: normalizeText(payload.termsAcceptedAt),
+    version: normalizeText(payload.termsVersion),
+    url: normalizeText(payload.termsUrl),
+  };
+}
+
+function buildTextEmail({ customer, flight, terms, language }) {
   const lines = [
     language === "ka"
       ? "ახალი ავიაბილეთის მოთხოვნა | Around The World"
@@ -122,6 +131,15 @@ function buildTextEmail({ customer, flight, language }) {
   if (customer.message) {
     lines.push(`Message: ${customer.message}`);
   }
+
+  lines.push(
+    "",
+    "Terms consent:",
+    `Terms accepted: ${terms.accepted}`,
+    `Accepted at: ${terms.acceptedAt || "Unavailable"}`,
+    `Terms version: ${terms.version || "Unavailable"}`,
+    `Terms URL: ${terms.url || "Unavailable"}`
+  );
 
   lines.push(
     "",
@@ -180,7 +198,7 @@ function row(label, value) {
   )}</td></tr>`;
 }
 
-function buildHtmlEmail({ customer, flight, language }) {
+function buildHtmlEmail({ customer, flight, terms, language }) {
   const title =
     language === "ka"
       ? "ახალი ავიაბილეთის მოთხოვნა"
@@ -221,6 +239,14 @@ function buildHtmlEmail({ customer, flight, language }) {
         ${row("Message", customer.message)}
       </table>
 
+      <h3 style="margin:20px 0 8px;">Terms consent</h3>
+      <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+        ${row("Terms accepted", terms.accepted)}
+        ${row("Accepted at", terms.acceptedAt)}
+        ${row("Terms version", terms.version)}
+        ${row("Terms URL", terms.url)}
+      </table>
+
       <h3 style="margin:20px 0 8px;">Selected flight</h3>
       <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
         ${row("Route", flight.route)}
@@ -252,6 +278,7 @@ async function sendFlightBookingRequestEmail(payload) {
     message: normalizeText(payload.customerMessage, MAX_LONG_TEXT_LENGTH),
   };
   const flight = buildFlightSummary(payload.selectedFlight);
+  const terms = normalizeTermsConsent(payload);
   const subject =
     language === "ka"
       ? "ახალი ავიაბილეთის მოთხოვნა | Around The World"
@@ -260,8 +287,8 @@ async function sendFlightBookingRequestEmail(payload) {
   return sendBookingEmail({
     replyTo: customer.email,
     subject,
-    text: buildTextEmail({ customer, flight, language }),
-    html: buildHtmlEmail({ customer, flight, language }),
+    text: buildTextEmail({ customer, flight, terms, language }),
+    html: buildHtmlEmail({ customer, flight, terms, language }),
   });
 }
 

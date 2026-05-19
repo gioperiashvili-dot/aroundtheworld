@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import PublicPageShell from "../components/PublicPageShell";
 import SEO, { PAGE_SEO } from "../components/SEO";
 import { useLanguage } from "../i18n/LanguageContext";
+import { aroundWorldPageBackground } from "../lib/pageBackgrounds";
 
 export default function VisaServicesPage() {
   const { t } = useLanguage();
@@ -15,6 +16,7 @@ export default function VisaServicesPage() {
       eyebrow={heroContent.eyebrow}
       title={heroContent.title}
       description={heroContent.description}
+      backgroundImage={aroundWorldPageBackground}
       highlights={Array.isArray(heroContent.highlights) ? heroContent.highlights : []}
       compactHero
     >

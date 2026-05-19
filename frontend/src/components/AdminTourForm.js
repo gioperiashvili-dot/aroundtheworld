@@ -78,6 +78,8 @@ const HOTEL_MANAGER_TEXT = {
     location: "\u10DA\u10DD\u10D9\u10D0\u10EA\u10D8\u10D0",
     mealPlan: "\u10D9\u10D5\u10D4\u10D1\u10D0",
     stars: "\u10D5\u10D0\u10E0\u10E1\u10D9\u10D5\u10DA\u10D0\u10D5\u10D4\u10D1\u10D8",
+    rating: "\u10E0\u10D4\u10D8\u10E2\u10D8\u10DC\u10D2\u10D8",
+    reviewCount: "\u10E8\u10D4\u10E4\u10D0\u10E1\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10E0\u10D0\u10DD\u10D3\u10D4\u10DC\u10DD\u10D1\u10D0",
     link: "\u10D1\u10DB\u10E3\u10DA\u10D8",
     images: "\u10E1\u10D0\u10E1\u10E2\u10E3\u10DB\u10E0\u10DD\u10E1 \u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8",
     chooseImages: "\u10E4\u10DD\u10E2\u10DD\u10D4\u10D1\u10D8\u10E1 \u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0",
@@ -100,6 +102,8 @@ const HOTEL_MANAGER_TEXT = {
     location: "Location",
     mealPlan: "Meal plan",
     stars: "Stars",
+    rating: "Rating",
+    reviewCount: "Review count",
     link: "Link",
     images: "Hotel images",
     chooseImages: "Upload images",
@@ -880,6 +884,22 @@ function HotelOptionsEditor({
                     </select>
                   </label>
 
+                  <HotelInput
+                    label={getHotelManagerText(language, "rating")}
+                    value={hotel.rating}
+                    disabled={saving}
+                    placeholder="9.1"
+                    onChange={(value) => onHotelFieldChange?.(hotel.id, "rating", value)}
+                  />
+                  <HotelInput
+                    label={getHotelManagerText(language, "reviewCount")}
+                    value={hotel.reviewCount}
+                    disabled={saving}
+                    placeholder="500"
+                    onChange={(value) =>
+                      onHotelFieldChange?.(hotel.id, "reviewCount", value)
+                    }
+                  />
                   <HotelInput
                     label={getHotelManagerText(language, "link")}
                     value={hotel.link}

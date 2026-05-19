@@ -6,9 +6,9 @@ const TEXT = {
   ka: {
     eyebrow: "განთავსება",
     title: "სასტუმროების ვარიანტები",
-    description: "იხილეთ ამ ტურისთვის ხელმისაწვდომი სასტუმროები და კვების პირობები.",
-    location: "ლოკაცია",
-    mealPlan: "კვება",
+    description: "იხილეთ ამ ტურისთვის ხელმისაწვდომი სასტუმროები.",
+    reviews: "შეფასებები",
+    rating: "რეიტინგი",
     viewHotel: "სასტუმროს ნახვა",
     noImage: "სასტუმროს ფოტო მალე დაემატება",
     previousImage: "წინა ფოტო",
@@ -17,9 +17,9 @@ const TEXT = {
   en: {
     eyebrow: "Accommodation",
     title: "Hotel Options",
-    description: "Review the hotels and meal plans available for this tour.",
-    location: "Location",
-    mealPlan: "Meal plan",
+    description: "Review the hotels available for this tour.",
+    reviews: "Reviews",
+    rating: "rating",
     viewHotel: "View Hotel",
     noImage: "Hotel photo will be added soon",
     previousImage: "Previous image",
@@ -54,6 +54,18 @@ function normalizeHotelImages(hotel) {
     .map(resolvePublicAssetUrl);
 }
 
+function normalizeRating(value) {
+  const parsedValue = Number.parseFloat(String(value ?? "").replace(",", "."));
+  return Number.isFinite(parsedValue) && parsedValue >= 0 && parsedValue <= 10
+    ? Math.round(parsedValue * 10) / 10
+    : null;
+}
+
+function normalizeReviewCount(value) {
+  const parsedValue = Number.parseInt(value, 10);
+  return Number.isInteger(parsedValue) && parsedValue >= 0 ? parsedValue : null;
+}
+
 function normalizeHotels(hotels, language) {
   if (!Array.isArray(hotels)) {
     return [];
@@ -75,6 +87,8 @@ function normalizeHotels(hotels, language) {
         location: getLocalizedHotelText(hotel?.location, language),
         mealPlan: getLocalizedHotelText(hotel?.mealPlan, language),
         stars: Number.isFinite(stars) && stars > 0 ? Math.min(Math.round(stars), 5) : null,
+        rating: normalizeRating(hotel?.rating),
+        reviewCount: normalizeReviewCount(hotel?.reviewCount),
         link: String(hotel?.link || "").trim(),
         images: normalizeHotelImages(hotel),
       };
@@ -82,7 +96,12 @@ function normalizeHotels(hotels, language) {
     .filter(Boolean);
 }
 
-export default function TourHotelsSection({ hotels = [], language = "ka" }) {
+export default function TourHotelsSection({
+  hotels = [],
+  language = "ka",
+  compact = false,
+  onImageOpen,
+}) {
   const text = TEXT[language] || TEXT.ka;
   const normalizedHotels = useMemo(
     () => normalizeHotels(hotels, language),
@@ -94,27 +113,41 @@ export default function TourHotelsSection({ hotels = [], language = "ka" }) {
   }
 
   return (
-    <section className="mt-8 rounded-[1rem] border border-white/10 bg-[#202020] p-5 text-white shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)] md:p-7">
+    <section
+      className={`rounded-[1rem] border border-white/10 bg-[#202020] text-white shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)] ${
+        compact ? "p-4" : "mt-8 p-5 md:p-7"
+      }`}
+    >
       <div className="max-w-3xl">
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
           {text.eyebrow}
         </p>
-        <h2 className="[font-family:var(--font-display)] mt-3 text-3xl font-semibold text-white">
+        <h2
+          className={`[font-family:var(--font-display)] mt-3 font-semibold text-white ${
+            compact ? "text-2xl" : "text-3xl"
+          }`}
+        >
           {text.title}
         </h2>
         <p className="mt-3 text-sm leading-7 text-white/68">{text.description}</p>
       </div>
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-2">
+      <div className={`mt-6 grid gap-5 ${compact ? "" : "lg:grid-cols-2"}`}>
         {normalizedHotels.map((hotel) => (
-          <TourHotelCard key={hotel.id} hotel={hotel} text={text} />
+          <TourHotelCard
+            key={hotel.id}
+            hotel={hotel}
+            text={text}
+            compact={compact}
+            onImageOpen={onImageOpen}
+          />
         ))}
       </div>
     </section>
   );
 }
 
-function TourHotelCard({ hotel, text }) {
+function TourHotelCard({ hotel, text, compact, onImageOpen }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [failedImages, setFailedImages] = useState(() => new Set());
   const availableImages = useMemo(
@@ -166,20 +199,33 @@ function TourHotelCard({ hotel, text }) {
     });
   };
 
+  const openImagePreview = () => {
+    if (hasImages) {
+      onImageOpen?.(availableImages, activeIndex, hotel.name);
+    }
+  };
+
   return (
     <article className="group overflow-hidden rounded-[1rem] border border-white/10 bg-[#171717] shadow-[0_26px_80px_-58px_rgba(0,0,0,0.95)] transition hover:-translate-y-0.5 hover:border-white/18">
       <div className="relative aspect-[16/10] overflow-hidden bg-[#111111]">
         {hasImages ? (
-          <img
-            src={activeImage}
-            alt={hotel.name}
-            width="960"
-            height="600"
-            loading="lazy"
-            decoding="async"
-            onError={handleImageError}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-          />
+          <button
+            type="button"
+            onClick={openImagePreview}
+            className="block h-full w-full cursor-zoom-in"
+            aria-label={`${hotel.name} preview`}
+          >
+            <img
+              src={activeImage}
+              alt={hotel.name}
+              width="960"
+              height="600"
+              loading="lazy"
+              decoding="async"
+              onError={handleImageError}
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+            />
+          </button>
         ) : (
           <div className="flex h-full w-full flex-col justify-between bg-[linear-gradient(135deg,#151515_0%,#252018_48%,#6f5200_100%)] p-5 text-white">
             <span className="w-fit rounded-full bg-[rgba(245,184,0,0.16)] px-3 py-1 text-xs font-semibold text-[var(--aw-accent)]">
@@ -222,23 +268,26 @@ function TourHotelCard({ hotel, text }) {
         ) : null}
       </div>
 
-      <div className="space-y-5 p-5">
+      <div className={`space-y-5 ${compact ? "p-4" : "p-5"}`}>
         <div>
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <h3 className="[font-family:var(--font-display)] text-2xl font-semibold leading-tight text-white">
+            <h3
+              className={`[font-family:var(--font-display)] font-semibold leading-tight text-white ${
+                compact ? "text-xl" : "text-2xl"
+              }`}
+            >
               {hotel.name}
             </h3>
             {hotel.stars ? <StarRating stars={hotel.stars} /> : null}
           </div>
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {hotel.location ? (
-              <HotelMeta label={text.location} value={hotel.location} />
-            ) : null}
-            {hotel.mealPlan ? (
-              <HotelMeta label={text.mealPlan} value={hotel.mealPlan} />
-            ) : null}
-          </div>
+          {hotel.rating !== null || hotel.reviewCount !== null ? (
+            <HotelRating
+              rating={hotel.rating}
+              reviewCount={hotel.reviewCount}
+              text={text}
+            />
+          ) : null}
         </div>
 
         {hotel.link ? (
@@ -256,13 +305,19 @@ function TourHotelCard({ hotel, text }) {
   );
 }
 
-function HotelMeta({ label, value }) {
+function HotelRating({ rating, reviewCount, text }) {
   return (
-    <div className="rounded-[0.85rem] border border-white/10 bg-[#202020] p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/48">
-        {label}
-      </p>
-      <p className="mt-2 text-sm font-semibold leading-6 text-white/82">{value}</p>
+    <div className="mt-4 flex flex-wrap items-center gap-3 rounded-[0.85rem] border border-[rgba(245,184,0,0.2)] bg-[rgba(245,184,0,0.08)] p-3">
+      {reviewCount !== null ? (
+        <span className="text-sm font-semibold text-white/72">
+          {text.reviews} ({reviewCount.toLocaleString()})
+        </span>
+      ) : null}
+      {rating !== null ? (
+        <span className="rounded-full bg-[var(--aw-accent)] px-3 py-1.5 text-sm font-black text-slate-950">
+          {rating.toFixed(1)} {text.rating}
+        </span>
+      ) : null}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useFirebaseAuth } from "../auth/FirebaseAuthContext";
 import EmptyState from "../components/EmptyState";
+import ImageLightbox from "../components/ImageLightbox";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import PublicPageShell from "../components/PublicPageShell";
 import ReviewsSection from "../components/ReviewsSection";
@@ -10,6 +11,8 @@ import SEO, {
   buildCanonicalUrl,
   buildTourSeoDescription,
 } from "../components/SEO";
+import TermsConsentCheckbox from "../components/TermsConsentCheckbox";
+import TermsPreviewModal from "../components/TermsPreviewModal";
 import TourDescription from "../components/TourDescription";
 import TourHotelsSection from "../components/TourHotelsSection";
 import TravelImage from "../components/TravelImage";
@@ -26,6 +29,8 @@ import {
   formatTourDates,
   getFriendlyApiError,
 } from "../lib/formatters";
+import { buildTermsConsentPayload } from "../lib/legalDocuments";
+import { aroundWorldPageBackground } from "../lib/pageBackgrounds";
 import {
   buildBreadcrumbStructuredData,
   buildTourProductStructuredData,
@@ -133,14 +138,22 @@ export default function TourDetailPage() {
   const [isBookingSuccessOpen, setIsBookingSuccessOpen] = useState(false);
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
   const [bookingError, setBookingError] = useState("");
+  const [isTermsPreviewOpen, setIsTermsPreviewOpen] = useState(false);
   const [bookingForm, setBookingForm] = useState({
     customerName: "",
     customerEmail: "",
     customerPhone: "",
     customerMessage: "",
   });
+  const [bookingTermsAccepted, setBookingTermsAccepted] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [lightbox, setLightbox] = useState({
+    isOpen: false,
+    images: [],
+    initialIndex: 0,
+    title: "",
+  });
 
   useEffect(() => {
     const loadTour = async () => {
@@ -252,6 +265,7 @@ export default function TourDetailPage() {
   const closeBookingModal = useCallback(() => {
     setIsBookingModalOpen(false);
     setBookingError("");
+    setBookingTermsAccepted(false);
   }, []);
 
   const closeBookingSuccessModal = useCallback(() => {
@@ -265,8 +279,31 @@ export default function TourDetailPage() {
       );
     }
 
+    setBookingTermsAccepted(false);
     setIsBookingModalOpen(true);
   }, [currentUser, userProfile]);
+
+  const openImageLightbox = useCallback((images, initialIndex = 0, lightboxTitle = "") => {
+    const imageList = Array.isArray(images) ? images.filter(Boolean) : [];
+
+    if (imageList.length === 0) {
+      return;
+    }
+
+    setLightbox({
+      isOpen: true,
+      images: imageList,
+      initialIndex,
+      title: lightboxTitle,
+    });
+  }, []);
+
+  const closeImageLightbox = useCallback(() => {
+    setLightbox((currentLightbox) => ({
+      ...currentLightbox,
+      isOpen: false,
+    }));
+  }, []);
 
   const handleBookingFieldChange = (event) => {
     const { name, value } = event.target;
@@ -280,6 +317,22 @@ export default function TourDetailPage() {
       setBookingError("");
     }
   };
+
+  const handleBookingTermsChange = (checked) => {
+    setBookingTermsAccepted(checked);
+
+    if (bookingError) {
+      setBookingError("");
+    }
+  };
+
+  const openTermsPreview = useCallback(() => {
+    setIsTermsPreviewOpen(true);
+  }, []);
+
+  const closeTermsPreview = useCallback(() => {
+    setIsTermsPreviewOpen(false);
+  }, []);
 
   const handleBookingSubmit = async (event) => {
     event.preventDefault();
@@ -309,6 +362,11 @@ export default function TourDetailPage() {
       return;
     }
 
+    if (!bookingTermsAccepted) {
+      setBookingError(t("tours.bookingRequest.errors.terms"));
+      return;
+    }
+
     setBookingSubmitting(true);
     setBookingError("");
 
@@ -328,6 +386,7 @@ export default function TourDetailPage() {
         ...trimmedForm,
         selectedTour,
         language,
+        ...buildTermsConsentPayload(),
       };
 
       await submitTourBookingRequest(requestPayload);
@@ -362,54 +421,136 @@ export default function TourDetailPage() {
       setIsBookingModalOpen(false);
       setIsBookingSuccessOpen(true);
       setBookingForm(getBookingFormDefaults(currentUser, nextUserProfile));
+      setBookingTermsAccepted(false);
     } catch (requestError) {
       const apiCode = requestError.response?.data?.code;
       setBookingError(
-        apiCode === "EMAIL_NOT_CONFIGURED"
-          ? t("tours.bookingRequest.errors.emailNotConfigured")
-          : getFriendlyApiError(
-              requestError,
-              t("tours.bookingRequest.errors.sendFailed")
-            )
+        apiCode === "TERMS_NOT_ACCEPTED"
+          ? t("tours.bookingRequest.errors.terms")
+          : apiCode === "EMAIL_NOT_CONFIGURED"
+            ? t("tours.bookingRequest.errors.emailNotConfigured")
+            : getFriendlyApiError(
+                requestError,
+                t("tours.bookingRequest.errors.sendFailed")
+              )
       );
     } finally {
       setBookingSubmitting(false);
     }
   };
 
+  const hasSideDetails = includedItems.length > 0 || notIncludedItems.length > 0;
+  const tourDetailCard =
+    !loading && !error && tour ? (
+      <article className="overflow-hidden rounded-[1rem] border border-white/10 bg-[#242424] shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)]">
+        <TourImageGallery
+          images={tourImages}
+          activeIndex={activeImageIndex}
+          title={title}
+          subtitle={destination}
+          onChange={setActiveImageIndex}
+          onImageOpen={(index) => openImageLightbox(tourImages, index, title)}
+        />
+
+        <div className="space-y-6 bg-[#202020] p-6 md:p-8">
+          <div className="grid gap-4 md:grid-cols-3">
+            <StatCard label={t("common.duration")} value={duration} />
+            <StatCard
+              label={t("common.price")}
+              value={formatCurrencyValue(tour.price, tour.currency, language)}
+            />
+            <StatCard
+              label={t("common.updated")}
+              value={
+                tour.updatedAt
+                  ? formatCalendarDate(tour.updatedAt, language)
+                  : t("common.recent")
+              }
+            />
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
+              {destination}
+            </p>
+            <h2 className="[font-family:var(--font-display)] mt-3 text-3xl font-semibold text-white">
+              {title}
+            </h2>
+            <TourDescription description={description} className="mt-4" />
+          </div>
+        </div>
+
+        {hasSideDetails ? (
+          <div className="border-t border-white/10 bg-[#202020] px-6 pb-6 pt-6 md:px-8 md:pb-8">
+            <section className="grid gap-6 xl:grid-cols-2">
+              {includedItems.length > 0 ? (
+                <TourListSection
+                  title={t("tours.includedTitle")}
+                  items={includedItems}
+                  variant="included"
+                />
+              ) : null}
+
+              {notIncludedItems.length > 0 ? (
+                <TourListSection
+                  title={t("tours.notIncludedTitle")}
+                  items={notIncludedItems}
+                  variant="notIncluded"
+                />
+              ) : null}
+            </section>
+          </div>
+        ) : null}
+      </article>
+    ) : null;
+
   return (
     <PublicPageShell
       eyebrow={t("tours.detailLabel")}
       title={title || t("tours.heading")}
       description={destination || t("tours.heroDescription")}
+      backgroundImage={aroundWorldPageBackground}
       tightHero
+      heroAlignTop
+      heroBody={tourDetailCard}
       heroAside={
-        <div className="rounded-[1rem] border border-white/10 bg-[#202020]/92 p-5 text-white shadow-[0_24px_80px_-54px_rgba(0,0,0,0.9)] backdrop-blur">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
-            {t("common.price")}
-          </p>
-          <p className="mt-3 [font-family:var(--font-display)] text-4xl font-semibold">
-            {tour ? formatCurrencyValue(tour.price, tour.currency, language) : "--"}
-          </p>
-          <p className="mt-4 text-sm leading-7 text-white/72">
-            {duration || t("common.duration")}
-          </p>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:flex-col">
-            <button
-              type="button"
-              onClick={openBookingModal}
-              disabled={!tour}
-              className="inline-flex items-center justify-center rounded-full bg-[var(--aw-accent)] px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-[var(--aw-accent-hover)] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
-            >
-              {t("tours.bookTour")}
-            </button>
-            <Link
-              to="/tours"
-              className="inline-flex items-center justify-center rounded-full border border-white/12 bg-white/8 px-4 py-2 text-sm font-semibold text-white/78 transition hover:border-[var(--aw-accent)] hover:text-white"
-            >
-              {t("tours.backToTours")}
-            </Link>
+        <div className="space-y-4">
+          <div className="rounded-[1rem] border border-white/10 bg-[#202020]/92 p-5 text-white shadow-[0_24px_80px_-54px_rgba(0,0,0,0.9)] backdrop-blur">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
+              {t("common.price")}
+            </p>
+            <p className="mt-3 [font-family:var(--font-display)] text-4xl font-semibold">
+              {tour ? formatCurrencyValue(tour.price, tour.currency, language) : "--"}
+            </p>
+            <p className="mt-4 text-sm leading-7 text-white/72">
+              {duration || t("common.duration")}
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:flex-col">
+              <button
+                type="button"
+                onClick={openBookingModal}
+                disabled={!tour}
+                className="inline-flex items-center justify-center rounded-full bg-[var(--aw-accent)] px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-[var(--aw-accent-hover)] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
+              >
+                {t("tours.bookTour")}
+              </button>
+              <Link
+                to="/tours"
+                className="inline-flex items-center justify-center rounded-full border border-white/12 bg-white/8 px-4 py-2 text-sm font-semibold text-white/78 transition hover:border-[var(--aw-accent)] hover:text-white"
+              >
+                {t("tours.backToTours")}
+              </Link>
+            </div>
           </div>
+
+          {!loading && !error && tour?.hotels?.length > 0 ? (
+            <TourHotelsSection
+              hotels={tour.hotels}
+              language={language}
+              compact
+              onImageOpen={openImageLightbox}
+            />
+          ) : null}
         </div>
       }
     >
@@ -421,103 +562,11 @@ export default function TourDetailPage() {
         image={seoImage}
         structuredData={tourStructuredData}
       />
+
       {loading ? <LoadingSkeleton count={1} className="xl:grid-cols-1" /> : null}
 
       {!loading && error ? (
         <EmptyState title={t("tours.noToursTitle")} message={error} />
-      ) : null}
-
-      {!loading && !error && tour ? (
-        <section className="grid items-start gap-6 xl:grid-cols-[1.08fr_0.92fr]">
-          <article className="overflow-hidden rounded-[1rem] border border-white/10 bg-[#242424] shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)]">
-            <TourImageGallery
-              images={tourImages}
-              activeIndex={activeImageIndex}
-              title={title}
-              subtitle={destination}
-              onChange={setActiveImageIndex}
-            />
-
-            <div className="space-y-6 bg-[#202020] p-6 md:p-8">
-              <div className="grid gap-4 md:grid-cols-3">
-                <StatCard label={t("common.duration")} value={duration} />
-                <StatCard
-                  label={t("common.price")}
-                  value={formatCurrencyValue(tour.price, tour.currency, language)}
-                />
-                <StatCard
-                  label={t("common.updated")}
-                  value={
-                    tour.updatedAt
-                      ? formatCalendarDate(tour.updatedAt, language)
-                      : t("common.recent")
-                  }
-                />
-              </div>
-
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
-                  {destination}
-                </p>
-                <h2 className="[font-family:var(--font-display)] mt-3 text-3xl font-semibold text-white">
-                  {title}
-                </h2>
-                <TourDescription description={description} className="mt-4" />
-              </div>
-            </div>
-          </article>
-
-          <aside className="space-y-6">
-            {dates.length > 0 ? (
-              <div className="rounded-[1rem] border border-white/10 bg-[#202020] p-6 shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)]">
-                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
-                  {t("tours.relatedDates")}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {dates.map((date) => (
-                    <span
-                      key={date}
-                      className="rounded-full border border-white/10 bg-white/8 px-3 py-2 text-sm font-semibold text-white/76"
-                    >
-                      {date}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
-            {tour.category ? (
-              <div className="rounded-[1rem] border border-white/10 bg-[#202020] p-6 shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)]">
-                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
-                  {t("common.category")}
-                </p>
-                <p className="mt-3 text-xl font-semibold text-white">
-                  {tour.category}
-                </p>
-              </div>
-            ) : null}
-
-            {includedItems.length > 0 ? (
-              <TourListSection
-                title={t("tours.includedTitle")}
-                items={includedItems}
-                variant="included"
-              />
-            ) : null}
-
-            {notIncludedItems.length > 0 ? (
-              <TourListSection
-                title={t("tours.notIncludedTitle")}
-                items={notIncludedItems}
-                variant="notIncluded"
-              />
-            ) : null}
-          </aside>
-        </section>
-      ) : null}
-
-      {!loading && !error && tour ? (
-        <TourHotelsSection hotels={tour.hotels} language={language} />
       ) : null}
 
       {!loading && !error && tour ? (
@@ -536,6 +585,7 @@ export default function TourDetailPage() {
           tour={tour}
           form={bookingForm}
           error={bookingError}
+          termsAccepted={bookingTermsAccepted}
           isSubmitting={bookingSubmitting}
           language={language}
           title={title}
@@ -546,6 +596,8 @@ export default function TourDetailPage() {
           notIncludedItems={notIncludedItems}
           t={t}
           onChange={handleBookingFieldChange}
+          onTermsChange={handleBookingTermsChange}
+          onOpenTermsPreview={openTermsPreview}
           onClose={closeBookingModal}
           onSubmit={handleBookingSubmit}
           emailReadOnly={Boolean(currentUser)}
@@ -555,6 +607,19 @@ export default function TourDetailPage() {
       {isBookingSuccessOpen ? (
         <TourBookingSuccessModal t={t} onClose={closeBookingSuccessModal} />
       ) : null}
+
+      <ImageLightbox
+        isOpen={lightbox.isOpen}
+        images={lightbox.images}
+        initialIndex={lightbox.initialIndex}
+        title={lightbox.title}
+        onClose={closeImageLightbox}
+      />
+
+      <TermsPreviewModal
+        isOpen={isTermsPreviewOpen}
+        onClose={closeTermsPreview}
+      />
     </PublicPageShell>
   );
 }
@@ -570,7 +635,14 @@ function StatCard({ label, value }) {
   );
 }
 
-function TourImageGallery({ images, activeIndex, title, subtitle, onChange }) {
+function TourImageGallery({
+  images,
+  activeIndex,
+  title,
+  subtitle,
+  onChange,
+  onImageOpen,
+}) {
   const hasMultipleImages = images.length > 1;
   const activeImage = images[activeIndex] || images[0] || "";
 
@@ -588,13 +660,20 @@ function TourImageGallery({ images, activeIndex, title, subtitle, onChange }) {
 
   return (
     <div className="relative">
-      <TravelImage
-        image={activeImage}
-        title={title}
-        subtitle={subtitle}
-        variant="tour"
-        className="h-[22rem] md:h-[28rem]"
-      />
+      <button
+        type="button"
+        onClick={() => onImageOpen?.(activeIndex)}
+        className="block w-full cursor-zoom-in text-left"
+        aria-label={`${title || "Tour"} image preview`}
+      >
+        <TravelImage
+          image={activeImage}
+          title={title}
+          subtitle={subtitle}
+          variant="tour"
+          className="h-[22rem] md:h-[28rem]"
+        />
+      </button>
 
       {hasMultipleImages ? (
         <>
@@ -676,6 +755,7 @@ function TourBookingRequestModal({
   tour,
   form,
   error,
+  termsAccepted,
   isSubmitting,
   emailReadOnly = false,
   language,
@@ -687,6 +767,8 @@ function TourBookingRequestModal({
   notIncludedItems,
   t,
   onChange,
+  onTermsChange,
+  onOpenTermsPreview,
   onClose,
   onSubmit,
 }) {
@@ -709,6 +791,8 @@ function TourBookingRequestModal({
     { label: t("tours.availableDates"), value: selectedTour.dates.join(", ") },
     { label: t("common.category"), value: selectedTour.category },
   ].filter((item) => String(item.value || "").trim());
+  const termsError =
+    error === t("tours.bookingRequest.errors.terms") ? error : "";
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -830,7 +914,15 @@ function TourBookingRequestModal({
               {t("tours.bookingRequest.priceWarning")}
             </p>
 
-            {error ? (
+            <TermsConsentCheckbox
+              id="tour-booking-terms-consent"
+              checked={termsAccepted}
+              onChange={onTermsChange}
+              error={termsError}
+              onOpenTermsPreview={onOpenTermsPreview}
+            />
+
+            {error && !termsError ? (
               <p className="rounded-[1.1rem] bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 dark:bg-rose-500/10 dark:text-rose-200">
                 {error}
               </p>
