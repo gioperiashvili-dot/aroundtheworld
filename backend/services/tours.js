@@ -177,6 +177,20 @@ function normalizeHotelLink(value) {
   }
 }
 
+function getHotelField(record, names) {
+  for (const name of names) {
+    if (
+      record?.[name] !== undefined &&
+      record?.[name] !== null &&
+      record?.[name] !== ""
+    ) {
+      return record[name];
+    }
+  }
+
+  return "";
+}
+
 function normalizeHotelRecord(record, index) {
   if (!record || typeof record !== "object" || Array.isArray(record)) {
     return null;
@@ -186,9 +200,15 @@ function normalizeHotelRecord(record, index) {
     typeof record.name === "string"
       ? record.name.trim()
       : normalizeLocalizedField(record.name);
-  const stars = Number(record.stars);
-  const rating = Number.parseFloat(String(record.rating ?? "").replace(",", "."));
-  const reviewCountText = String(record.reviewCount ?? "").trim();
+  const stars = Number.parseFloat(
+    String(getHotelField(record, ["stars", "starRating"]) ?? "").replace(",", ".")
+  );
+  const rating = Number.parseFloat(
+    String(getHotelField(record, ["rating", "reviewRating"]) ?? "").replace(",", ".")
+  );
+  const reviewCountText = String(
+    getHotelField(record, ["reviewCount", "reviewsCount", "review_count"]) ?? ""
+  ).replace(/[,\s]/g, "");
   const reviewCount = /^\d+$/.test(reviewCountText)
     ? Number.parseInt(reviewCountText, 10)
     : Number.NaN;

@@ -3,6 +3,7 @@ import AdminBookingsPanel from "../components/AdminBookingsPanel";
 import AdminBookingRequestsPanel from "../components/AdminBookingRequestsPanel";
 import AdminBlogManager from "../components/AdminBlogManager";
 import AdminReviewsPanel from "../components/AdminReviewsPanel";
+import AdminToast from "../components/AdminToast";
 import AdminTourForm from "../components/AdminTourForm";
 import EmptyState from "../components/EmptyState";
 import LoadingSkeleton from "../components/LoadingSkeleton";
@@ -560,6 +561,7 @@ export default function AdminPage() {
   const [bookingRequestsError, setBookingRequestsError] = useState("");
   const [bookingsError, setBookingsError] = useState("");
   const [success, setSuccess] = useState("");
+  const [adminToast, setAdminToast] = useState({ type: "success", message: "" });
   const bookingRequestMessages =
     ADMIN_BOOKING_REQUEST_MESSAGES[language] || ADMIN_BOOKING_REQUEST_MESSAGES.ka;
   const bookingMessages =
@@ -589,6 +591,28 @@ export default function AdminPage() {
 
     return nextStats;
   }, [bookings]);
+
+  useEffect(() => {
+    if (error) {
+      setAdminToast({ type: "error", message: error });
+      return;
+    }
+
+    if (success) {
+      setAdminToast({ type: "success", message: success });
+      return;
+    }
+
+    if (bookingRequestsError) {
+      setAdminToast({ type: "error", message: bookingRequestsError });
+      return;
+    }
+
+    if (bookingsError) {
+      setAdminToast({ type: "error", message: bookingsError });
+    }
+  }, [bookingsError, bookingRequestsError, error, success]);
+
   const pendingRequestCount = useMemo(
     () =>
       bookingRequests.filter((request) => request.status === "pending").length,
@@ -1129,6 +1153,12 @@ export default function AdminPage() {
         ...toGalleryFormValues(nextImages),
       };
     });
+    setError("");
+    setSuccess(
+      language === "en"
+        ? "Tour image removed. Save the tour to keep changes."
+        : "ტურის ფოტო წაიშალა. ცვლილების შესანახად შეინახეთ ტური."
+    );
   };
 
   const handleMakeCoverImage = (imageUrl) => {
@@ -1151,6 +1181,12 @@ export default function AdminPage() {
       previousFiles.filter((_imageFile, index) => index !== imageIndex)
     );
     setImageInputKey((currentKey) => currentKey + 1);
+    setError("");
+    setSuccess(
+      language === "en"
+        ? "Selected photo removed."
+        : "არჩეული ფოტო წაიშალა."
+    );
   };
 
   const handleLocalizedItemChange = (section, index, locale, value) => {
@@ -1214,13 +1250,21 @@ export default function AdminPage() {
       createEmptyHotelFormRow(createNextHotelId(hotels)),
     ]);
     setError("");
-    setSuccess("");
+    setSuccess(
+      language === "en"
+        ? "Hotel option added. Save the tour to keep changes."
+        : "სასტუმროს ვარიანტი დაემატა. ცვლილების შესანახად შეინახეთ ტური."
+    );
   };
 
   const handleRemoveHotel = (hotelId) => {
     updateHotelRows((hotels) => hotels.filter((hotel) => hotel.id !== hotelId));
     setError("");
-    setSuccess("");
+    setSuccess(
+      language === "en"
+        ? "Hotel option removed. Save the tour to keep changes."
+        : "სასტუმროს ვარიანტი წაიშალა. ცვლილების შესანახად შეინახეთ ტური."
+    );
   };
 
   const handleHotelFieldChange = (hotelId, field, value) => {
@@ -1407,7 +1451,11 @@ export default function AdminPage() {
         )
       );
       setError("");
-      setSuccess("");
+      setSuccess(
+        language === "en"
+          ? "Hotel image removed. Save the tour to keep changes."
+          : "სასტუმროს ფოტო წაიშალა. ცვლილების შესანახად შეინახეთ ტური."
+      );
       return true;
     }
 
@@ -1857,6 +1905,13 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen bg-[#f7f1e8] px-4 py-8 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
         {adminSeo}
+        <AdminToast
+          type={adminToast.type}
+          message={adminToast.message}
+          onClose={() =>
+            setAdminToast((currentToast) => ({ ...currentToast, message: "" }))
+          }
+        />
         <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl items-center">
           <section className="grid w-full overflow-hidden rounded-[2.25rem] border border-white/80 bg-[#fffdf8] p-3 shadow-[0_30px_100px_-70px_rgba(72,52,34,0.75)] dark:border-white/10 dark:bg-slate-900/90 lg:grid-cols-[0.9fr_1.1fr]">
             <div className="overflow-hidden rounded-[1.75rem]">
@@ -1929,6 +1984,13 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-[#30302f] px-3 py-5 text-slate-900 dark:bg-slate-950 dark:text-slate-100 sm:px-5 sm:py-8">
       {adminSeo}
+      <AdminToast
+        type={adminToast.type}
+        message={adminToast.message}
+        onClose={() =>
+          setAdminToast((currentToast) => ({ ...currentToast, message: "" }))
+        }
+      />
       <main className="mx-auto max-w-[1540px] overflow-hidden rounded-[2.9rem] border-[8px] border-white/10 bg-[#fff] p-4 shadow-[0_34px_120px_-54px_rgba(0,0,0,0.8)] dark:border-white/10 dark:bg-slate-900/90 sm:p-5 lg:p-6">
         <section className="rounded-[2.15rem] bg-transparent">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">

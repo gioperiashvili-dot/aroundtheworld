@@ -62,8 +62,26 @@ function normalizeRating(value) {
 }
 
 function normalizeReviewCount(value) {
-  const parsedValue = Number.parseInt(value, 10);
+  const normalizedValue = String(value ?? "").replace(/[,\s]/g, "");
+  const parsedValue = Number.parseInt(normalizedValue, 10);
   return Number.isInteger(parsedValue) && parsedValue >= 0 ? parsedValue : null;
+}
+
+function normalizeStars(value) {
+  const parsedValue = Number.parseFloat(String(value ?? "").replace(",", "."));
+  return Number.isFinite(parsedValue) && parsedValue > 0
+    ? Math.min(Math.round(parsedValue), 5)
+    : null;
+}
+
+function getHotelField(hotel, names) {
+  for (const name of names) {
+    if (hotel?.[name] !== undefined && hotel?.[name] !== null && hotel?.[name] !== "") {
+      return hotel[name];
+    }
+  }
+
+  return "";
 }
 
 function normalizeHotels(hotels, language) {
@@ -79,16 +97,16 @@ function normalizeHotels(hotels, language) {
         return null;
       }
 
-      const stars = Number(hotel?.stars);
-
       return {
         id: String(hotel?.id || `hotel-${index + 1}`),
         name,
         location: getLocalizedHotelText(hotel?.location, language),
         mealPlan: getLocalizedHotelText(hotel?.mealPlan, language),
-        stars: Number.isFinite(stars) && stars > 0 ? Math.min(Math.round(stars), 5) : null,
-        rating: normalizeRating(hotel?.rating),
-        reviewCount: normalizeReviewCount(hotel?.reviewCount),
+        stars: normalizeStars(getHotelField(hotel, ["stars", "starRating"])),
+        rating: normalizeRating(getHotelField(hotel, ["rating", "reviewRating"])),
+        reviewCount: normalizeReviewCount(
+          getHotelField(hotel, ["reviewCount", "reviewsCount", "review_count"])
+        ),
         link: String(hotel?.link || "").trim(),
         images: normalizeHotelImages(hotel),
       };
@@ -156,9 +174,11 @@ function TourHotelCard({ hotel, text, compact, onImageOpen }) {
   );
   const hasImages = availableImages.length > 0;
   const hasMultipleImages = availableImages.length > 1;
-  const activeImage =
-    availableImages[Math.min(activeIndex, Math.max(availableImages.length - 1, 0))] ||
-    "";
+  const safeActiveIndex = Math.min(
+    activeIndex,
+    Math.max(availableImages.length - 1, 0)
+  );
+  const activeImage = availableImages[safeActiveIndex] || "";
 
   useEffect(() => {
     setActiveIndex(0);
@@ -201,7 +221,7 @@ function TourHotelCard({ hotel, text, compact, onImageOpen }) {
 
   const openImagePreview = () => {
     if (hasImages) {
-      onImageOpen?.(availableImages, activeIndex, hotel.name);
+      onImageOpen?.(availableImages, safeActiveIndex, hotel.name);
     }
   };
 
@@ -240,7 +260,7 @@ function TourHotelCard({ hotel, text, compact, onImageOpen }) {
 
         {hasMultipleImages ? (
           <>
-            <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-3">
+            <div className="pointer-events-none absolute inset-y-0 left-0 right-0 flex items-center justify-between px-3">
               <HotelGalleryButton label={text.previousImage} onClick={goToPrevious}>
                 <ChevronLeftIcon />
               </HotelGalleryButton>
@@ -249,15 +269,15 @@ function TourHotelCard({ hotel, text, compact, onImageOpen }) {
               </HotelGalleryButton>
             </div>
 
-            <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-2 rounded-full bg-black/55 px-3 py-2 backdrop-blur">
+            <div className="pointer-events-none absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-2 rounded-full bg-black/55 px-3 py-2 backdrop-blur">
               {availableImages.map((image, index) => (
                 <button
                   key={`${image}-${index}`}
                   type="button"
                   aria-label={`${hotel.name} image ${index + 1}`}
                   onClick={() => setActiveIndex(index)}
-                  className={`h-2.5 w-2.5 rounded-full transition ${
-                    index === activeIndex
+                  className={`pointer-events-auto h-2.5 w-2.5 rounded-full transition ${
+                    index === safeActiveIndex
                       ? "bg-white"
                       : "bg-white/45 hover:bg-white/75"
                   }`}
@@ -281,25 +301,29 @@ function TourHotelCard({ hotel, text, compact, onImageOpen }) {
             {hotel.stars ? <StarRating stars={hotel.stars} /> : null}
           </div>
 
-          {hotel.rating !== null || hotel.reviewCount !== null ? (
-            <HotelRating
-              rating={hotel.rating}
-              reviewCount={hotel.reviewCount}
-              text={text}
-            />
-          ) : null}
-        </div>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            {hotel.rating !== null || hotel.reviewCount !== null ? (
+              <HotelRating
+                rating={hotel.rating}
+                reviewCount={hotel.reviewCount}
+                text={text}
+              />
+            ) : (
+              <span className="hidden sm:block" aria-hidden="true" />
+            )}
 
-        {hotel.link ? (
-          <a
-            href={hotel.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center rounded-full bg-[var(--aw-accent)] px-5 py-3 text-sm font-black text-slate-950 shadow-[0_18px_42px_-28px_rgba(245,184,0,0.9)] transition hover:bg-[var(--aw-accent-hover)]"
-          >
-            {text.viewHotel}
-          </a>
-        ) : null}
+            {hotel.link ? (
+              <a
+                href={hotel.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex shrink-0 items-center justify-center self-start rounded-full bg-[var(--aw-accent)] px-4 py-2.5 text-sm font-black text-slate-950 shadow-[0_18px_42px_-28px_rgba(245,184,0,0.9)] transition hover:bg-[var(--aw-accent-hover)] sm:self-auto"
+              >
+                {text.viewHotel}
+              </a>
+            ) : null}
+          </div>
+        </div>
       </div>
     </article>
   );
@@ -307,7 +331,7 @@ function TourHotelCard({ hotel, text, compact, onImageOpen }) {
 
 function HotelRating({ rating, reviewCount, text }) {
   return (
-    <div className="mt-4 flex flex-wrap items-center gap-3 rounded-[0.85rem] border border-[rgba(245,184,0,0.2)] bg-[rgba(245,184,0,0.08)] p-3">
+    <div className="flex flex-wrap items-center gap-2 rounded-[0.85rem] border border-[rgba(245,184,0,0.2)] bg-[rgba(245,184,0,0.08)] p-2.5">
       {reviewCount !== null ? (
         <span className="text-sm font-semibold text-white/72">
           {text.reviews} ({reviewCount.toLocaleString()})
@@ -341,8 +365,11 @@ function HotelGalleryButton({ label, onClick, children }) {
     <button
       type="button"
       aria-label={label}
-      onClick={onClick}
-      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-black/62 text-white shadow-lg shadow-slate-950/20 backdrop-blur transition hover:bg-[var(--aw-accent)] hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-white/30"
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick?.();
+      }}
+      className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-black/62 text-white shadow-lg shadow-slate-950/20 backdrop-blur transition hover:bg-[var(--aw-accent)] hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-white/30"
     >
       {children}
     </button>

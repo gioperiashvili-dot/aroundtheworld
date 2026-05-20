@@ -677,7 +677,7 @@ function TourImageGallery({
 
       {hasMultipleImages ? (
         <>
-          <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-3">
+          <div className="pointer-events-none absolute inset-y-0 left-0 right-0 flex items-center justify-between px-3">
             <GalleryButton label="Previous image" onClick={goToPrevious}>
               <ChevronLeftIcon />
             </GalleryButton>
@@ -686,14 +686,14 @@ function TourImageGallery({
             </GalleryButton>
           </div>
 
-          <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2 rounded-full bg-slate-950/45 px-3 py-2 backdrop-blur">
+          <div className="pointer-events-none absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2 rounded-full bg-slate-950/45 px-3 py-2 backdrop-blur">
             {images.map((image, index) => (
               <button
                 key={`${image}-${index}`}
                 type="button"
                 aria-label={`Show image ${index + 1}`}
                 onClick={() => onChange(index)}
-                className={`h-2.5 w-2.5 rounded-full transition ${
+                className={`pointer-events-auto h-2.5 w-2.5 rounded-full transition ${
                   activeIndex === index
                     ? "bg-white"
                     : "bg-white/45 hover:bg-white/75"
@@ -712,8 +712,11 @@ function GalleryButton({ label, onClick, children }) {
     <button
       type="button"
       aria-label={label}
-      onClick={onClick}
-      className="flex h-11 w-11 items-center justify-center rounded-full border border-white/12 bg-black/62 text-white shadow-lg shadow-slate-950/20 backdrop-blur transition hover:bg-[var(--aw-accent)] hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-white/30"
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick?.();
+      }}
+      className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full border border-white/12 bg-black/62 text-white shadow-lg shadow-slate-950/20 backdrop-blur transition hover:bg-[var(--aw-accent)] hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-white/30"
     >
       {children}
     </button>

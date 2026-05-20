@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import AdminToast from "./AdminToast";
 import EmptyState from "./EmptyState";
 import LoadingSkeleton from "./LoadingSkeleton";
 import TravelImage from "./TravelImage";
@@ -62,6 +63,7 @@ export default function AdminBlogManager({ token, onUnauthorized }) {
   const [imageInputKey, setImageInputKey] = useState(0);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [toast, setToast] = useState({ type: "success", message: "" });
 
   useEffect(() => {
     if (!imageFile) {
@@ -112,6 +114,17 @@ export default function AdminBlogManager({ token, onUnauthorized }) {
   useEffect(() => {
     void loadBlogs();
   }, [loadBlogs]);
+
+  useEffect(() => {
+    if (error) {
+      setToast({ type: "error", message: error });
+      return;
+    }
+
+    if (success) {
+      setToast({ type: "success", message: success });
+    }
+  }, [error, success]);
 
   const resetForm = () => {
     setEditingId("");
@@ -335,6 +348,11 @@ export default function AdminBlogManager({ token, onUnauthorized }) {
 
   return (
     <section className="space-y-6">
+      <AdminToast
+        type={toast.type}
+        message={toast.message}
+        onClose={() => setToast((currentToast) => ({ ...currentToast, message: "" }))}
+      />
       <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
         <div className="overflow-hidden rounded-[2.4rem] border border-white/80 bg-[#fffdf8]/92 shadow-[0_30px_100px_-72px_rgba(72,52,34,0.72)] dark:border-white/10 dark:bg-slate-900/88">
           <TravelImage
