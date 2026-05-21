@@ -468,29 +468,3 @@ html[data-language="ka"] .calendar-month-title {
 .premium-service-card a:hover {
   background: var(--aw-accent-hover);
 }
-
-.homepage-feature-card {
-  border-color: var(--aw-border);
-  background: var(--aw-panel-soft);
-  box-shadow: var(--aw-shadow);
-}
-
-.homepage-feature-card:hover {
-  border-color: rgba(255, 255, 255, 0.18);
-  background: #262626;
-}
-
-.homepage-feature-card__label,
-html.dark .homepage-feature-card__label {
-  color: var(--aw-accent);
-}
-
-.homepage-feature-card__title,
-html.dark .homepage-feature-card__title {
-  color: var(--aw-text);
-}
-
-.homepage-feature-card__description,
-html.dark .homepage-feature-card__description {
-  color: rgba(247, 247, 247, 0.68);
-}

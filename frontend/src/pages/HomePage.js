@@ -6,7 +6,7 @@ import PartnersStrip from "../components/PartnersStrip";
 import PublicFooter from "../components/PublicFooter";
 import SEO, { PAGE_SEO } from "../components/SEO";
 import { useLanguage } from "../i18n/LanguageContext";
-import aroundWorldBg from "../assets/background/aroundworld-bg.png";
+import aroundWorldBg from "../assets/background/aroundworld-bg.webp";
 import toursCardImage from "../assets/background/background-1-card.webp";
 import tipsCardImage from "../assets/background/background-5-card.webp";
 import planCardImage from "../assets/background/background-6-card.webp";
