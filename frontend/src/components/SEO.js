@@ -19,10 +19,15 @@ export const PAGE_SEO = {
     canonical: `${SITE_URL}/`,
   },
   tours: {
-    title: "ტურები | Around The World",
+    title: "ტურები საქართველოდან | ტურისტული სააგენტო Aroundworld",
     description:
-      "აღმოაჩინეთ ტურები და სამოგზაურო პაკეტები Around The World-თან ერთად. შეარჩიეთ მიმართულება და გაგზავნეთ ჯავშნის მოთხოვნა მარტივად.",
+      "აღმოაჩინე ტურები საქართველოდან Aroundworld.ge-ზე — დასასვენებელი, კულტურული, საოჯახო და მომლოცველთა ტურები. შეარჩიე მიმართულება და გააგზავნე ჯავშნის მოთხოვნა მარტივად.",
     canonical: `${SITE_URL}/tours`,
+    ogTitle: "ტურები საქართველოდან | Aroundworld",
+    ogDescription:
+      "Aroundworld.ge გთავაზობს ტურებს სხვადასხვა მიმართულებით, ჯავშნის მოთხოვნის მარტივ ფორმას და პერსონალურ კონსულტაციას მოგზაურობის დასაგეგმად.",
+    ogUrl: `${SITE_URL}/tours`,
+    ogType: "website",
   },
   flights: {
     title: "ავიაბილეთები | Around The World",
