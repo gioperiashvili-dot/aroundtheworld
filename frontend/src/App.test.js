@@ -443,10 +443,6 @@ test("opens and submits the tour booking request modal", async () => {
         ka: ["სასტუმრო"],
         en: ["Hotel", "Meals"],
       },
-      notIncluded: {
-        ka: ["პირადი ხარჯები"],
-        en: ["Personal expenses"],
-      },
       updatedAt: "2026-05-01T00:00:00.000Z",
     },
   });
@@ -457,8 +453,7 @@ test("opens and submits the tour booking request modal", async () => {
   expect((await screen.findAllByText("Rome Escape")).length).toBeGreaterThan(0);
   expect(screen.getByText(/included in the tour price/i)).toBeInTheDocument();
   expect(screen.getAllByText("Hotel").length).toBeGreaterThan(0);
-  expect(screen.getByText(/not included in the price/i)).toBeInTheDocument();
-  expect(screen.getAllByText("Personal expenses").length).toBeGreaterThan(0);
+  expect(screen.queryByText(/not included in the price/i)).not.toBeInTheDocument();
 
   fireEvent.click(screen.getByRole("button", { name: /book tour/i }));
   expect(
@@ -477,6 +472,7 @@ test("opens and submits the tour booking request modal", async () => {
   fireEvent.change(screen.getByLabelText(/^phone$/i), {
     target: { value: "+995555111222" },
   });
+  fireEvent.click(screen.getByLabelText(/terms & conditions/i));
 
   await act(async () => {
     fireEvent.click(screen.getByRole("button", { name: /send request/i }));
@@ -493,11 +489,13 @@ test("opens and submits the tour booking request modal", async () => {
           title: "Rome Escape",
           destination: "Tbilisi - Rome",
           included: expect.arrayContaining(["Hotel", "Meals"]),
-          notIncluded: expect.arrayContaining(["Personal expenses"]),
         }),
       })
     )
   );
+  expect(
+    submitTourBookingRequest.mock.calls[0][0].selectedTour.notIncluded
+  ).toBeUndefined();
   expect(
     await screen.findByRole("dialog", { name: /request sent/i })
   ).toBeInTheDocument();

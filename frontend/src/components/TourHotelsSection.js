@@ -9,7 +9,11 @@ const TEXT = {
     description: "იხილეთ ამ ტურისთვის ხელმისაწვდომი სასტუმროები.",
     reviews: "შეფასებები",
     rating: "რეიტინგი",
+    mealPlan: "კვება",
     viewHotel: "სასტუმროს ნახვა",
+    viewAllHotels: "ყველა სასტუმროს ნახვა",
+    showLess: "ნაკლების ჩვენება",
+    close: "დახურვა",
     noImage: "სასტუმროს ფოტო მალე დაემატება",
     previousImage: "წინა ფოტო",
     nextImage: "შემდეგი ფოტო",
@@ -20,7 +24,11 @@ const TEXT = {
     description: "Review the hotels available for this tour.",
     reviews: "Reviews",
     rating: "rating",
+    mealPlan: "Meal plan",
     viewHotel: "View Hotel",
+    viewAllHotels: "View all hotels",
+    showLess: "Show less",
+    close: "Close",
     noImage: "Hotel photo will be added soon",
     previousImage: "Previous image",
     nextImage: "Next image",
@@ -118,13 +126,49 @@ export default function TourHotelsSection({
   hotels = [],
   language = "ka",
   compact = false,
+  grid = false,
+  preview = false,
+  initialVisibleCount,
   onImageOpen,
 }) {
   const text = TEXT[language] || TEXT.ka;
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const normalizedHotels = useMemo(
     () => normalizeHotels(hotels, language),
     [hotels, language]
   );
+  const normalizedHotelKey = useMemo(
+    () => normalizedHotels.map((hotel) => hotel.id).join("|"),
+    [normalizedHotels]
+  );
+  const resolvedInitialVisibleCount =
+    typeof initialVisibleCount === "number"
+      ? initialVisibleCount
+      : preview
+        ? 3
+        : compact
+        ? 4
+        : normalizedHotels.length;
+  const shouldCollapse =
+    !preview &&
+    resolvedInitialVisibleCount > 0 &&
+    normalizedHotels.length > resolvedInitialVisibleCount;
+  const shouldShowModalButton =
+    preview &&
+    resolvedInitialVisibleCount > 0 &&
+    normalizedHotels.length > resolvedInitialVisibleCount;
+  const visibleHotels =
+    preview
+      ? normalizedHotels.slice(0, resolvedInitialVisibleCount)
+      : shouldCollapse && !isExpanded
+      ? normalizedHotels.slice(0, resolvedInitialVisibleCount)
+      : normalizedHotels;
+
+  useEffect(() => {
+    setIsExpanded(false);
+    setIsModalOpen(false);
+  }, [compact, grid, preview, initialVisibleCount, normalizedHotelKey]);
 
   if (normalizedHotels.length === 0) {
     return null;
@@ -150,8 +194,12 @@ export default function TourHotelsSection({
         <p className="mt-3 text-sm leading-7 text-white/68">{text.description}</p>
       </div>
 
-      <div className={`mt-6 grid gap-5 ${compact ? "" : "lg:grid-cols-2"}`}>
-        {normalizedHotels.map((hotel) => (
+      <div
+        className={`mt-6 grid gap-4 ${
+          grid ? "sm:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"
+        }`}
+      >
+        {visibleHotels.map((hotel) => (
           <TourHotelCard
             key={hotel.id}
             hotel={hotel}
@@ -161,7 +209,107 @@ export default function TourHotelsSection({
           />
         ))}
       </div>
+
+      {shouldShowModalButton ? (
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className="mt-5 inline-flex w-full items-center justify-center rounded-full border border-[rgba(245,184,0,0.28)] bg-[rgba(245,184,0,0.1)] px-4 py-3 text-sm font-black text-[var(--aw-accent)] transition hover:border-[var(--aw-accent)] hover:bg-[rgba(245,184,0,0.16)]"
+        >
+          {`${text.viewAllHotels} (${normalizedHotels.length})`}
+        </button>
+      ) : shouldCollapse ? (
+        <button
+          type="button"
+          onClick={() => setIsExpanded((currentValue) => !currentValue)}
+          className="mt-5 inline-flex w-full items-center justify-center rounded-full border border-[rgba(245,184,0,0.28)] bg-[rgba(245,184,0,0.1)] px-4 py-3 text-sm font-black text-[var(--aw-accent)] transition hover:border-[var(--aw-accent)] hover:bg-[rgba(245,184,0,0.16)]"
+        >
+          {isExpanded
+            ? text.showLess
+            : `${text.viewAllHotels} (${normalizedHotels.length})`}
+        </button>
+      ) : null}
+
+      {preview && isModalOpen ? (
+        <HotelOptionsModal
+          hotels={normalizedHotels}
+          text={text}
+          onClose={() => setIsModalOpen(false)}
+          onImageOpen={onImageOpen}
+        />
+      ) : null}
     </section>
+  );
+}
+
+function HotelOptionsModal({ hotels, text, onClose, onImageOpen }) {
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onClose?.();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={text.title}
+      className="fixed inset-0 z-[110] flex items-center justify-center bg-black/76 px-4 py-6 backdrop-blur-md"
+    >
+      <button
+        type="button"
+        aria-label={text.close}
+        onClick={onClose}
+        className="absolute inset-0 cursor-default"
+      />
+
+      <div className="relative z-10 flex max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-[1.25rem] border border-white/12 bg-[#151515] text-white shadow-[0_34px_120px_-48px_rgba(0,0,0,0.95)]">
+        <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-4 md:px-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
+              {text.eyebrow}
+            </p>
+            <h2 className="mt-2 [font-family:var(--font-display)] text-2xl font-semibold text-white md:text-3xl">
+              {text.title}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/8 text-xl font-semibold text-white transition hover:border-[var(--aw-accent)] hover:text-[var(--aw-accent)]"
+            aria-label={text.close}
+          >
+            x
+          </button>
+        </div>
+
+        <div className="overflow-y-auto px-5 py-5 md:px-6">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {hotels.map((hotel) => (
+              <TourHotelCard
+                key={hotel.id}
+                hotel={hotel}
+                text={text}
+                compact
+                onImageOpen={onImageOpen}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -302,8 +450,9 @@ function TourHotelCard({ hotel, text, compact, onImageOpen }) {
           </div>
 
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            {hotel.rating !== null || hotel.reviewCount !== null ? (
+            {hotel.mealPlan || hotel.rating !== null || hotel.reviewCount !== null ? (
               <HotelRating
+                mealPlan={hotel.mealPlan}
                 rating={hotel.rating}
                 reviewCount={hotel.reviewCount}
                 text={text}
@@ -329,9 +478,14 @@ function TourHotelCard({ hotel, text, compact, onImageOpen }) {
   );
 }
 
-function HotelRating({ rating, reviewCount, text }) {
+function HotelRating({ mealPlan, rating, reviewCount, text }) {
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-[0.85rem] border border-[rgba(245,184,0,0.2)] bg-[rgba(245,184,0,0.08)] p-2.5">
+      {mealPlan ? (
+        <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1.5 text-sm font-black text-white">
+          {text.mealPlan}: {mealPlan}
+        </span>
+      ) : null}
       {reviewCount !== null ? (
         <span className="text-sm font-semibold text-white/72">
           {text.reviews} ({reviewCount.toLocaleString()})

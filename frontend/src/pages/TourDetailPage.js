@@ -76,7 +76,6 @@ function buildSelectedTourPayload({
   duration,
   dates,
   includedItems,
-  notIncludedItems,
   price,
   category,
 }) {
@@ -89,7 +88,6 @@ function buildSelectedTourPayload({
     dates,
     category,
     included: includedItems,
-    notIncluded: notIncludedItems,
     detailUrl: getCurrentPageUrl(),
   };
 }
@@ -233,7 +231,6 @@ export default function TourDetailPage() {
   const duration = getLocalized(tour?.duration, language);
   const dates = formatTourDates(tour?.dates, 12, language);
   const includedItems = getLocalizedList(tour?.included, language);
-  const notIncludedItems = getLocalizedList(tour?.notIncluded, language);
   const canonical = buildCanonicalUrl(
     `/tours/${encodeURIComponent(tour?.slug || idOrSlug || "")}`
   );
@@ -378,7 +375,6 @@ export default function TourDetailPage() {
         duration,
         dates,
         includedItems,
-        notIncludedItems,
         price: formatCurrencyValue(tour.price, tour.currency, language),
         category: tour.category,
       });
@@ -439,7 +435,7 @@ export default function TourDetailPage() {
     }
   };
 
-  const hasSideDetails = includedItems.length > 0 || notIncludedItems.length > 0;
+  const hasSideDetails = includedItems.length > 0;
   const tourDetailCard =
     !loading && !error && tour ? (
       <article className="overflow-hidden rounded-[1rem] border border-white/10 bg-[#242424] shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)]">
@@ -482,20 +478,12 @@ export default function TourDetailPage() {
 
         {hasSideDetails ? (
           <div className="border-t border-white/10 bg-[#202020] px-6 pb-6 pt-6 md:px-8 md:pb-8">
-            <section className="grid gap-6 xl:grid-cols-2">
+            <section className="w-full">
               {includedItems.length > 0 ? (
                 <TourListSection
                   title={t("tours.includedTitle")}
                   items={includedItems}
                   variant="included"
-                />
-              ) : null}
-
-              {notIncludedItems.length > 0 ? (
-                <TourListSection
-                  title={t("tours.notIncludedTitle")}
-                  items={notIncludedItems}
-                  variant="notIncluded"
                 />
               ) : null}
             </section>
@@ -548,6 +536,8 @@ export default function TourDetailPage() {
               hotels={tour.hotels}
               language={language}
               compact
+              preview
+              initialVisibleCount={3}
               onImageOpen={openImageLightbox}
             />
           ) : null}
@@ -593,7 +583,6 @@ export default function TourDetailPage() {
           duration={duration}
           dates={dates}
           includedItems={includedItems}
-          notIncludedItems={notIncludedItems}
           t={t}
           onChange={handleBookingFieldChange}
           onTermsChange={handleBookingTermsChange}
@@ -727,7 +716,7 @@ function TourListSection({ title, items, variant }) {
   const isIncluded = variant === "included";
 
   return (
-    <div className="rounded-[1rem] border border-white/10 bg-[#202020] p-6 shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)]">
+    <div className="w-full rounded-[1rem] border border-white/10 bg-[#202020] p-6 shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)]">
       <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
         {title}
       </p>
@@ -767,7 +756,6 @@ function TourBookingRequestModal({
   duration,
   dates,
   includedItems,
-  notIncludedItems,
   t,
   onChange,
   onTermsChange,
@@ -782,7 +770,6 @@ function TourBookingRequestModal({
     duration,
     dates,
     includedItems,
-    notIncludedItems,
     price: formatCurrencyValue(tour.price, tour.currency, language),
     category: tour.category,
   });
@@ -868,10 +855,6 @@ function TourBookingRequestModal({
 
             {includedItems.length > 0 ? (
               <CompactList title={t("tours.includedTitle")} items={includedItems} />
-            ) : null}
-
-            {notIncludedItems.length > 0 ? (
-              <CompactList title={t("tours.notIncludedTitle")} items={notIncludedItems} />
             ) : null}
           </div>
 

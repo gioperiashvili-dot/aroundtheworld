@@ -557,26 +557,13 @@ export default function AdminTourForm({
           </label>
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className="grid gap-4">
           <LocalizedItemsEditor
             title={t("tours.includedTitle")}
             addLabel={t("admin.addIncludedItem")}
             examples={t("admin.includedExamples")}
             rows={form.included}
             section="included"
-            saving={saving}
-            onChange={onLocalizedItemChange}
-            onAdd={onAddLocalizedItem}
-            onRemove={onRemoveLocalizedItem}
-            t={t}
-          />
-
-          <LocalizedItemsEditor
-            title={t("tours.notIncludedTitle")}
-            addLabel={t("admin.addNotIncludedItem")}
-            examples={t("admin.notIncludedExamples")}
-            rows={form.notIncluded}
-            section="notIncluded"
             saving={saving}
             onChange={onLocalizedItemChange}
             onAdd={onAddLocalizedItem}

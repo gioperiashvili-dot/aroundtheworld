@@ -689,7 +689,6 @@ translationEnhancements.en.tourSearch = {
 Object.assign(translationEnhancements.ka.tours, {
   bookTour: "ტურის დაჯავშნა",
   includedTitle: "ტურის ღირებულებაში შედის",
-  notIncludedTitle: "ღირებულებაში არ შედის",
   availableDates: "ხელმისაწვდომი თარიღები",
   bookingRequest: {
     eyebrow: "ტურის მოთხოვნა",
@@ -722,7 +721,6 @@ Object.assign(translationEnhancements.ka.tours, {
 Object.assign(translationEnhancements.en.tours, {
   bookTour: "Book tour",
   includedTitle: "Included in the tour price",
-  notIncludedTitle: "Not included in the price",
   availableDates: "Available dates",
   bookingRequest: {
     eyebrow: "Tour request",
@@ -768,7 +766,6 @@ Object.assign(translationEnhancements.ka.admin, {
   selectedImage: "არჩეული ფაილი",
   clearSelectedImage: "ფაილის მოცილება",
   addIncludedItem: "შედის პუნქტის დამატება",
-  addNotIncludedItem: "არ შედის პუნქტის დამატება",
   removeItem: "პუნქტის წაშლა",
   examplesLabel: "მაგალითები",
   includedExamples: [
@@ -778,12 +775,6 @@ Object.assign(translationEnhancements.ka.admin, {
     "კვება",
     "სამოგზაურო დაზღვევა",
     "ტრანსფერი",
-  ],
-  notIncludedExamples: [
-    "სამოგზაურო დაზღვევა",
-    "ტრანსფერი",
-    "დამატებითი ბარგი",
-    "პირადი ხარჯები",
   ],
 });
 
@@ -805,7 +796,6 @@ Object.assign(translationEnhancements.en.admin, {
   selectedImage: "Selected file",
   clearSelectedImage: "Remove file",
   addIncludedItem: "Add included item",
-  addNotIncludedItem: "Add not included item",
   removeItem: "Remove item",
   examplesLabel: "Examples",
   includedExamples: [
@@ -815,12 +805,6 @@ Object.assign(translationEnhancements.en.admin, {
     "Meals",
     "Travel insurance",
     "Transfer",
-  ],
-  notIncludedExamples: [
-    "Travel insurance",
-    "Transfer",
-    "Additional baggage",
-    "Personal expenses",
   ],
 });
 

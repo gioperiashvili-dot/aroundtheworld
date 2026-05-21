@@ -202,7 +202,6 @@ function createEmptyForm() {
     image: "",
     images: [],
     included: [createEmptyLocalizedItem()],
-    notIncluded: [createEmptyLocalizedItem()],
     hotels: [],
   };
 }
@@ -256,7 +255,6 @@ function toFormValues(tour) {
     image: coverImage,
     images: galleryImages.filter((image) => image !== coverImage),
     included: toLocalizedItemRows(tour?.included),
-    notIncluded: toLocalizedItemRows(tour?.notIncluded),
     hotels: toHotelFormRows(tour?.hotels),
   };
 }
@@ -1060,7 +1058,6 @@ export default function AdminPage() {
       },
       dates: parseDatesInput(form.dates),
       included: toLocalizedListPayload(form.included),
-      notIncluded: toLocalizedListPayload(form.notIncluded),
       category: form.category.trim(),
       slug: normalizeTourSlug(form.slug),
       image: galleryImages[0] || "",
