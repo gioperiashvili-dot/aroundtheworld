@@ -1,0 +1,62 @@
+# environment files
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+backend/.env
+backend/.env.local
+backend/.env.development
+backend/.env.production
+backend/.env.*.local
+frontend/.env
+frontend/.env.local
+frontend/.env.development
+frontend/.env.production
+frontend/.env.*.local
+
+# Firebase / Google service account secrets
+*serviceAccount*.json
+*service-account*.json
+serviceAccountKey.json
+firebase-adminsdk*.json
+google-credentials*.json
+credentials.json
+
+# uploads / private files
+backend/tmp/*.json
+!backend/tmp/manual-booking.example.json
+backend/uploads/bookings/
+uploads/bookings/
+**/uploads/bookings/
+**/bookings/*/files/
+**/*.pdf
+!frontend/public/Around_The_World_Privacy_Policy.pdf
+!frontend/public/Around_The_World_Terms_and_Conditions.pdf
+!frontend/public/Around_The_World_Cookie_Policy.pdf
+
+# dependencies/build/cache
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+frontend/build/
+build/
+dist/
+.cache/
+.parcel-cache/
+coverage/
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+pm2.log
+logs/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

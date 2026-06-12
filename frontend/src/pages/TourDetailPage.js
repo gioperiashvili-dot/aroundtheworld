@@ -1,0 +1,1125 @@
+import { useCallback, useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useFirebaseAuth } from "../auth/FirebaseAuthContext";
+import EmptyState from "../components/EmptyState";
+import ImageLightbox from "../components/ImageLightbox";
+import LoadingSkeleton from "../components/LoadingSkeleton";
+import PublicPageShell from "../components/PublicPageShell";
+import ReviewsSection from "../components/ReviewsSection";
+import SEO, {
+  PAGE_SEO,
+  buildCanonicalUrl,
+  buildTourSeoDescription,
+} from "../components/SEO";
+import TermsConsentCheckbox from "../components/TermsConsentCheckbox";
+import TermsPreviewModal from "../components/TermsPreviewModal";
+import TourDescription from "../components/TourDescription";
+import TourHotelsSection from "../components/TourHotelsSection";
+import TravelImage from "../components/TravelImage";
+import { getLocalized, useLanguage } from "../i18n/LanguageContext";
+import { fetchTourById, submitTourBookingRequest } from "../lib/api";
+import {
+  fetchUserProfile,
+  saveTourBookingRequestForUser,
+  saveUserPhoneIfMissing,
+} from "../lib/firebaseUserData";
+import { SHOW_PUBLIC_REVIEWS } from "../lib/features";
+import {
+  formatCalendarDate,
+  formatCurrencyValue,
+  formatTourDates,
+  getFriendlyApiError,
+} from "../lib/formatters";
+import { buildTermsConsentPayload } from "../lib/legalDocuments";
+import { aroundWorldPageBackground } from "../lib/pageBackgrounds";
+import {
+  buildBreadcrumbStructuredData,
+  buildTourProductStructuredData,
+} from "../lib/structuredData";
+import { getTourImageSources } from "../lib/tourImages";
+
+function getLocalizedList(value, language = "ka") {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => String(item || "").trim())
+      .filter(Boolean);
+  }
+
+  if (!value || typeof value !== "object") {
+    return [];
+  }
+
+  const items = Array.isArray(value[language])
+    ? value[language]
+    : Array.isArray(value.ka)
+      ? value.ka
+      : Array.isArray(value.en)
+        ? value.en
+        : [];
+
+  return items
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
+}
+
+function getCurrentPageUrl() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  return window.location.href;
+}
+
+function buildSelectedTourPayload({
+  tour,
+  title,
+  destination,
+  duration,
+  dates,
+  includedItems,
+  price,
+  category,
+}) {
+  return {
+    id: tour.id,
+    title,
+    destination,
+    price,
+    duration,
+    dates,
+    category,
+    included: includedItems,
+    detailUrl: getCurrentPageUrl(),
+  };
+}
+
+function getTextValue(value) {
+  return String(value || "").trim();
+}
+
+function getBookingFormDefaults(user, profile = null) {
+  if (!user) {
+    return {
+      customerName: "",
+      customerEmail: "",
+      customerPhone: "",
+      customerMessage: "",
+    };
+  }
+
+  return {
+    customerName: getTextValue(user.displayName || profile?.displayName),
+    customerEmail: getTextValue(user.email || profile?.email),
+    customerPhone: getTextValue(profile?.phone),
+    customerMessage: "",
+  };
+}
+
+function mergeBookingPrefill(previousForm, user, profile) {
+  const defaults = getBookingFormDefaults(user, profile);
+
+  return {
+    ...previousForm,
+    customerName: previousForm.customerName || defaults.customerName,
+    customerEmail: defaults.customerEmail || previousForm.customerEmail,
+    customerPhone: previousForm.customerPhone || defaults.customerPhone,
+  };
+}
+
+export default function TourDetailPage() {
+  const { idOrSlug } = useParams();
+  const { language, t } = useLanguage();
+  const { currentUser } = useFirebaseAuth();
+  const [tour, setTour] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isBookingSuccessOpen, setIsBookingSuccessOpen] = useState(false);
+  const [bookingSubmitting, setBookingSubmitting] = useState(false);
+  const [bookingError, setBookingError] = useState("");
+  const [isTermsPreviewOpen, setIsTermsPreviewOpen] = useState(false);
+  const [bookingForm, setBookingForm] = useState({
+    customerName: "",
+    customerEmail: "",
+    customerPhone: "",
+    customerMessage: "",
+  });
+  const [bookingTermsAccepted, setBookingTermsAccepted] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [lightbox, setLightbox] = useState({
+    isOpen: false,
+    images: [],
+    initialIndex: 0,
+    title: "",
+  });
+
+  useEffect(() => {
+    const loadTour = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const response = await fetchTourById(idOrSlug);
+        setTour(response?.tour || null);
+      } catch (requestError) {
+        setTour(null);
+        setError(getFriendlyApiError(requestError, t("tours.detailError")));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (idOrSlug) {
+      void loadTour();
+    }
+  }, [idOrSlug, t]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!currentUser) {
+      setUserProfile(null);
+      setBookingForm(getBookingFormDefaults(null));
+      return undefined;
+    }
+
+    const loadUserProfile = async () => {
+      let profile = null;
+
+      try {
+        profile = await fetchUserProfile(currentUser.uid);
+      } catch (profileError) {
+        console.warn("[booking-request] User profile prefill failed:", profileError);
+      }
+
+      if (!isMounted) {
+        return;
+      }
+
+      setUserProfile(profile);
+      setBookingForm((previousForm) =>
+        mergeBookingPrefill(previousForm, currentUser, profile)
+      );
+    };
+
+    setBookingForm((previousForm) =>
+      mergeBookingPrefill(previousForm, currentUser, null)
+    );
+    void loadUserProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUser]);
+
+  const tourImages = getTourImageSources(tour);
+
+  useEffect(() => {
+    setActiveImageIndex(0);
+  }, [tour?.id]);
+
+  useEffect(() => {
+    setActiveImageIndex((currentIndex) =>
+      Math.min(currentIndex, Math.max(tourImages.length - 1, 0))
+    );
+  }, [tourImages.length]);
+
+  const title = getLocalized(tour?.title, language);
+  const destination = getLocalized(tour?.destination, language);
+  const shortDescription = getLocalized(tour?.shortDescription, language);
+  const description = getLocalized(tour?.description, language);
+  const duration = getLocalized(tour?.duration, language);
+  const dates = formatTourDates(tour?.dates, 12, language);
+  const includedItems = getLocalizedList(tour?.included, language);
+  const canonical = buildCanonicalUrl(
+    `/tours/${encodeURIComponent(tour?.slug || idOrSlug || "")}`
+  );
+  const seoTitle = title ? `${title} | Around The World` : PAGE_SEO.tours.title;
+  const seoDescription = buildTourSeoDescription({
+    shortDescription,
+    description,
+  });
+  const seoImage = tourImages[0] || undefined;
+  const tourStructuredData =
+    tour && title
+      ? [
+          buildBreadcrumbStructuredData([
+            { name: "Around The World", url: "/" },
+            { name: "ტურები", url: "/tours" },
+            { name: title, url: canonical },
+          ]),
+          buildTourProductStructuredData({
+            title,
+            description: seoDescription,
+            images: tourImages,
+            canonical,
+            price: tour.price,
+            currency: tour.currency,
+          }),
+        ]
+      : undefined;
+
+  const closeBookingModal = useCallback(() => {
+    setIsBookingModalOpen(false);
+    setBookingError("");
+    setBookingTermsAccepted(false);
+  }, []);
+
+  const closeBookingSuccessModal = useCallback(() => {
+    setIsBookingSuccessOpen(false);
+  }, []);
+
+  const openBookingModal = useCallback(() => {
+    if (currentUser) {
+      setBookingForm((previousForm) =>
+        mergeBookingPrefill(previousForm, currentUser, userProfile)
+      );
+    }
+
+    setBookingTermsAccepted(false);
+    setIsBookingModalOpen(true);
+  }, [currentUser, userProfile]);
+
+  const openImageLightbox = useCallback((images, initialIndex = 0, lightboxTitle = "") => {
+    const imageList = Array.isArray(images) ? images.filter(Boolean) : [];
+
+    if (imageList.length === 0) {
+      return;
+    }
+
+    setLightbox({
+      isOpen: true,
+      images: imageList,
+      initialIndex,
+      title: lightboxTitle,
+    });
+  }, []);
+
+  const closeImageLightbox = useCallback(() => {
+    setLightbox((currentLightbox) => ({
+      ...currentLightbox,
+      isOpen: false,
+    }));
+  }, []);
+
+  const handleBookingFieldChange = (event) => {
+    const { name, value } = event.target;
+
+    setBookingForm((previousForm) => ({
+      ...previousForm,
+      [name]: value,
+    }));
+
+    if (bookingError) {
+      setBookingError("");
+    }
+  };
+
+  const handleBookingTermsChange = (checked) => {
+    setBookingTermsAccepted(checked);
+
+    if (bookingError) {
+      setBookingError("");
+    }
+  };
+
+  const openTermsPreview = useCallback(() => {
+    setIsTermsPreviewOpen(true);
+  }, []);
+
+  const closeTermsPreview = useCallback(() => {
+    setIsTermsPreviewOpen(false);
+  }, []);
+
+  const handleBookingSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!tour) {
+      return;
+    }
+
+    const trimmedForm = {
+      customerName: bookingForm.customerName.trim(),
+      customerEmail: bookingForm.customerEmail.trim(),
+      customerPhone: bookingForm.customerPhone.trim(),
+      customerMessage: bookingForm.customerMessage.trim(),
+    };
+
+    if (
+      !trimmedForm.customerName ||
+      !trimmedForm.customerEmail ||
+      !trimmedForm.customerPhone
+    ) {
+      setBookingError(t("tours.bookingRequest.errors.required"));
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedForm.customerEmail)) {
+      setBookingError(t("tours.bookingRequest.errors.email"));
+      return;
+    }
+
+    if (!bookingTermsAccepted) {
+      setBookingError(t("tours.bookingRequest.errors.terms"));
+      return;
+    }
+
+    setBookingSubmitting(true);
+    setBookingError("");
+
+    try {
+      const selectedTour = buildSelectedTourPayload({
+        tour,
+        title,
+        destination,
+        duration,
+        dates,
+        includedItems,
+        price: formatCurrencyValue(tour.price, tour.currency, language),
+        category: tour.category,
+      });
+      const requestPayload = {
+        ...trimmedForm,
+        selectedTour,
+        language,
+        ...buildTermsConsentPayload(),
+      };
+
+      await submitTourBookingRequest(requestPayload);
+
+      let nextUserProfile = userProfile;
+
+      if (currentUser) {
+        try {
+          const firestoreResults = await Promise.allSettled([
+            saveTourBookingRequestForUser(currentUser, requestPayload),
+            saveUserPhoneIfMissing(currentUser, trimmedForm.customerPhone),
+          ]);
+
+          firestoreResults.forEach((result) => {
+            if (result.status === "rejected") {
+              console.warn("[booking-request] Firestore save failed:", result.reason);
+            }
+          });
+
+          nextUserProfile = userProfile?.phone
+            ? userProfile
+            : {
+                ...(userProfile || {}),
+                phone: trimmedForm.customerPhone,
+              };
+          setUserProfile(nextUserProfile);
+        } catch (firestoreError) {
+          console.warn("[booking-request] Firestore save failed:", firestoreError);
+        }
+      }
+
+      setIsBookingModalOpen(false);
+      setIsBookingSuccessOpen(true);
+      setBookingForm(getBookingFormDefaults(currentUser, nextUserProfile));
+      setBookingTermsAccepted(false);
+    } catch (requestError) {
+      const apiCode = requestError.response?.data?.code;
+      setBookingError(
+        apiCode === "TERMS_NOT_ACCEPTED"
+          ? t("tours.bookingRequest.errors.terms")
+          : apiCode === "EMAIL_NOT_CONFIGURED"
+            ? t("tours.bookingRequest.errors.emailNotConfigured")
+            : getFriendlyApiError(
+                requestError,
+                t("tours.bookingRequest.errors.sendFailed")
+              )
+      );
+    } finally {
+      setBookingSubmitting(false);
+    }
+  };
+
+  const hasSideDetails = includedItems.length > 0;
+  const tourDetailCard =
+    !loading && !error && tour ? (
+      <article className="overflow-hidden rounded-[1rem] border border-white/10 bg-[#242424] shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)]">
+        <TourImageGallery
+          images={tourImages}
+          activeIndex={activeImageIndex}
+          title={title}
+          subtitle={destination}
+          onChange={setActiveImageIndex}
+          onImageOpen={(index) => openImageLightbox(tourImages, index, title)}
+        />
+
+        <div className="space-y-6 bg-[#202020] p-6 md:p-8">
+          <div className="grid gap-4 md:grid-cols-3">
+            <StatCard label={t("common.duration")} value={duration} />
+            <StatCard
+              label={t("common.price")}
+              value={formatCurrencyValue(tour.price, tour.currency, language)}
+            />
+            <StatCard
+              label={t("common.updated")}
+              value={
+                tour.updatedAt
+                  ? formatCalendarDate(tour.updatedAt, language)
+                  : t("common.recent")
+              }
+            />
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
+              {destination}
+            </p>
+            <h2 className="[font-family:var(--font-display)] mt-3 text-3xl font-semibold text-white">
+              {title}
+            </h2>
+            <TourDescription description={description} className="mt-4" />
+          </div>
+        </div>
+
+        {hasSideDetails ? (
+          <div className="border-t border-white/10 bg-[#202020] px-6 pb-6 pt-6 md:px-8 md:pb-8">
+            <section className="w-full">
+              {includedItems.length > 0 ? (
+                <TourListSection
+                  title={t("tours.includedTitle")}
+                  items={includedItems}
+                  variant="included"
+                />
+              ) : null}
+            </section>
+          </div>
+        ) : null}
+      </article>
+    ) : null;
+
+  return (
+    <PublicPageShell
+      eyebrow={t("tours.detailLabel")}
+      title={title || t("tours.heading")}
+      description={destination || t("tours.heroDescription")}
+      backgroundImage={aroundWorldPageBackground}
+      tightHero
+      heroAlignTop
+      heroBody={tourDetailCard}
+      heroAside={
+        <div className="space-y-4">
+          <div className="rounded-[1rem] border border-white/10 bg-[#202020]/92 p-5 text-white shadow-[0_24px_80px_-54px_rgba(0,0,0,0.9)] backdrop-blur">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
+              {t("common.price")}
+            </p>
+            <p className="mt-3 [font-family:var(--font-display)] text-4xl font-semibold">
+              {tour ? formatCurrencyValue(tour.price, tour.currency, language) : "--"}
+            </p>
+            <p className="mt-4 text-sm leading-7 text-white/72">
+              {duration || t("common.duration")}
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:flex-col">
+              <button
+                type="button"
+                onClick={openBookingModal}
+                disabled={!tour}
+                className="inline-flex items-center justify-center rounded-full bg-[var(--aw-accent)] px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-[var(--aw-accent-hover)] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
+              >
+                {t("tours.bookTour")}
+              </button>
+              <Link
+                to="/tours"
+                className="inline-flex items-center justify-center rounded-full border border-white/12 bg-white/8 px-4 py-2 text-sm font-semibold text-white/78 transition hover:border-[var(--aw-accent)] hover:text-white"
+              >
+                {t("tours.backToTours")}
+              </Link>
+            </div>
+          </div>
+
+          {!loading && !error && tour?.hotels?.length > 0 ? (
+            <TourHotelsSection
+              hotels={tour.hotels}
+              language={language}
+              compact
+              preview
+              initialVisibleCount={3}
+              onImageOpen={openImageLightbox}
+            />
+          ) : null}
+        </div>
+      }
+    >
+      <SEO
+        title={seoTitle}
+        description={seoDescription}
+        canonical={canonical}
+        type="article"
+        image={seoImage}
+        structuredData={tourStructuredData}
+      />
+
+      {loading ? <LoadingSkeleton count={1} className="xl:grid-cols-1" /> : null}
+
+      {!loading && error ? (
+        <EmptyState title={t("tours.noToursTitle")} message={error} />
+      ) : null}
+
+      {SHOW_PUBLIC_REVIEWS && !loading && !error && tour ? (
+        <div className="mt-8">
+          <ReviewsSection
+            relatedType="tour"
+            tourId={tour.id}
+            title={t("reviews.tourHeading")}
+            description={t("reviews.tourDescription")}
+          />
+        </div>
+      ) : null}
+
+      {isBookingModalOpen && tour ? (
+        <TourBookingRequestModal
+          tour={tour}
+          form={bookingForm}
+          error={bookingError}
+          termsAccepted={bookingTermsAccepted}
+          isSubmitting={bookingSubmitting}
+          language={language}
+          title={title}
+          destination={destination}
+          duration={duration}
+          dates={dates}
+          includedItems={includedItems}
+          t={t}
+          onChange={handleBookingFieldChange}
+          onTermsChange={handleBookingTermsChange}
+          onOpenTermsPreview={openTermsPreview}
+          onClose={closeBookingModal}
+          onSubmit={handleBookingSubmit}
+          emailReadOnly={Boolean(currentUser)}
+        />
+      ) : null}
+
+      {isBookingSuccessOpen ? (
+        <TourBookingSuccessModal t={t} onClose={closeBookingSuccessModal} />
+      ) : null}
+
+      <ImageLightbox
+        isOpen={lightbox.isOpen}
+        images={lightbox.images}
+        initialIndex={lightbox.initialIndex}
+        title={lightbox.title}
+        onClose={closeImageLightbox}
+      />
+
+      <TermsPreviewModal
+        isOpen={isTermsPreviewOpen}
+        onClose={closeTermsPreview}
+      />
+    </PublicPageShell>
+  );
+}
+
+function StatCard({ label, value }) {
+  return (
+    <div className="rounded-[0.9rem] border border-white/10 bg-[#171717] p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/56">
+        {label}
+      </p>
+      <p className="mt-2 text-lg font-semibold text-white">{value}</p>
+    </div>
+  );
+}
+
+function TourImageGallery({
+  images,
+  activeIndex,
+  title,
+  subtitle,
+  onChange,
+  onImageOpen,
+}) {
+  const hasMultipleImages = images.length > 1;
+  const activeImage = images[activeIndex] || images[0] || "";
+
+  const goToPrevious = () => {
+    onChange((currentIndex) =>
+      currentIndex === 0 ? images.length - 1 : currentIndex - 1
+    );
+  };
+
+  const goToNext = () => {
+    onChange((currentIndex) =>
+      currentIndex >= images.length - 1 ? 0 : currentIndex + 1
+    );
+  };
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => onImageOpen?.(activeIndex)}
+        className="block w-full cursor-zoom-in text-left"
+        aria-label={`${title || "Tour"} image preview`}
+      >
+        <TravelImage
+          image={activeImage}
+          title={title}
+          subtitle={subtitle}
+          variant="tour"
+          className="h-[22rem] md:h-[28rem]"
+        />
+      </button>
+
+      {hasMultipleImages ? (
+        <>
+          <div className="pointer-events-none absolute inset-y-0 left-0 right-0 flex items-center justify-between px-3">
+            <GalleryButton label="Previous image" onClick={goToPrevious}>
+              <ChevronLeftIcon />
+            </GalleryButton>
+            <GalleryButton label="Next image" onClick={goToNext}>
+              <ChevronRightIcon />
+            </GalleryButton>
+          </div>
+
+          <div className="pointer-events-none absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2 rounded-full bg-slate-950/45 px-3 py-2 backdrop-blur">
+            {images.map((image, index) => (
+              <button
+                key={`${image}-${index}`}
+                type="button"
+                aria-label={`Show image ${index + 1}`}
+                onClick={() => onChange(index)}
+                className={`pointer-events-auto h-2.5 w-2.5 rounded-full transition ${
+                  activeIndex === index
+                    ? "bg-white"
+                    : "bg-white/45 hover:bg-white/75"
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+function GalleryButton({ label, onClick, children }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick?.();
+      }}
+      className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full border border-white/12 bg-black/62 text-white shadow-lg shadow-slate-950/20 backdrop-blur transition hover:bg-[var(--aw-accent)] hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-white/30"
+    >
+      {children}
+    </button>
+  );
+}
+
+function TourListSection({ title, items, variant }) {
+  const isIncluded = variant === "included";
+
+  return (
+    <div className="w-full rounded-[1rem] border border-white/10 bg-[#202020] p-6 shadow-[0_30px_90px_-60px_rgba(0,0,0,0.92)]">
+      <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
+        {title}
+      </p>
+      <ul className="mt-4 space-y-3">
+        {items.map((item) => (
+          <li
+            key={item}
+            className="flex gap-3 text-sm leading-7 text-white/72"
+          >
+            <span
+              className={`mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
+                isIncluded
+                  ? "bg-[rgba(245,184,0,0.16)] text-[var(--aw-accent)]"
+                  : "bg-white/10 text-white/70"
+              }`}
+            >
+              {isIncluded ? <CheckIcon /> : <MinusIcon />}
+            </span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function TourBookingRequestModal({
+  tour,
+  form,
+  error,
+  termsAccepted,
+  isSubmitting,
+  emailReadOnly = false,
+  language,
+  title,
+  destination,
+  duration,
+  dates,
+  includedItems,
+  t,
+  onChange,
+  onTermsChange,
+  onOpenTermsPreview,
+  onClose,
+  onSubmit,
+}) {
+  const selectedTour = buildSelectedTourPayload({
+    tour,
+    title,
+    destination,
+    duration,
+    dates,
+    includedItems,
+    price: formatCurrencyValue(tour.price, tour.currency, language),
+    category: tour.category,
+  });
+  const summaryRows = [
+    { label: t("tours.selectedTour"), value: selectedTour.title },
+    { label: t("common.destination"), value: selectedTour.destination },
+    { label: t("common.price"), value: selectedTour.price },
+    { label: t("common.duration"), value: selectedTour.duration },
+    { label: t("tours.availableDates"), value: selectedTour.dates.join(", ") },
+    { label: t("common.category"), value: selectedTour.category },
+  ].filter((item) => String(item.value || "").trim());
+  const termsError =
+    error === t("tours.bookingRequest.errors.terms") ? error : "";
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    const originalOverflow = document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="tour-booking-request-title"
+      className="fixed inset-0 z-50 flex items-end justify-center px-4 py-4 sm:items-center"
+    >
+      <button
+        type="button"
+        aria-label={t("common.close")}
+        onClick={onClose}
+        className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+      />
+
+      <div className="relative max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-[1rem] border border-white/10 bg-[#202020] p-5 text-white shadow-[0_34px_120px_-48px_rgba(0,0,0,0.95)] sm:p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--aw-accent)]">
+              {t("tours.bookingRequest.eyebrow")}
+            </p>
+            <h2
+              id="tour-booking-request-title"
+              className="[font-family:var(--font-display)] mt-2 text-2xl font-semibold text-white"
+            >
+              {t("tours.bookingRequest.title")}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t("common.close")}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/12 text-lg font-semibold text-white/70 transition hover:border-[var(--aw-accent)] hover:text-white"
+          >
+            x
+          </button>
+        </div>
+
+        <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+          <div className="rounded-[1rem] border border-white/10 bg-[#171717] p-4">
+            <h3 className="text-sm font-semibold text-white">
+              {t("tours.bookingRequest.selectedTour")}
+            </h3>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              {summaryRows.map((item) => (
+                <TourMeta
+                  key={`${item.label}-${item.value}`}
+                  label={item.label}
+                  value={item.value}
+                />
+              ))}
+            </div>
+
+            {includedItems.length > 0 ? (
+              <CompactList title={t("tours.includedTitle")} items={includedItems} />
+            ) : null}
+          </div>
+
+          <form className="space-y-4" onSubmit={onSubmit} noValidate>
+            <BookingTextField
+              label={t("tours.bookingRequest.name")}
+              name="customerName"
+              value={form.customerName}
+              onChange={onChange}
+              required
+            />
+            <BookingTextField
+              label={t("tours.bookingRequest.email")}
+              name="customerEmail"
+              type="email"
+              value={form.customerEmail}
+              onChange={onChange}
+              readOnly={emailReadOnly}
+              required
+            />
+            <BookingTextField
+              label={t("tours.bookingRequest.phone")}
+              name="customerPhone"
+              type="tel"
+              value={form.customerPhone}
+              onChange={onChange}
+              required
+            />
+            <label className="block">
+              <span className="text-sm font-semibold text-white/78">
+                {t("tours.bookingRequest.message")}
+              </span>
+              <textarea
+                name="customerMessage"
+                value={form.customerMessage}
+                onChange={onChange}
+                rows={4}
+                className="mt-2 w-full rounded-[0.85rem] border border-white/10 bg-[var(--aw-input)] px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-[var(--aw-accent)]"
+              />
+            </label>
+
+            <p className="rounded-[0.85rem] border border-amber-300/20 bg-amber-500/10 px-4 py-3 text-sm font-medium leading-6 text-amber-100">
+              {t("tours.bookingRequest.priceWarning")}
+            </p>
+
+            <TermsConsentCheckbox
+              id="tour-booking-terms-consent"
+              checked={termsAccepted}
+              onChange={onTermsChange}
+              error={termsError}
+              onOpenTermsPreview={onOpenTermsPreview}
+            />
+
+            {error && !termsError ? (
+              <p className="rounded-[1.1rem] bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 dark:bg-rose-500/10 dark:text-rose-200">
+                {error}
+              </p>
+            ) : null}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="inline-flex w-full items-center justify-center rounded-full bg-[var(--aw-accent)] px-5 py-3 text-sm font-black text-slate-950 shadow-[0_18px_42px_-26px_rgba(245,184,0,0.9)] transition hover:bg-[var(--aw-accent-hover)] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300 disabled:shadow-none"
+            >
+              {isSubmitting
+                ? t("tours.bookingRequest.sending")
+                : t("tours.bookingRequest.send")}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TourBookingSuccessModal({ t, onClose }) {
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    const originalOverflow = document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="tour-booking-success-title"
+      className="fixed inset-0 z-50 flex items-end justify-center px-4 py-4 sm:items-center"
+    >
+      <button
+        type="button"
+        aria-label={t("common.close")}
+        onClick={onClose}
+        className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+      />
+
+      <div className="relative w-full max-w-lg rounded-[1rem] border border-white/10 bg-[#202020] p-6 text-center text-white shadow-[0_34px_120px_-48px_rgba(0,0,0,0.95)] sm:p-7">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={t("common.close")}
+          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/12 text-lg font-semibold text-white/70 transition hover:border-[var(--aw-accent)] hover:text-white"
+        >
+          x
+        </button>
+
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[rgba(245,184,0,0.16)] text-[var(--aw-accent)]">
+          <CheckIcon className="h-7 w-7" />
+        </div>
+        <h2
+          id="tour-booking-success-title"
+          className="[font-family:var(--font-display)] mt-5 text-2xl font-semibold text-white"
+        >
+          {t("tours.bookingRequest.successTitle")}
+        </h2>
+        <p className="mt-3 text-sm leading-7 text-white/72">
+          {t("tours.bookingRequest.success")}
+        </p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[var(--aw-accent)] px-5 py-3 text-sm font-black text-slate-950 shadow-[0_18px_42px_-26px_rgba(245,184,0,0.9)] transition hover:bg-[var(--aw-accent-hover)]"
+        >
+          {t("tours.bookingRequest.successAction")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function BookingTextField({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+  required = false,
+  readOnly = false,
+}) {
+  return (
+    <label className="block">
+      <span className="text-sm font-semibold text-white/78">
+        {label}
+      </span>
+      <input
+        name={name}
+        type={type}
+        value={value}
+        onChange={onChange}
+        required={required}
+        readOnly={readOnly}
+        className="mt-2 w-full rounded-[0.85rem] border border-white/10 bg-[var(--aw-input)] px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-[var(--aw-accent)]"
+      />
+    </label>
+  );
+}
+
+function TourMeta({ label, value }) {
+  return (
+    <div>
+      <span className="block text-xs font-semibold uppercase tracking-[0.18em] text-white/50">
+        {label}
+      </span>
+      <span className="mt-1 block break-words font-semibold text-white">
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function CompactList({ title, items }) {
+  return (
+    <div className="mt-4 border-t border-white/10 pt-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--aw-accent)]">
+        {title}
+      </p>
+      <ul className="mt-3 space-y-2">
+        {items.map((item) => (
+          <li
+            key={item}
+            className="text-sm leading-6 text-white/70"
+          >
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function CheckIcon({ className = "h-3.5 w-3.5" }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m5 12 4 4L19 6" />
+    </svg>
+  );
+}
+
+function MinusIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-3.5 w-3.5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M6 12h12" />
+    </svg>
+  );
+}
+
+function ChevronLeftIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  );
+}
