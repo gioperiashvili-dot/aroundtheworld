@@ -445,7 +445,7 @@ export default function AdminTourImportPanel({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2.1rem] border border-white/80 bg-[#fffdf8] p-5 shadow-[0_30px_100px_-72px_rgba(72,52,34,0.72)] dark:border-white/10 dark:bg-slate-900/88 sm:p-6">
+      <section className="rounded-[2.1rem] border border-white/80 bg-[#0f172ae6] p-5 shadow-[0_30px_100px_-72px_rgba(72,52,34,0.72)] dark:border-white/10 dark:bg-slate-900/88 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#c26b45] dark:text-orange-200">
